@@ -1,0 +1,75 @@
+:host {
+    display: block;
+}
+
+.moves-success-page {
+    padding: 1.5rem;
+}
+
+.moves-success-card {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 1.75rem;
+    border-radius: 1.25rem;
+}
+
+.moves-success-eyebrow {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    opacity: 0.75;
+}
+
+.moves-success-card h1 {
+    margin: 0 0 0.75rem;
+    font-size: clamp(2rem, 3vw, 2.6rem);
+    line-height: 1.05;
+}
+
+.moves-success-card p {
+    margin: 0;
+    line-height: 1.7;
+    font-size: 1.02rem;
+}
+
+.moves-success-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+}
+
+.moves-success-error-card {
+    border: 1px solid rgba(220, 53, 69, 0.18);
+}
+
+@media (max-width: 640px) {
+    .moves-success-page {
+        padding: 1rem;
+    }
+
+    .moves-success-card {
+        padding: 1.15rem;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .moves-success-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .moves-success-error-card {
+        border-color: rgba(255, 107, 107, 0.24);
+    }
+
+    .moves-success-card h1 {
+        color: #f5f5f5;
+    }
+
+    .moves-success-card p {
+        color: rgba(255, 255, 255, 0.75);
+    }
+}

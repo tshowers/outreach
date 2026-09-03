@@ -1,0 +1,77 @@
+/* Define color themes */
+:root {
+  /* Light mode colors */
+  --background-color: #f8f8f8;
+  --text-color: #333;
+  --highlight-color: #ff6b6b;
+  --stat-message-bg: #e0f7fa;
+  --cta-color: #00796b;
+  --cta-link-bg: #00796b;
+  --cta-link-bg-hover: #004d40;
+}
+
+[data-theme="dark"] {
+  /* Dark mode colors */
+  --background-color: #333;
+  --text-color: #ccc;
+  --highlight-color: #ff4747;
+  --stat-message-bg: #2a2a2a;
+  --cta-color: #50bfa0;
+  --cta-link-bg: #50bfa0;
+  --cta-link-bg-hover: #367f6b;
+}
+
+/* Base styles */
+.unsubscribe-failure-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.unsubscribe-failure-container h1 {
+  color: var(--highlight-color);
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+
+.unsubscribe-failure-container p {
+  font-size: 1.2em;
+  margin-bottom: 20px;
+}
+
+.stat-message {
+  background-color: var(--stat-message-bg);
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.cta {
+  margin-top: 30px;
+  color: var(--cta-color);
+}
+
+.cta-highlight {
+  font-weight: bold;
+  color: var(--cta-color);
+}
+
+.cta-link {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 20px;
+  background-color: var(--cta-link-bg);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.cta-link:hover {
+  background-color: var(--cta-link-bg-hover);
+}

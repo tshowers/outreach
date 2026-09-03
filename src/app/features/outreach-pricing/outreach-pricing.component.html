@@ -1,0 +1,60 @@
+<div class="moves-pricing-page todd-page">
+    <section class="moves-pricing-hero card shadow-sm border-0">
+        <div class="moves-pricing-copy">
+            <div class="moves-pricing-eyebrow">Outreach Pricing</div>
+            <h1>Build campaigns that keep moving after the first send</h1>
+            <p class="moves-pricing-lead"> Outreach unlocks the campaign sequence builder, Signal Engine follow-up routing, and the campaign cockpit. TODD evaluates your idea, builds the sequence, and keeps pressure on each contact based on whether they opened, clicked, or went silent. </p>
+            <div class="moves-pricing-actions">
+                <a class="btn-todd me-2" routerLink="/app">Back to Outreach</a>
+                <a class="btn-todd me-2" routerLink="/signal-engine">Open Signal Engine</a>
+            </div>
+        </div>
+        <div class="moves-pricing-visual">
+            <img src="assets/outreach/outreach.png" alt="Outreach" class="moves-heading-logo img-fluid">
+        </div>
+    </section>
+    <section class="moves-pricing-grid">
+        <article class="moves-pricing-card card shadow-sm border-0 moves-pricing-offer-card">
+            <div class="moves-pricing-card-header">
+                <span class="moves-pricing-badge">What you get</span>
+                <h2>Campaign Sequences + Signal Engine</h2>
+                <p>Everything needed to evaluate ideas, build sequences, launch campaigns, and keep follow-up moving after the first send.</p>
+            </div>
+            <div class="moves-pricing-price-row">
+                <div>
+                    <div class="moves-pricing-price-label">Monthly price</div>
+                    <div class="moves-pricing-price">{{ monthlyPrice }}</div>
+                </div>
+                <div class="moves-pricing-price-note">Explore the campaign idea form and evaluations for free. Subscribe when you are ready to launch sequences and send.</div>
+            </div>
+            <ul class="moves-pricing-list">
+                <li *ngFor="let item of highlights">{{ item }}</li>
+            </ul>
+            <div class="moves-pricing-form">
+                <div class="moves-pricing-login-callout" *ngIf="requiresLogin">
+                    <div class="moves-pricing-login-title">Sign in first</div>
+                    <p class="moves-pricing-login-text"> We use your login to find you before starting checkout. </p>
+                    <button type="button" class="btn btn-dark moves-pricing-login-btn" (click)="goToLogin()"> Sign in to purchase </button>
+                </div>
+                <label class="moves-pricing-field" *ngIf="!requiresLogin">
+                    <span>Email</span>
+                    <input type="email" [(ngModel)]="email" placeholder="Enter your billing email">
+                </label>
+                <button *ngIf="!requiresLogin" type="button" class="btn btn-dark moves-pricing-subscribe" (click)="startCheckout()" [disabled]="isStartingCheckout">
+                    {{ isStartingCheckout ? 'Starting checkout...' : 'Subscribe to Outreach' }}
+                </button>
+                <div class="moves-pricing-error" *ngIf="checkoutError">{{ checkoutError }}</div>
+            </div>
+        </article>
+        <article class="moves-pricing-card card shadow-sm border-0 moves-pricing-card-accent">
+            <div class="moves-pricing-card-header">
+                <span class="moves-pricing-badge">Good to know</span>
+                <h2>How Outreach works</h2>
+                <p>Describe a campaign idea, see TODD evaluate and improve it, then subscribe to launch the sequence and let Signal Engine run the follow-up.</p>
+            </div>
+            <ul class="moves-pricing-list moves-pricing-list-notes">
+                <li *ngFor="let item of notes">{{ item }}</li>
+            </ul>
+        </article>
+    </section>
+</div>

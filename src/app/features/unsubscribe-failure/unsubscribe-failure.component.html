@@ -1,0 +1,23 @@
+<div class="unsubscribe-failure-container todd-page">
+  <h1>We're Sorry!</h1>
+  <p>Unfortunately, we could not unsubscribe you from our mailing list.</p>
+  <p>Please enter your email address below, and we'll remove you from future mailings:</p>
+  <form (submit)="onSubmit()" *ngIf="isForm">
+    <input type="email" placeholder="Enter Email Address" id="email" [(ngModel)]="email" name="email" autocorrect="off" autocapitalize="off" spellcheck="off" autocomplete="off" class="form-control large-text" required />
+    <button type="submit" class="btn-todd">Unsubscribe</button>
+  </form>
+  <div *ngIf="errorMessage" class="error-message">
+    <p>{{ errorMessage }}</p>
+  </div>
+  <div *ngIf="successMessage" class="success-message">
+    <p>{{ successMessage }}</p>
+  </div>
+  <div class="stat-message">
+    <p>{{ statMessage }}</p>
+  </div>
+  <div class="cta">
+    <p>Still considering leaving? Here's what you'll be missing out on:</p>
+    <p class="cta-highlight">{{ statMessage }}</p>
+    <a href="https://todd.taliferro.tech" class="cta-link">Learn more about TODD</a>
+  </div>
+</div>

@@ -1,0 +1,5 @@
+firstName,lastName,profession,company,emailAddress,phoneNumber,streetAddress,city,state,zip,category
+Sarah,Chen,VP Operations,Meridian Group,sarah.chen@meridiangroup.com,312.555.0142,118 Wacker Dr,Chicago,IL,60601,Client
+James,Okafor,Founder,Oakfield Labs,james@oakfieldlabs.com,415.555.0198,45 Market St,San Francisco,CA,94103,Prospect
+Priya,Nair,CTO,Kestrel Systems,priya.nair@kestrelsystems.com,646.555.0173,220 5th Ave,New York,NY,10001,Client
+Marcus,Webb,Director of Sales,Ashcombe Partners,marcus.webb@ashcombe.com,206.555.0114,900 5th Ave,Seattle,WA,98104,Prospect

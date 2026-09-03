@@ -1,0 +1,25 @@
+<div class="moves-success-page todd-page">
+    <section class="moves-success-card card shadow-sm border-0" *ngIf="isConfirming">
+        <div class="moves-success-eyebrow">Outreach Success</div>
+        <h1>Confirming your subscription..</h1>
+        <p> We are checking your checkout session now so Outreach access can be activated for you. </p>
+    </section>
+    <section class="moves-success-card card shadow-sm border-0" *ngIf="!isConfirming && isSuccess">
+        <div class="moves-success-eyebrow">Outreach Activated</div>
+        <h1>Outreach access is now active</h1>
+        <p> You can now move toward paid Outreach sending, campaign activity, and signal-driven follow-up inside Outreach. </p>
+        <div class="moves-success-actions">
+            <button type="button" class="btn btn-dark" (click)="goToOutreach()">Go to Outreach</button>
+            <a class="btn btn-outline-dark" routerLink="/pricing">View pricing</a>
+        </div>
+    </section>
+    <section class="moves-success-card card shadow-sm border-0 moves-success-error-card" *ngIf="!isConfirming && !isSuccess">
+        <div class="moves-success-eyebrow">Outreach Confirmation</div>
+        <h1>We could not confirm your subscription</h1>
+        <p>{{ errorMessage }}</p>
+        <div class="moves-success-actions">
+            <a class="btn-todd btn-glow" routerLink="/pricing">Back to Outreach pricing</a>
+            <button type="button" class="btn-todd" (click)="goToOutreach()">Go to Outreach</button>
+        </div>
+    </section>
+</div>

@@ -1,0 +1,79 @@
+/* You can add global styles to this file, and also import other style files */
+
+/*
+ * TODD's brand blue, from frontend/src/styles.css :root. Several ported
+ * components' own CSS references these two by name (--tl-blue,
+ * --tl-blue-mid) without redeclaring them locally - true of TODD's own
+ * global stylesheet too, this is the only piece of it actually needed so
+ * far, not a port of the full 7000+ line stylesheet.
+ */
+:root {
+  --tl-blue: #00bfff;
+  --tl-blue-mid: #0095cc;
+  --tl-amber: #de8b38;
+  --tl-amber-rgb: 194, 101, 10;
+  --tl-amber-ink: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tl-amber: #fcc168;
+    --tl-amber-rgb: 255, 181, 69;
+    --tl-amber-ink: #2b1400;
+  }
+}
+
+/* Taliferro Tech's pulsing Home action, restored for the shared command deck. */
+.btn-glow {
+  background: var(--tl-amber) !important;
+  color: var(--tl-amber-ink) !important;
+  border-color: transparent !important;
+  animation: btn-glow-pulse 1.8s ease-in-out infinite;
+}
+
+.btn-glow:hover,
+.btn-glow:focus {
+  background: var(--tl-amber) !important;
+  color: var(--tl-amber-ink) !important;
+}
+
+@keyframes btn-glow-pulse {
+  0%,
+  100% { box-shadow: 0 0 0 0 rgba(var(--tl-amber-rgb), 0.45); }
+  50% { box-shadow: 0 0 0 12px rgba(var(--tl-amber-rgb), 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-glow {
+    animation: none;
+    box-shadow: 0 0 0 4px rgba(var(--tl-amber-rgb), 0.35);
+  }
+}
+
+/*
+ * No component here should have to paint its own page-level background -
+ * several (contact-home's cockpit shell chief among them) assume a dark
+ * canvas is already behind their semi-transparent dark-mode panels and
+ * just redefine text/border colors, not a background. Without this, that
+ * assumption was false: nothing anywhere set html/body's background, so
+ * in dark mode those panels' light text landed on the browser's default
+ * white canvas instead - unreadable, not just unstyled. This is the one
+ * place that needs to be right for every route at once.
+ */
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #f6f8fa;
+  color: #0d1117;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #141a1e;
+    color: #e8edf2;
+  }
+}
