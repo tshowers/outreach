@@ -1,0 +1,110 @@
+<app-back-to-top></app-back-to-top>
+<ng-container>
+    <div class="cockpit-shell outreach-home-shell todd-page" data-demo="outreach-sequences">
+        <app-cockpit-command-deck
+            demoId="growth-command-deck"
+            context="Growth · Outreach"
+            title="Growth"
+            iconSrc="assets/todd-outreach-icon.png"
+            iconAlt="Outreach"
+            [subtitle]="hasAuthenticatedOutreachContext
+                ? 'Diagnose growth pain, watch TODD treat it, and see which conversations are moving back toward momentum.'
+                : 'Preview how TODD diagnoses growth pain, treats it, and proves relief once your outreach engine is connected.'"
+            [scoreLabel]="hasAuthenticatedOutreachContext ? 'Growth health' : 'Preview health'"
+            [scoreValue]="growthMomentumScore + '%'"
+            [links]="growthCommandDeckLinks"
+        ></app-cockpit-command-deck>
+
+        <app-cockpit-browse-mode-banner
+            *ngIf="!hasAuthenticatedOutreachContext"
+            surfaceLabel="Growth"
+        ></app-cockpit-browse-mode-banner>
+
+        <section class="cockpit-panel outreach-paywall-banner" *ngIf="hasAuthenticatedOutreachContext && (entitlements$ | async) as entitlements" [hidden]="entitlements.outreach || entitlements.suite">
+            <div class="cockpit-panel__kicker">Outreach access</div>
+            <p>Your account is signed in, but Outreach sending and Signal Engine routing require an active subscription.</p>
+            <a class="btn-todd" routerLink="/pricing">View Outreach pricing</a>
+        </section>
+
+        <section class="cockpit-panel diagnosis-health-panel">
+            <div class="cockpit-panel__kicker">Business Health</div>
+            <div class="diagnosis-health-grid">
+                <article class="diagnosis-health-card" *ngFor="let meter of growthHealthMeters; trackBy: trackByGrowthMeter">
+                    <div class="diagnosis-health-card__instrument">
+                        <app-arc-gauge [value]="meter.value" [max]="meter.max || 100" [tone]="meter.tone"></app-arc-gauge>
+                    </div>
+                    <div class="diagnosis-health-card__body">
+                        <div class="diagnosis-health-card__label">{{ meter.label }}</div>
+                        <div class="diagnosis-health-card__value">{{ meter.displayValue }}</div>
+                        <div class="diagnosis-health-card__detail">{{ meter.detail }}</div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="cockpit-panel diagnosis-board">
+            <div class="diagnosis-board__header">
+                <div>
+                    <div class="cockpit-panel__kicker">Care Cycle</div>
+                    <h2 class="diagnosis-board__title">Symptom, treatment, relief, and proof</h2>
+                    <p class="diagnosis-board__subtitle">
+                        {{ hasAuthenticatedOutreachContext
+                            ? 'Each row shows what is hurting, what TODD is doing about it, and what proof of relief exists so far.'
+                            : 'Guests see the same diagnostic board, but values, active treatment, and proof stay dark until live outreach data is connected.' }}
+                    </p>
+                </div>
+                <div class="diagnosis-board__status">
+                    <span class="diagnosis-board__status-label">App status</span>
+                    <span class="diagnosis-board__status-copy">{{ growthAppStatusVm }}</span>
+                </div>
+            </div>
+
+            <div class="diagnosis-board__table" role="table" aria-label="Growth diagnosis board">
+                <div class="diagnosis-board__column-headers" role="row">
+                    <span role="columnheader">Symptom</span>
+                    <span role="columnheader">Treatment</span>
+                    <span role="columnheader">Relief</span>
+                    <span role="columnheader">Proof</span>
+                </div>
+
+                <article class="diagnosis-row" *ngFor="let row of diagnosisRowsVm; trackBy: trackByDiagnosisRowId" role="row">
+                    <div class="diagnosis-cell diagnosis-cell--symptom" role="cell">
+                        <div class="diagnosis-indicator">
+                            <app-status-led [tone]="row.statusTone" [pulse]="hasAuthenticatedOutreachContext && (row.reliefStatus === 'needs-relief' || row.reliefStatus === 'todd-working')"></app-status-led>
+                            <div>
+                                <div class="diagnosis-title">{{ row.title }}</div>
+                                <div class="diagnosis-badges">
+                                    <span class="diagnosis-badge diagnosis-badge--severity" [attr.data-severity]="row.severity">{{ row.severityLabel }}</span>
+                                    <span class="diagnosis-badge diagnosis-badge--status" [attr.data-status]="row.reliefStatus">{{ row.reliefLabel }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="diagnosis-copy">{{ row.symptom }}</p>
+                        <p class="diagnosis-support">{{ row.evidence }}</p>
+                    </div>
+
+                    <div class="diagnosis-cell" role="cell">
+                        <div class="diagnosis-cell__label">What TODD is doing</div>
+                        <p class="diagnosis-copy">{{ row.treatment }}</p>
+                    </div>
+
+                    <div class="diagnosis-cell" role="cell">
+                        <div class="diagnosis-cell__label">Relief path</div>
+                        <p class="diagnosis-copy">{{ row.relief }}</p>
+                    </div>
+
+                    <div class="diagnosis-cell diagnosis-cell--proof" role="cell">
+                        <div class="diagnosis-proof">
+                            <app-arc-gauge [value]="row.proofValue" [max]="row.proofMax" [tone]="hasAuthenticatedOutreachContext ? 'positive' : 'info'"></app-arc-gauge>
+                            <div class="diagnosis-proof__body">
+                                <div class="diagnosis-cell__label">{{ row.proofLabel }}</div>
+                                <div class="diagnosis-proof__value">{{ row.proofReadout }}</div>
+                                <div class="diagnosis-support">{{ row.proofDetail }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </div>
+</ng-container>

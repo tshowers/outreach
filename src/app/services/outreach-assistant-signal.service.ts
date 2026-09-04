@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
 
 /**
  * No-op stand-in for the page-context/activity-reporting slice of
@@ -8,11 +9,22 @@ import { Injectable } from '@angular/core';
  * to report page context, transcript nudges, and activity events have
  * nowhere to go. Kept as a same-shaped no-op rather than deleted from each
  * call site, both to minimize the diff against the original component and
- * because a real Network-scoped assistant (if/when built) would plug in
+ * because a real Outreach-scoped assistant (if/when built) would plug in
  * here.
+ *
+ * engagementActionRequest$ is a real (never-emitting) Observable rather
+ * than a method - OutreachHomeComponent subscribes to it expecting an
+ * Observable, since in the original TODD app it's how the assistant chat
+ * box hands off a button click ("compose an email", "show me the outbox")
+ * to whichever page is open. With no assistant chat box in this app,
+ * nothing ever pushes into it, so the subscription is inert rather than
+ * missing.
  */
 @Injectable( { providedIn: 'root' } )
 export class OutreachAssistantSignalService {
+  private readonly engagementActionRequestSubject = new Subject<{ action: string;[key: string]: unknown; } | null>();
+  readonly engagementActionRequest$: Observable<{ action: string;[key: string]: unknown; } | null> = this.engagementActionRequestSubject.asObservable();
+
   emitAssistantActivity ( _event: Record<string, unknown> ): void { }
   setPageContext ( _context: Record<string, unknown> ): void { }
   clearPageContext (): void { }

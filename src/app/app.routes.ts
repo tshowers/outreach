@@ -61,6 +61,11 @@ export const routes: Routes = [
       import( './features/ad-engagement/ad-engagement.component' ).then( ( m ) => m.AdEngagementComponent ),
   },
   {
+    path: 'app',
+    loadComponent: () =>
+      import( './features/outreach-home/outreach-home.component' ).then( ( m ) => m.OutreachHomeComponent ),
+  },
+  {
     path: '**',
     redirectTo: 'app',
   },

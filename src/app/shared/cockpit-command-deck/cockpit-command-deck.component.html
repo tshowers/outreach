@@ -1,0 +1,19 @@
+<div class="command-deck-panel" [attr.data-demo]="demoId || null">
+  <div class="command-deck-panel__eyebrow">{{ eyebrow }}</div>
+  <div class="command-deck-panel__row">
+    <div class="command-deck-panel__heading">
+      <img *ngIf="iconSrc" class="command-deck-panel__icon" [src]="iconSrc" [alt]="iconAlt" />
+      <div>
+        <div class="command-deck-panel__context">{{ context }}</div>
+        <h1 class="command-deck-panel__title">{{ title }}</h1>
+        <p class="command-deck-panel__subtitle">{{ subtitle }}</p>
+      </div>
+    </div>
+    <div class="command-deck-panel__score">
+      <div class="command-deck-panel__score-label">{{ scoreLabel }}</div>
+      <div class="command-deck-panel__score-value">{{ scoreValue }}</div>
+    </div>
+  </div>
+</div>
+
+<app-tab-bar *ngIf="linkTabs.length > 0" [tabs]="linkTabs" [ariaLabel]="context || title || 'Sections'"></app-tab-bar>

@@ -1,0 +1,19 @@
+<section
+  class="browse-mode-banner"
+  role="status"
+  aria-live="polite"
+  [attr.aria-label]="statusLabel + ' for ' + surfaceLabel"
+>
+  <div class="browse-mode-banner__eyebrow">
+    <span class="browse-mode-banner__dot" aria-hidden="true"></span>
+    {{ statusLabel }}
+  </div>
+  <h2 class="browse-mode-banner__title">{{ customTitle || ('You are browsing ' + surfaceLabel) }}</h2>
+  <p class="browse-mode-banner__copy">
+    {{ customCopy || ('You are not signed in, so TODD is showing a preview of ' + surfaceLabel + ' with live values turned off. This shows what your cockpit will look like and how TODD works with your information once live data is connected.') }}
+  </p>
+  <div class="browse-mode-banner__actions">
+    <a class="browse-mode-banner__link browse-mode-banner__link--home" routerLink="/">Home</a>
+    <a class="browse-mode-banner__link" routerLink="/login">{{ signInLabel }}</a>
+  </div>
+</section>

@@ -1,0 +1,154 @@
+.browse-mode-banner {
+  --browse-mode-banner-bg:
+    linear-gradient(135deg, rgba(244, 250, 255, 0.96), rgba(228, 242, 255, 0.92)),
+    rgba(255, 255, 255, 0.94);
+  --browse-mode-banner-border: rgba(0, 149, 204, 0.18);
+  --browse-mode-banner-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+  --browse-mode-banner-overlay:
+    radial-gradient(circle at top right, rgba(91, 198, 255, 0.18), transparent 36%),
+    linear-gradient(90deg, rgba(91, 198, 255, 0.06), transparent 55%);
+  --browse-mode-banner-eyebrow-bg: rgba(0, 149, 204, 0.1);
+  --browse-mode-banner-eyebrow-text: #0b79a7;
+  --browse-mode-banner-dot: #0b9fe0;
+  --browse-mode-banner-title: #0f172a;
+  --browse-mode-banner-copy: rgba(15, 23, 42, 0.78);
+  --browse-mode-banner-link-bg: rgba(0, 149, 204, 0.08);
+  --browse-mode-banner-link-border: rgba(0, 149, 204, 0.18);
+  --browse-mode-banner-link-text: #0f172a;
+  margin: 1rem 0 1.5rem;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--browse-mode-banner-border);
+  border-radius: 20px;
+  background: var(--browse-mode-banner-bg);
+  box-shadow: var(--browse-mode-banner-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.browse-mode-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--browse-mode-banner-overlay);
+  pointer-events: none;
+}
+
+.browse-mode-banner__eyebrow,
+.browse-mode-banner__title,
+.browse-mode-banner__copy {
+  position: relative;
+  z-index: 1;
+}
+
+.browse-mode-banner__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: var(--browse-mode-banner-eyebrow-bg);
+  color: var(--browse-mode-banner-eyebrow-text);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.browse-mode-banner__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--browse-mode-banner-dot);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--browse-mode-banner-dot) 55%, transparent);
+}
+
+.browse-mode-banner__title {
+  margin: 0 0 0.45rem;
+  color: var(--browse-mode-banner-title);
+  font-size: clamp(1.05rem, 2.2vw, 1.45rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.browse-mode-banner__copy {
+  margin: 0;
+  max-width: 68rem;
+  color: var(--browse-mode-banner-copy);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.browse-mode-banner__actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+
+.browse-mode-banner__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--browse-mode-banner-link-border);
+  background: var(--browse-mode-banner-link-bg);
+  color: var(--browse-mode-banner-link-text);
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.browse-mode-banner__link--button {
+  appearance: none;
+  cursor: pointer;
+}
+
+.browse-mode-banner__link:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--browse-mode-banner-link-bg) 84%, white);
+  border-color: color-mix(in srgb, var(--browse-mode-banner-link-border) 86%, var(--browse-mode-banner-dot));
+  color: var(--browse-mode-banner-link-text);
+}
+
+@media (prefers-color-scheme: dark) {
+  .browse-mode-banner {
+    --browse-mode-banner-bg:
+      linear-gradient(135deg, rgba(12, 23, 39, 0.96), rgba(24, 43, 68, 0.92)),
+      rgba(10, 17, 28, 0.92);
+    --browse-mode-banner-border: rgba(111, 191, 255, 0.28);
+    --browse-mode-banner-shadow: 0 18px 42px rgba(3, 10, 18, 0.24);
+    --browse-mode-banner-overlay:
+      radial-gradient(circle at top right, rgba(91, 198, 255, 0.24), transparent 36%),
+      linear-gradient(90deg, rgba(91, 198, 255, 0.08), transparent 55%);
+    --browse-mode-banner-eyebrow-bg: rgba(91, 198, 255, 0.12);
+    --browse-mode-banner-eyebrow-text: #78c8ff;
+    --browse-mode-banner-dot: #78c8ff;
+    --browse-mode-banner-title: #f5fbff;
+    --browse-mode-banner-copy: rgba(232, 242, 250, 0.92);
+    --browse-mode-banner-link-bg: rgba(120, 200, 255, 0.1);
+    --browse-mode-banner-link-border: rgba(120, 200, 255, 0.22);
+    --browse-mode-banner-link-text: #f5fbff;
+  }
+}
+
+@media (max-width: 767px) {
+  .browse-mode-banner {
+    margin: 0.85rem 0 1.2rem;
+    padding: 0.95rem 0.95rem 1rem;
+    border-radius: 18px;
+  }
+
+  .browse-mode-banner__copy {
+    font-size: 0.93rem;
+  }
+
+  .browse-mode-banner__link {
+    width: 100%;
+  }
+}
