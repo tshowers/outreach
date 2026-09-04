@@ -55,6 +55,12 @@ export const routes: Routes = [
       import( './features/signal-engine/signal-engine.component' ).then( ( m ) => m.SignalEngineComponent ),
   },
   {
+    path: 'engagement',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import( './features/ad-engagement/ad-engagement.component' ).then( ( m ) => m.AdEngagementComponent ),
+  },
+  {
     path: '**',
     redirectTo: 'app',
   },

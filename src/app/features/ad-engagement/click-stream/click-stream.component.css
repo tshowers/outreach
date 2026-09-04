@@ -1,0 +1,505 @@
+/* Keep long campaign ids and URLs from blowing up layout */
+.click-stream-container {
+    --click-surface: rgba(255, 255, 255, 0.78);
+    --click-surface-strong: rgba(255, 255, 255, 0.92);
+    --click-border: rgba(32, 53, 66, 0.12);
+    --click-text: #1f2933;
+    --click-muted: rgba(31, 41, 51, 0.72);
+    --click-subtle: rgba(31, 41, 51, 0.56);
+    --click-accent: #0f6c86;
+    --click-accent-soft: rgba(15, 108, 134, 0.1);
+    color: var(--click-text);
+}
+
+.click-stream-intelligence {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1.25rem;
+}
+
+.click-stream-intelligence__card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.38rem;
+    min-height: 112px;
+    padding: 1rem 1.1rem;
+    border-radius: 20px;
+    border: 1px solid var(--click-border);
+    background:
+        linear-gradient(135deg, rgba(134, 134, 134, 0.06), rgba(255, 255, 255, 0) 56%),
+        rgba(255, 255, 255, 0.72);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+}
+
+.click-stream-intelligence__label,
+.click-stream-section-head__eyebrow {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.click-stream-intelligence__label {
+    color: rgba(31, 41, 51, 0.56);
+}
+
+.click-stream-intelligence__value {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-weight: 800;
+    color: var(--click-text);
+}
+
+.click-stream-intelligence__value--small {
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
+}
+
+.click-stream-intelligence__meta {
+    color: var(--click-muted);
+    font-size: 0.92rem;
+}
+
+.click-stream-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+}
+
+.click-stream-section-head__eyebrow {
+    margin-bottom: 0.35rem;
+    color: var(--click-accent);
+}
+
+.click-stream-section-head__hint {
+    color: var(--click-muted);
+    font-size: 0.92rem;
+    text-align: right;
+}
+
+.click-stream-title {
+    margin-bottom: 0;
+    color: var(--click-text);
+    font-size: clamp(1.3rem, 2vw, 1.75rem);
+    letter-spacing: -0.03em;
+}
+
+.click-stream-heading-block h3 {
+    color: var(--click-text);
+    font-size: clamp(1.55rem, 2.6vw, 2.3rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+
+.top-campaigns-list {
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--click-border);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06);
+}
+
+.top-campaigns-list .list-group-item {
+    border-color: var(--click-border);
+    color: var(--click-text);
+    padding: 1rem 1.1rem;
+}
+
+.click-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    min-height: 2rem;
+    padding: 0.15rem 0.7rem;
+    background: var(--click-accent-soft);
+    border: 1px solid rgba(15, 108, 134, 0.16);
+    color: var(--click-accent);
+    font-weight: 700;
+}
+
+.campaign-name {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--click-text);
+}
+
+.campaign-name i {
+    color: var(--click-accent);
+}
+
+.click-stream-label,
+.click-stream-header h3 {
+    color: var(--click-text);
+}
+
+.click-stream-email {
+    color: var(--click-text);
+}
+
+.click-stream-load-more {
+    border: 1px solid rgba(15, 108, 134, 0.18);
+    background: var(--click-accent-soft);
+    color: var(--click-accent);
+    border-radius: 999px;
+    padding: 0.8rem 1.3rem;
+    font-weight: 700;
+}
+
+.click-stream-load-more:hover:not(:disabled) {
+    background: rgba(15, 108, 134, 0.16);
+    color: var(--click-accent);
+}
+
+.click-stream-load-more:disabled {
+    opacity: 0.55;
+}
+
+.click-stream-feed {
+    display: grid;
+    gap: 1rem;
+}
+
+.click-stream-card {
+    display: grid;
+    gap: 0.95rem;
+    padding: 1.1rem;
+    border-radius: 24px;
+    border: 1px solid var(--click-border);
+    background: var(--click-surface-strong);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.click-stream-card.is-clicked {
+    border-color: rgba(15, 108, 134, 0.22);
+    box-shadow: 0 20px 44px rgba(15, 108, 134, 0.12);
+}
+
+.click-stream-card__stamp,
+.click-stream-card__block,
+.click-stream-card__footnote {
+    padding: 0.95rem 1rem;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.84);
+    border: 1px solid rgba(32, 53, 66, 0.08);
+}
+
+.click-stream-card__stamp strong,
+.click-stream-card__value {
+    display: block;
+    color: var(--click-text);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.click-stream-card__body {
+    display: grid;
+    grid-template-columns: minmax(210px, 0.9fr) minmax(260px, 1.2fr) minmax(220px, 1fr);
+    gap: 0.9rem;
+}
+
+.click-stream-card__eyebrow {
+    display: inline-block;
+    margin-bottom: 0.45rem;
+    color: var(--click-accent);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.click-stream-card__block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.click-stream-card__block--timeline {
+    justify-content: space-between;
+}
+
+.click-stream-card__timeline {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.click-stream-card__label {
+    display: inline-block;
+    margin-bottom: 0.28rem;
+    color: var(--click-subtle);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.click-stream-card__value {
+    font-weight: 600;
+}
+
+.click-stream-card__block--campaign {
+    min-width: 0;
+    justify-content: center;
+}
+
+.click-stream-campaign-link {
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--click-text);
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+
+.click-stream-campaign-link:hover {
+    color: var(--click-accent);
+}
+
+.click-stream-card__footnote {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.click-stream-card__footnote-link a {
+    color: var(--click-muted);
+    text-decoration-color: rgba(15, 108, 134, 0.22);
+    word-break: break-all;
+    line-height: 1.5;
+}
+
+.engagement-empty-state-shell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1rem 1rem;
+}
+
+.engagement-empty-state-card {
+    width: min(100%, 980px);
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(95, 99, 104, 0.14);
+    border-radius: 28px;
+    padding: 2rem 1.5rem;
+    box-shadow: 0 18px 45px rgba(17, 17, 17, 0.08);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.engagement-empty-state-icon {
+    width: 92px;
+    height: 92px;
+    margin: 0 auto;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(95, 99, 104, 0.08);
+    border: 1px solid rgba(95, 99, 104, 0.18);
+}
+
+.engagement-empty-state-icon i {
+    font-size: 2rem;
+    color: #6b7280;
+}
+
+.engagement-empty-state-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0.35rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 999px;
+    background: rgba(104, 104, 104, 0.08);
+    border: 1px solid rgba(95, 99, 104, 0.18);
+    color: #6b7280;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.engagement-empty-state-title {
+    margin: 0 0 1rem;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.05;
+    font-weight: 800;
+    color: #212124;
+}
+
+.engagement-empty-state-text {
+    max-width: 760px;
+    margin: 0 auto;
+    font-size: 1.35rem;
+    line-height: 1.7;
+    color: #4b5563;
+}
+
+@media (max-width: 768px) {
+    .list-group-item {
+        padding: 10px 12px;
+    }
+
+    .click-stream-intelligence {
+        grid-template-columns: 1fr;
+    }
+
+    .click-stream-card {
+        grid-template-columns: 1fr;
+    }
+
+    .click-stream-card__body {
+        grid-template-columns: 1fr;
+    }
+
+    .click-stream-card__stamp,
+    .click-stream-card__block,
+    .click-stream-card__footnote {
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .email-cell {
+        word-break: break-word;
+    }
+
+    .click-stream-section-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .click-stream-section-head__hint {
+        text-align: left;
+    }
+
+    .engagement-empty-state-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .engagement-empty-state-title {
+        font-size: 2.2rem;
+    }
+
+    .engagement-empty-state-text {
+        font-size: 1.05rem;
+        line-height: 1.6;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .click-stream-container {
+        --click-surface: rgba(28, 28, 30, 0.78);
+        --click-surface-strong: rgba(18, 18, 20, 0.9);
+        --click-border: rgba(255, 255, 255, 0.10);
+        --click-text: #f3f4f6;
+        --click-muted: rgba(228, 228, 231, 0.74);
+        --click-subtle: rgba(212, 212, 216, 0.56);
+        --click-accent: #d4d4d8;
+        --click-accent-soft: rgba(212, 212, 216, 0.12);
+    }
+
+    .top-campaigns-list .list-group-item,
+    .click-stream-card {
+        background: var(--click-surface-strong);
+    }
+
+    .click-stream-intelligence__card {
+        background:
+            linear-gradient(135deg, rgba(125, 125, 125, 0.1), rgba(255, 255, 255, 0) 56%),
+            rgba(24, 24, 27, 0.84);
+        border-color: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 16px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    .click-stream-intelligence__label {
+        color: rgba(228, 228, 231, 0.54);
+    }
+
+    .click-stream-card__stamp,
+    .click-stream-card__block,
+    .click-stream-card__footnote {
+        background: rgba(28, 28, 30, 0.86);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .click-stream-load-more {
+        background: rgba(125, 125, 125, 0.12);
+        color: var(--click-accent);
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .click-stream-load-more:hover:not(:disabled) {
+        background: rgba(212, 212, 216, 0.18);
+    }
+
+    .click-stream-card.is-clicked {
+        border-color: rgba(255, 255, 255, 0.16);
+        box-shadow: 0 20px 44px rgba(0, 0, 0, 0.28);
+    }
+
+    .click-stream-card__footnote-link a {
+        text-decoration-color: rgba(212, 212, 216, 0.24);
+    }
+
+    .click-stream-header .form-select {
+        background-color: rgba(28, 28, 30, 0.92);
+        color: var(--click-text);
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: none;
+    }
+
+    .click-stream-header .form-select:focus {
+        border-color: rgba(212, 212, 216, 0.3);
+        box-shadow: 0 0 0 0.2rem rgba(212, 212, 216, 0.12);
+    }
+
+    .click-stream-header .form-select option {
+        background: #1c1c1e;
+        color: var(--click-text);
+    }
+
+    .engagement-empty-state-card {
+        background: rgba(33, 33, 34, 0.82);
+        border-color: rgba(255, 255, 255, 0.10);
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+    }
+
+    .engagement-empty-state-icon,
+    .engagement-empty-state-eyebrow {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .engagement-empty-state-icon i,
+    .engagement-empty-state-eyebrow {
+        color: #d4d4d8;
+    }
+
+    .engagement-empty-state-title {
+        color: #f3f4f6;
+    }
+
+    .engagement-empty-state-text {
+        color: #d4d4d8;
+    }
+
+    @media (max-width: 768px) {
+
+        .click-stream-card__stamp,
+        .click-stream-card__block,
+        .click-stream-card__footnote {
+            background: rgba(28, 28, 30, 0.9);
+        }
+    }
+}

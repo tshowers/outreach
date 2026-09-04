@@ -1,0 +1,50 @@
+<app-preloader [isLoading]="isLoading"></app-preloader>
+<app-back-to-top></app-back-to-top>
+<div class="container-fluid tal-app todd-page">
+  <div class="engagement-shell container-fluid mt-4 mt-lg-5">
+    <div class="engagement-panel">
+      <section class="engagement-command-bar" aria-label="Performance command center">
+        <div class="engagement-command-bar__copy">
+          <div class="engagement-eyebrow">TODD Cockpit</div>
+          <h1 class="engagement-heading">Outreach performance at a glance</h1>
+          <p class="engagement-command-bar__text"> Track live click behavior, scan campaign momentum, and pivot into engagement follow-up without leaving the console. </p>
+        </div>
+        <div class="engagement-command-bar__stats" aria-hidden="true">
+          <div class="engagement-stat-chip">
+            <span class="engagement-stat-chip__label">Mode</span>
+            <span class="engagement-stat-chip__value">Live</span>
+          </div>
+          <div class="engagement-stat-chip">
+            <span class="engagement-stat-chip__label">Focus</span>
+            <span class="engagement-stat-chip__value">Clicks + intent</span>
+          </div>
+          <div class="engagement-stat-chip">
+            <span class="engagement-stat-chip__label">Surface</span>
+            <span class="engagement-stat-chip__value">Campaign telemetry</span>
+          </div>
+        </div>
+      </section>
+      <div class="engagement-panel__tabs">
+        <button type="button" class="engagement-tab" [class.active]="activeTab === 'clicks'" [attr.aria-selected]="activeTab === 'clicks'" (click)="activeTab = 'clicks'">
+          <span class="engagement-tab__kicker">Channel</span>
+          <span class="engagement-tab__label">Clicks</span>
+        </button>
+        <button type="button" class="engagement-tab" [class.active]="activeTab === 'engagement'" [attr.aria-selected]="activeTab === 'engagement'" (click)="activeTab = 'engagement'">
+          <span class="engagement-tab__kicker">Signals</span>
+          <span class="engagement-tab__label">Engagement</span>
+        </button>
+      </div>
+      <div class="engagement-panel__body">
+        <div class="tab-content">
+          <div *ngIf="activeTab === 'clicks'" class="tab-pane active">
+            <app-click-stream></app-click-stream>
+          </div>
+          <div *ngIf="activeTab === 'engagement'" class="tab-pane active">
+            <app-ad-engagement-results></app-ad-engagement-results>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Email Queue stuff here  -->
+</div>

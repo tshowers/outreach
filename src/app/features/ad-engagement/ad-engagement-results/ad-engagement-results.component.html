@@ -1,0 +1,439 @@
+<div *ngIf="error" class="text-danger mb-2">
+  {{ error }}
+</div>
+<div class="engagement-controls d-flex flex-wrap align-items-center gap-2 mb-3 todd-page">
+  <label for="adEngagementPageSize" class="engagement-control-label fw-bold mb-0">Records</label>
+  <select id="adEngagementPageSize" class="form-select w-auto" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+    <option *ngFor="let size of pageSizeOptions" [ngValue]="size">
+      {{ size }}
+    </option>
+  </select>
+  <label for="behaviorPeriodDays" class="engagement-control-label fw-bold mb-0 ms-sm-3">Behavior window</label>
+  <select id="behaviorPeriodDays" class="form-select w-auto" [(ngModel)]="selectedBehaviorPeriodDays" (change)="onBehaviorPeriodChange()">
+    <option *ngFor="let option of behaviorPeriodOptions" [ngValue]="option"> Last {{ option }} days </option>
+  </select>
+  <label for="behaviorSegmentType" class="engagement-control-label fw-bold mb-0 ms-sm-3">Segment</label>
+  <select id="behaviorSegmentType" class="form-select w-auto" [(ngModel)]="selectedSegmentType" (change)="onSegmentTypeChange()">
+    <option *ngFor="let option of segmentTypeOptions" [ngValue]="option.value">
+      {{ option.label }}
+    </option>
+  </select>
+  <select *ngIf="selectedSegmentType" id="behaviorSegmentValue" class="form-select w-auto" [(ngModel)]="selectedSegmentValue" (change)="onSegmentValueChange()">
+    <option [ngValue]="''">All {{ selectedSegmentType }} values</option>
+    <option *ngFor="let value of availableSegmentValues" [ngValue]="value">
+      {{ value }}
+    </option>
+  </select>
+  <button type="button" class="btn engagement-refresh-button" [disabled]="refreshingBehaviorContext" (click)="refreshBehaviorContext()">
+    {{ refreshingBehaviorContext ? 'Refreshing context…' : 'Refresh Behavior Context' }}
+  </button>
+</div>
+<div *ngIf="behaviorRefreshMessage" class="engagement-refresh-message" [attr.data-state]="behaviorRefreshState">
+  {{ behaviorRefreshMessage }}
+</div>
+<div class="container d-flex justify-content-center">
+  <div class="container d-flex justify-content-center">
+    <app-section-jump [items]="sectionLinks"></app-section-jump>
+  </div>
+</div>
+<section *ngIf="pageStats as stats" class="engagement-insights-shell mb-4" aria-label="Page performance stats">
+  <div class="engagement-insights-header">
+    <div>
+      <div class="engagement-insights-eyebrow">Page Performance</div>
+      <h2 class="engagement-insights-title">{{ stats.page }}</h2>
+    </div>
+    <div class="engagement-insights-period">{{ stats.totalRecords }} records loaded</div>
+  </div>
+  <div class="engagement-summary-grid">
+    <article class="engagement-summary-card">
+      <span class="engagement-summary-label">Views</span>
+      <strong class="engagement-summary-value">{{ stats.views }}</strong>
+      <span class="engagement-summary-note">view events logged</span>
+    </article>
+    <article class="engagement-summary-card">
+      <span class="engagement-summary-label">Clicks</span>
+      <strong class="engagement-summary-value">{{ stats.clicks }}</strong>
+      <span class="engagement-summary-note">click events logged</span>
+    </article>
+    <article class="engagement-summary-card">
+      <span class="engagement-summary-label">Click rate</span>
+      <strong class="engagement-summary-value">{{ stats.ctr }}</strong>
+      <span class="engagement-summary-note">clicks ÷ views</span>
+    </article>
+    <article class="engagement-summary-card">
+      <span class="engagement-summary-label">Avg dwell time</span>
+      <strong class="engagement-summary-value">{{ stats.avgDwellFormatted }}</strong>
+      <span class="engagement-summary-note">from view events</span>
+    </article>
+    <article class="engagement-summary-card">
+      <span class="engagement-summary-label">Engaged sessions</span>
+      <strong class="engagement-summary-value">{{ stats.engaged }}</strong>
+      <span class="engagement-summary-note">clicked or stayed 30s+</span>
+    </article>
+    <article class="engagement-summary-card">
+      <span class="engagement-summary-label">Hard bounce rate</span>
+      <strong class="engagement-summary-value">{{ stats.hardBounceRate }}</strong>
+      <span class="engagement-summary-note">exited in &lt;10s, no action</span>
+    </article>
+  </div>
+  <div *ngIf="stats.insightVariants.length > 0" class="engagement-top-ads-panel mt-3">
+    <div class="engagement-learning-panel__title">Insight A/B Breakdown</div>
+    <div class="engagement-top-ads-list">
+      <div *ngFor="let variant of stats.insightVariants" class="engagement-top-ad-chip">
+        <strong>Variant {{ variant.key }}</strong>
+        <span class="engagement-summary-note" title="{{ variant.label }}">{{ variant.label }}</span>
+        <span>{{ variant.count }} events</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="engagement-behavior-insights" *ngIf="behaviorSummary as behavior" class="engagement-insights-shell mb-4" aria-label="Anonymous behavior insights">
+  <div class="engagement-insights-header">
+    <div>
+      <div class="engagement-insights-eyebrow">Behavior Learning</div>
+      <h2 class="engagement-insights-title">What anonymous visitors are teaching TODD</h2>
+    </div>
+    <div class="engagement-insights-period"> Last {{ behavior.overview.periodDays }} days <span *ngIf="isSegmentFilterActive"> · {{ selectedSegmentType }}: {{ selectedSegmentValue }}</span>
+      <div *ngIf="behaviorFreshnessLabel" class="engagement-insights-freshness">{{ behaviorFreshnessLabel }}</div>
+    </div>
+  </div>
+  <div class="engagement-summary-grid">
+    <article class="engagement-summary-card">
+      <span class="engagement-summary-label">Anonymous sessions</span>
+      <strong class="engagement-summary-value">{{ behavior.overview.totalSessions }}</strong>
+      <span class="engagement-summary-note">Page views: {{ behavior.overview.totalPageViews }}</span>
+      <span class="engagement-summary-trend" [attr.data-tone]="getTrendTone(behavior.trends.totalSessionsDelta)">
+        {{ formatTrendValue(behavior.trends.totalSessionsDelta) }} vs prior {{ behavior.trends.previousPeriodDays }}d </span>
+    </article>
+    <article class="engagement-summary-card">
+      <span class="engagement-summary-label">Average journey depth</span>
+      <strong class="engagement-summary-value">{{ behavior.overview.avgPagesPerSession | number:'1.1-1' }}</strong>
+      <span class="engagement-summary-note">pages per session</span>
+      <span class="engagement-summary-trend" [attr.data-tone]="getTrendTone(behavior.trends.avgPagesPerSessionDelta)">
+        {{ formatTrendValue(behavior.trends.avgPagesPerSessionDelta) }} vs prior {{ behavior.trends.previousPeriodDays }}d </span>
+    </article>
+    <article class="engagement-summary-card">
+      <span class="engagement-summary-label">Average dwell time</span>
+      <strong class="engagement-summary-value">{{ formatAverageDwellTime() }}</strong>
+      <span class="engagement-summary-note">before exit</span>
+      <span class="engagement-summary-trend" [attr.data-tone]="getTrendTone(behavior.trends.avgDwellTimeMsDelta)">
+        {{ formatTrendValue(behavior.trends.avgDwellTimeMsDelta, 'duration') }} vs prior {{ behavior.trends.previousPeriodDays }}d </span>
+    </article>
+    <article class="engagement-summary-card">
+      <span class="engagement-summary-label">Top CTA</span>
+      <strong class="engagement-summary-value">{{ topCtaLabel }}</strong>
+      <span class="engagement-summary-note">{{ topCtaCount }} clicks</span>
+      <span class="engagement-summary-trend" [attr.data-tone]="getTrendTone(behavior.trends.totalCtaClicksDelta)">
+        {{ formatTrendValue(behavior.trends.totalCtaClicksDelta) }} CTA clicks vs prior {{ behavior.trends.previousPeriodDays }}d </span>
+    </article>
+  </div>
+  <div class="row g-3 mt-1">
+    <div class="col-12 col-xl-7">
+      <div class="engagement-learning-panel">
+        <div class="engagement-learning-panel__title">TODD Learned</div>
+        <div *ngIf="behaviorEscalationCallout as callout" class="engagement-escalation-callout" [attr.data-tone]="callout.tone">
+          <div class="engagement-summary-label">{{ callout.title }}</div>
+          <div class="engagement-insight-recommendation">{{ callout.summary }}</div>
+        </div>
+        <div *ngIf="recommendedBehaviorResponse as response" class="engagement-response-callout" [attr.data-tone]="response.tone">
+          <div class="engagement-response-callout__top">
+            <div>
+              <div class="engagement-summary-label">What TODD Wants To Do Next</div>
+              <strong>{{ response.label }}</strong>
+            </div>
+            <span class="engagement-history-badge" [attr.data-source]="response.contextSource">
+              {{ response.contextSource === 'backfilled' ? 'Historical context' : 'Original context' }}
+            </span>
+          </div>
+          <div class="engagement-summary-note">{{ response.outcome }}</div>
+          <div *ngIf="response.behaviorCommandSummary" class="engagement-response-command">
+            {{ response.behaviorCommandSummary }}
+          </div>
+          <div class="engagement-insight-recommendation">{{ response.reason }}</div>
+        </div>
+        <div *ngIf="behaviorChangeAlerts.length > 0" class="engagement-alert-list">
+          <article *ngFor="let alert of behaviorChangeAlerts" class="engagement-alert-card" [attr.data-tone]="alert.tone">
+            <strong>{{ alert.title }}</strong>
+            <div class="engagement-learning-empty">{{ alert.summary }}</div>
+          </article>
+        </div>
+        <div *ngIf="behaviorInsights.length > 0; else noBehaviorInsights" class="engagement-insight-list">
+          <article *ngFor="let insight of behaviorInsights" class="engagement-insight-card" [attr.data-tone]="insight.tone">
+            <div class="engagement-insight-card__top">
+              <strong>{{ insight.title }}</strong>
+              <span *ngIf="insight.metricValue" class="engagement-insight-chip">{{ insight.metricLabel }}: {{ insight.metricValue }}</span>
+            </div>
+            <p class="mb-2">{{ insight.summary }}</p>
+            <div class="engagement-insight-recommendation">{{ insight.recommendation }}</div>
+          </article>
+        </div>
+        <ng-template #noBehaviorInsights>
+          <div class="engagement-learning-empty">TODD needs more anonymous behavior before it can turn patterns into lessons.</div>
+        </ng-template>
+      </div>
+    </div>
+    <div class="col-12 col-xl-5">
+      <div class="engagement-learning-panel">
+        <div class="engagement-learning-panel__title">Momentum Map</div>
+        <div class="engagement-learning-stat">
+          <span>Top entry page</span>
+          <strong>{{ topEntryPageLabel }}</strong>
+        </div>
+        <div class="engagement-learning-stat">
+          <span>Top exit page</span>
+          <strong>{{ topExitPageLabel }}</strong>
+        </div>
+        <div class="engagement-learning-stat">
+          <span>Most repeated path</span>
+          <strong>{{ topPathLabel }}</strong>
+        </div>
+        <div class="engagement-learning-stat">
+          <span>Top referrer</span>
+          <strong>{{ topReferrerLabel }}</strong>
+        </div>
+      </div>
+    </div>
+    <div id="engagement-segments" class="col-12">
+      <div class="engagement-learning-panel">
+        <div class="engagement-learning-panel__title">Segment View</div>
+        <div class="engagement-segment-grid">
+          <div class="engagement-segment-card">
+            <div class="engagement-segment-card__title">Top Sources</div>
+            <div *ngIf="sourceComparison as comparison" class="engagement-segment-compare">
+              <div class="engagement-segment-compare__item" data-tone="positive">{{ comparison.strongest }}</div>
+              <div class="engagement-segment-compare__item" data-tone="attention">{{ comparison.weakest }}</div>
+            </div>
+            <div *ngIf="behavior.topSourceSegments.length > 0; else noSourceSegments" class="engagement-segment-list">
+              <div *ngFor="let segment of behavior.topSourceSegments" class="engagement-segment-row">
+                <strong>{{ segment.label }}</strong>
+                <span>{{ segment.totalSessions }} sessions</span>
+                <span>{{ segment.avgPagesPerSession | number:'1.1-1' }} pages/session</span>
+              </div>
+            </div>
+            <ng-template #noSourceSegments>
+              <div class="engagement-learning-empty">No source segmentation yet.</div>
+            </ng-template>
+          </div>
+          <div class="engagement-segment-card">
+            <div class="engagement-segment-card__title">Top Campaigns</div>
+            <div *ngIf="campaignComparison as comparison" class="engagement-segment-compare">
+              <div class="engagement-segment-compare__item" data-tone="positive">{{ comparison.strongest }}</div>
+              <div class="engagement-segment-compare__item" data-tone="attention">{{ comparison.weakest }}</div>
+            </div>
+            <div *ngIf="behavior.topCampaignSegments.length > 0; else noCampaignSegments" class="engagement-segment-list">
+              <div *ngFor="let segment of behavior.topCampaignSegments" class="engagement-segment-row">
+                <strong>{{ segment.label }}</strong>
+                <span>{{ segment.totalSessions }} sessions</span>
+                <span>{{ segment.totalCtaClicks }} CTA clicks</span>
+              </div>
+            </div>
+            <ng-template #noCampaignSegments>
+              <div class="engagement-learning-empty">No campaign segmentation yet.</div>
+            </ng-template>
+          </div>
+          <div class="engagement-segment-card">
+            <div class="engagement-segment-card__title">Top Devices</div>
+            <div *ngIf="deviceComparison as comparison" class="engagement-segment-compare">
+              <div class="engagement-segment-compare__item" data-tone="positive">{{ comparison.strongest }}</div>
+              <div class="engagement-segment-compare__item" data-tone="attention">{{ comparison.weakest }}</div>
+            </div>
+            <div *ngIf="behavior.topDeviceSegments.length > 0; else noDeviceSegments" class="engagement-segment-list">
+              <div *ngFor="let segment of behavior.topDeviceSegments" class="engagement-segment-row">
+                <strong>{{ segment.label }}</strong>
+                <span>{{ segment.totalSessions }} sessions</span>
+                <span>{{ formatSegmentDwellTime(segment.avgDwellTimeMs) }} avg dwell</span>
+              </div>
+            </div>
+            <ng-template #noDeviceSegments>
+              <div class="engagement-learning-empty">No device segmentation yet.</div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="engagement-learning-panel">
+        <div class="engagement-learning-panel__title">Journey Flow</div>
+        <div *ngIf="behavior.topTransitions.length > 0; else noTransitionsYet" class="engagement-transition-list">
+          <div *ngFor="let transition of behavior.topTransitions" class="engagement-transition-row">
+            <div class="engagement-transition-node">
+              <span class="engagement-transition-node__label">From</span>
+              <strong>{{ transition.from }}</strong>
+            </div>
+            <div class="engagement-transition-arrow">
+              <div class="engagement-transition-arrow__line" [style.opacity]="getTransitionIntensity(transition.count)"></div>
+              <span class="engagement-transition-arrow__count">{{ transition.count }} sessions</span>
+            </div>
+            <div class="engagement-transition-node">
+              <span class="engagement-transition-node__label">To</span>
+              <strong>{{ transition.to }}</strong>
+            </div>
+          </div>
+        </div>
+        <ng-template #noTransitionsYet>
+          <div class="engagement-learning-empty">TODD needs more multi-page sessions before the journey flow becomes visible.</div>
+        </ng-template>
+      </div>
+    </div>
+    <div id="engagement-breakpoints" class="col-12">
+      <div class="engagement-learning-panel">
+        <div class="engagement-learning-panel__title">Momentum Breakpoints</div>
+        <div *ngIf="behavior.topBreakpoints.length > 0; else noBreakpointsYet" class="engagement-breakpoint-list">
+          <article *ngFor="let breakpoint of behavior.topBreakpoints" class="engagement-breakpoint-card">
+            <div class="engagement-breakpoint-top">
+              <strong>{{ breakpoint.pageUrl }}</strong>
+              <span class="engagement-breakpoint-rate">{{ formatExitRate(breakpoint.exitRate) }} exit rate</span>
+            </div>
+            <div class="engagement-summary-note">
+              {{ breakpoint.exitCount }} exits across {{ breakpoint.totalViews }} views
+            </div>
+          </article>
+        </div>
+        <ng-template #noBreakpointsYet>
+          <div class="engagement-learning-empty">TODD needs more exit activity before it can highlight where momentum is breaking.</div>
+        </ng-template>
+      </div>
+    </div>
+    <div class="col-12" *ngIf="behaviorResponseHistory.length > 0">
+      <div class="engagement-learning-panel engagement-history-panel">
+        <div class="engagement-history-panel__header">
+          <div>
+            <div class="engagement-learning-panel__title">How TODD Responded</div>
+            <div class="engagement-learning-empty mb-0"> TODD's prepared moves stay compact here. Open a card only when you need the full reasoning. </div>
+          </div>
+          <span class="engagement-history-count">{{ behaviorResponseHistory.length }} responses</span>
+        </div>
+        <div class="engagement-history-list engagement-history-list--compact">
+          <details *ngFor="let item of behaviorResponseHistory" class="engagement-history-card engagement-history-card--compact" [attr.data-tone]="item.tone">
+            <summary class="engagement-history-summary">
+              <div class="engagement-history-summary__main">
+                <span class="engagement-summary-label">{{ item.stateLabel }}</span>
+                <strong class="engagement-history-summary__title">{{ item.label }}</strong>
+                <span class="engagement-history-summary__preview">{{ item.outcome || item.reason }}</span>
+              </div>
+              <div class="engagement-history-provenance">
+                <span class="engagement-history-badge" [attr.data-source]="item.contextSource">
+                  {{ item.contextSource === 'backfilled' ? 'Historical context' : 'Original context' }}
+                </span>
+                <span class="engagement-history-timestamp">
+                  {{ item.contextUpdatedAt | date:'mediumDate' }}
+                </span>
+              </div>
+            </summary>
+            <div class="engagement-history-details">
+              <div class="engagement-summary-label">What TODD did</div>
+              <div class="engagement-insight-recommendation">{{ item.outcome }}</div>
+              <div *ngIf="item.behaviorCommandSummary" class="engagement-response-command">
+                {{ item.behaviorCommandSummary }}
+              </div>
+              <div class="engagement-summary-label mt-3">Why it made sense then</div>
+              <div class="engagement-learning-empty">{{ item.reason }}</div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<ng-container *ngIf="engagements.length > 0; else noEngagements">
+  <div id="engagement-live-records" class="engagement-results-shell">
+    <div class="engagement-results-header">
+      <div>
+        <div class="engagement-insights-eyebrow">Live Records</div>
+        <h3 class="engagement-results-title">Recent engagement activity</h3>
+        <p class="engagement-results-copy"> Review the newest click and view signals in a cockpit-style board instead of scanning a horizontal strip. </p>
+      </div>
+      <div class="engagement-results-meta">
+        <div class="engagement-results-meta__item">
+          <span class="engagement-summary-label">Records loaded</span>
+          <strong class="engagement-summary-value">{{ engagements.length }}</strong>
+        </div>
+        <div class="engagement-results-meta__item">
+          <span class="engagement-summary-label">Top ads tracked</span>
+          <strong class="engagement-summary-value">{{ topAds.length }}</strong>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="topAds.length > 0 && selectedSegmentType !== 'page'" class="engagement-top-ads-panel">
+      <div class="engagement-learning-panel__title">Top Ads by Engagement</div>
+      <div class="engagement-top-ads-list">
+        <div *ngFor="let ad of topAds" class="engagement-top-ad-chip">
+          <strong>{{ ad.adKey }}</strong>
+          <span>{{ ad.count }} interactions</span>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="pageStats && selectedSegmentType === 'page'" class="engagement-top-ads-panel">
+      <div class="engagement-learning-panel__title">Ad Variants — {{ pageStats.page }}</div>
+      <div class="engagement-top-ads-list">
+        <ng-container *ngFor="let variant of pageStats.insightVariants">
+          <div class="engagement-top-ad-chip">
+            <strong>Variant {{ variant.key }}</strong>
+            <span>{{ variant.count }} events</span>
+          </div>
+        </ng-container>
+        <div class="engagement-top-ad-chip" *ngIf="pageStats.insightVariants.length === 0">
+          <span class="engagement-summary-note">No insight variant data yet for this page.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="engagement-record-grid">
+    <article *ngFor="let item of engagements" class="engagement-record-card" [ngClass]="{ 'todd-row-clicked': (item.userId && clickedEmails.has(item.userId)) }">
+      <div class="engagement-record-card__top">
+        <div>
+          <div class="engagement-summary-label">Channel</div>
+          <h5 class="engagement-record-card__title text-capitalize" title="Page Context">
+            {{ item.adKey }}
+          </h5>
+        </div>
+        <div class="engagement-record-pill">
+          {{ item.eventType }}
+        </div>
+      </div>
+      <div class="engagement-record-metrics">
+        <div class="engagement-record-metric">
+          <span class="engagement-summary-label">Duration</span>
+          <strong>{{ item.durationMs != null ? (item.durationMs | formatDuration) : 'N/A' }}</strong>
+        </div>
+        <div class="engagement-record-metric">
+          <span class="engagement-summary-label">Time</span>
+          <strong>{{ item.timestamp | date: 'short' }}</strong>
+        </div>
+      </div>
+      <div class="engagement-record-divider"></div>
+      <div class="engagement-record-identity">
+        <div class="engagement-summary-label">Visitor</div>
+        <ng-container *ngIf="item.userId && item.userId !== 'anonymous'; else plainUserId">
+          <span class="engagement-user-link" (click)="onEmail(item.userId)">
+            {{ item.userId }}
+          </span>
+        </ng-container>
+        <ng-template #plainUserId>
+          <span class="engagement-record-value">{{ item.userId }}</span>
+        </ng-template>
+        <div class="engagement-record-ip">
+          <span class="engagement-summary-label">IP address</span>
+          <span class="engagement-record-value">{{ item.ip || 'N/A' }}</span>
+        </div>
+      </div>
+    </article>
+  </div>
+  <div class="mt-3 d-flex justify-content-center">
+    <button type="button" class="btn engagement-load-more" (click)="loadMore()" [disabled]="isLoadingMore || !hasMore">
+      {{ isLoadingMore ? 'Loading…' : 'Load More' }}
+    </button>
+  </div>
+</ng-container>
+<ng-template #noEngagements>
+  <div class="engagement-empty-state-shell">
+    <div class="engagement-empty-state-card text-center">
+      <div class="engagement-empty-state-icon mb-3">
+        <i class="fa-solid fa-chart-line"></i>
+      </div>
+      <div class="engagement-empty-state-eyebrow">Outreach</div>
+      <h2 class="engagement-empty-state-title">Engagement data will chart here</h2>
+      <p class="engagement-empty-state-text"> If this area looks empty, TODD has not seen enough engagement data to chart yet. Newest activity will appear first as records arrive. Anonymous behavior learning will begin once public traffic starts moving through the site. </p>
+    </div>
+  </div>
+</ng-template>
