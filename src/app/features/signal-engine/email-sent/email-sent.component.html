@@ -1,0 +1,170 @@
+<div class="email-sent-wrapper">
+  <div *ngIf="emailSentAssistantContext && emails.length > 0" class="email-sent-summary-grid mb-3">
+    <div class="email-summary-card">
+      <div class="email-summary-label">Sent</div>
+      <div class="email-summary-value">{{ emailSentAssistantContext.totalEmails }}</div>
+    </div>
+    <div class="email-summary-card">
+      <div class="email-summary-label">Opened</div>
+      <div class="email-summary-value">{{ emailSentAssistantContext.openedEmails }}</div>
+    </div>
+    <div class="email-summary-card">
+      <div class="email-summary-label">Not Opened</div>
+      <div class="email-summary-value">{{ emailSentAssistantContext.unopenedEmails }}</div>
+    </div>
+    <div class="email-summary-card">
+      <div class="email-summary-label">Clicked</div>
+      <div class="email-summary-value">{{ emailSentAssistantContext.clickedEmails }}</div>
+    </div>
+    <div class="email-summary-card">
+      <div class="email-summary-label">Open Rate</div>
+      <div class="email-summary-value">{{ (emailSentAssistantContext.openRate * 100).toFixed(0) }}%</div>
+    </div>
+    <div class="email-summary-card">
+      <div class="email-summary-label">CTR</div>
+      <div class="email-summary-value">{{ (emailSentAssistantContext.clickThroughRate * 100).toFixed(0) }}%</div>
+    </div>
+  </div>
+  <div *ngIf="emailSentAssistantContext && emails.length > 0" class="email-sent-insight-panel mb-3">
+    <div class="fw-semibold mb-2">TODD Snapshot</div>
+    <div *ngIf="emailSentAssistantContext.followUpNow.length > 0" class="mb-2">
+      <strong>Follow up now:</strong>
+      {{ emailSentAssistantContext.followUpNow[0].to }}
+      <span *ngIf="emailSentAssistantContext.followUpNow[0].subject">— {{ emailSentAssistantContext.followUpNow[0].subject }}</span>
+    </div>
+    <div *ngIf="emailSentAssistantContext.warmRecipients.length > 0" class="mb-2">
+      <strong>Warm recipient:</strong>
+      {{ emailSentAssistantContext.warmRecipients[0].to }}
+    </div>
+    <div *ngIf="emailSentAssistantContext.topSubjects.length > 0">
+      <strong>Top subject:</strong>
+      {{ emailSentAssistantContext.topSubjects[0].subject }}
+    </div>
+  </div>
+  <div *ngIf="sendSourceSummary.length > 0" class="email-sent-source-summary mb-3">
+    <div class="email-sent-source-summary__label">Sent by</div>
+    <div class="email-sent-source-summary__chips">
+      <span
+        *ngFor="let item of sendSourceSummary"
+        class="email-sent-source-summary__chip"
+        [ngClass]="{
+          'email-sent-source-summary__chip--neutral': item.key === 'maya' || item.key === 'catalyst',
+          'email-sent-source-summary__chip--campaign': item.key === 'campaign' || item.key === 'campaign_sequence',
+          'email-sent-source-summary__chip--auto': item.key === 'auto_outreach',
+          'email-sent-source-summary__chip--warning': item.key === 'hot_lead',
+          'email-sent-source-summary__chip--manual': item.key === 'manual' || item.key === 'reviewed_reply'
+        }">
+        {{ item.label }}: {{ item.count }}
+      </span>
+    </div>
+    <button
+      type="button"
+      class="email-sent-filter-toggle"
+      [class.email-sent-filter-toggle--active]="mayaOnlyFilter"
+      (click)="toggleMayaOnlyFilter()">
+      {{ mayaOnlyFilter ? 'Showing Maya only' : 'Filter Maya only' }}
+    </button>
+  </div>
+  <!-- Empty state when there are no sent emails -->
+  <div *ngIf="filteredEmails.length === 0 && !loading" class="email-empty-state-shell no-print">
+    <div class="email-empty-state-card text-center">
+      <div class="email-empty-state-icon mb-3">
+        <i class="fa-regular fa-paper-plane"></i>
+      </div>
+      <div class="email-empty-state-eyebrow">Outreach</div>
+      <ng-container *ngIf="mayaOnlyFilter; else noSentEmailsState">
+        <h2 class="email-empty-state-title">No Maya sends match this filter yet</h2>
+        <p class="email-empty-state-text"> Maya-tagged outreach will appear here once a send is delegated through her composer or campaign flow. </p>
+      </ng-container>
+      <ng-template #noSentEmailsState>
+        <h2 class="email-empty-state-title">No emails sent from TODD yet</h2>
+        <p class="email-empty-state-text"> Use Compose Email in Outreach to send your first message. Once you send from TODD, your emails will appear here with opens and clicks. </p>
+        <ul class="email-empty-state-list text-start">
+          <li>Go to Outreach &gt; Compose Email to draft a message.</li>
+          <li>Send at least one email to start tracking your metrics.</li>
+          <li>Return here to review engagement for each email you send.</li>
+        </ul>
+      </ng-template>
+    </div>
+  </div>
+  <!-- Loading message when we are still fetching -->
+  <div *ngIf="filteredEmails.length === 0 && loading" class="text-center p-4">
+    <app-preloader [isLoading]="true" [inline]="true" message="Retrieving emails…" [autoHideAfterMs]="null"></app-preloader>
+  </div>
+  <div *ngIf="emails.length > 0" class="d-flex justify-content-end mb-3">
+    <label class="me-2">Show:</label>
+    <select class="form-select form-select-sm" style="width: 100px" [value]="pageSize" (change)="onPageSizeChange($any($event.target).value)">
+      <option *ngFor="let size of pageSizeOptions" [value]="size">
+        {{ size }}
+      </option>
+    </select>
+  </div>
+  <!-- Main layout when we have emails -->
+  <div *ngIf="filteredEmails.length > 0" class="email-sent-layout">
+    <div class="email-card-grid">
+      <div class="email-card" *ngFor="let email of filteredEmails" (click)="selectEmail(email)" [title]="getClickTooltip(email)">
+        <div class="email-card-preview" *ngIf="email.hasBodyPreview" aria-hidden="true">
+          <div class="email-card-preview__eyebrow">Sent body preview</div>
+          <div class="email-card-preview__subject">{{ email.subject || '(no subject)' }}</div>
+          <div class="email-card-preview__body" [innerHTML]="email.previewHtml"></div>
+        </div>
+        <div class="email-card-header">
+          <div class="email-avatar">
+            {{ getRecipientInitial(email) }}
+          </div>
+          <div class="email-recipient">
+            <div class="email-to" [title]="email.to">{{ email.to }}</div>
+            <div class="email-date">
+              {{ email.date | firestoreTimestamp:'MMM d, y, h:mm a' }}
+            </div>
+          </div>
+          <span class="email-status-chip" [ngClass]="{
+              'email-status-opened': email.openedAt,
+              'email-status-not-opened': !email.openedAt
+            }">
+            {{ email.openedAt ? 'Opened' : 'Not opened' }}
+          </span>
+        </div>
+        <div class="email-subject">
+          {{ email.subject || '(no subject)' }}
+        </div>
+        <div class="email-send-context-reason" *ngIf="email.fromDisplayName">
+          From: {{ email.fromDisplayName }}
+        </div>
+        <div class="email-send-context-row">
+          <span class="email-send-context-chip" [ngClass]="{
+              'tone-neutral': email.sendSourceTone === 'neutral',
+              'tone-campaign': email.sendSourceTone === 'campaign',
+              'tone-auto': email.sendSourceTone === 'auto',
+              'tone-warning': email.sendSourceTone === 'warning',
+              'tone-manual': email.sendSourceTone === 'manual'
+            }">
+            {{ email.sendSourceLabel }}
+          </span>
+          <div class="email-send-context-reason">
+            {{ email.sendReasonSummary }}
+          </div>
+        </div>
+        <div class="email-meta-row">
+          <span class="email-meta-pill">
+            <span class="label">Opened:</span>
+            <span *ngIf="email.openedAt">
+              {{ email.openedAt | firestoreTimestamp:'short' }}
+            </span>
+            <span *ngIf="!email.openedAt"> No open yet </span>
+          </span>
+          <span class="email-meta-pill" [ngClass]="{ 'has-clicks': email.clicks?.length }">
+            <span class="label">Clicks:</span>
+            {{ email.clicks?.length || 0 }}
+          </span>
+        </div>
+        <app-email-option-button [emailAddress]="email.to" [tenantId]="tenantId" [userId]="userId" [sender]="loggedInUser" [reason]="'Recently opened email' + email.subject " (composeInTodd)="onEmail(email.to)"></app-email-option-button>
+      </div>
+    </div>
+    <div class="text-center mt-4" *ngIf="hasMoreEmails">
+      <button type="button" class="btn btn-outline-dark" (click)="loadMore()" [disabled]="loading">
+        {{ loading ? 'Loading...' : 'Load More' }}
+      </button>
+    </div>
+  </div>
+</div>

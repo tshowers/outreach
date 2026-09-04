@@ -1,0 +1,14 @@
+<div class="email-option-buttons" [ngClass]="{ 'email-option-buttons--icon': displayMode === 'icon' }">
+  <button type="button" class="email-option-button email-option-button--todd" [ngClass]="{ 'email-option-button--icon-only': displayMode === 'icon' }" (click)="onComposeInToddClick($event)" [disabled]="isLoading" title="Compose in TODD">
+    <span class="email-option-button__icon">
+      <i class="fa fa-envelope-open-text" aria-hidden="true"></i>
+    </span>
+    <span class="email-option-button__label" *ngIf="displayMode === 'button'"> Use TODD </span>
+  </button>
+  <button type="button" class="email-option-button email-option-button--native" [ngClass]="{ 'email-option-button--icon-only': displayMode === 'icon' }" (click)="onComposeInNativeClick($event)" [disabled]="isLoading" title="Compose in email app">
+    <span class="email-option-button__icon">
+      <i class="fa fa-envelope" aria-hidden="true"></i>
+    </span>
+    <span class="email-option-button__label" *ngIf="displayMode === 'button'"> Email app </span>
+  </button>
+</div>

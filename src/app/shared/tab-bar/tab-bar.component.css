@@ -1,0 +1,168 @@
+:host {
+  display: block;
+  max-width: 100%;
+  /* Self-contained theme, not borrowed from an ancestor: this component
+     gets reused on plain pages (contact-edit, pipeline, list, ...) that
+     don't define TODD's cockpit --todd-* tokens, which in fact are never
+     defined anywhere in this app - see the git history note on this file
+     for how that went unnoticed (an undefined var() on an inherited
+     property like `color` silently falls back to inherit, so this looked
+     fine by accident inside contact-home's cockpit-shell but rendered no
+     background/border at all). */
+  --todd-surface-1: rgba(15, 23, 42, 0.05);
+  --todd-surface-2: #f1f5f9;
+  --todd-border: rgba(15, 23, 42, 0.10);
+  --todd-text: #0d1117;
+  --todd-subtext: #68727d;
+  --tl-blue-deep: #006a99;
+  --tl-blue-glow: rgba(0, 149, 204, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --todd-surface-1: rgba(255, 255, 255, 0.06);
+    --todd-surface-2: rgba(255, 255, 255, 0.05);
+    --todd-border: rgba(151, 198, 220, 0.16);
+    --todd-text: #edf6fb;
+    --todd-subtext: #9aafbc;
+    --tl-blue-deep: #0095cc;
+    --tl-blue-glow: rgba(0, 191, 255, 0.30);
+  }
+}
+
+.tab-bar {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 0.32rem;
+  border-radius: 999px;
+  background: var(--todd-surface-2);
+  border: 1px solid var(--todd-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
+  overflow-x: auto;
+}
+
+.tab-bar__tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--todd-subtext);
+  border-radius: 999px;
+  padding: 0.78rem 1.18rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.tab-bar__tab:hover {
+  transform: translateY(-1px);
+  background: var(--todd-surface-1);
+  border-color: var(--todd-border);
+  color: var(--todd-text);
+}
+
+.tab-bar__tab.active {
+  background: linear-gradient(180deg, var(--tl-blue-mid), var(--tl-blue-deep));
+  color: #f8fafc;
+  border-color: transparent;
+  box-shadow:
+    0 8px 18px var(--tl-blue-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.tab-bar__icon {
+  font-size: 0.95em;
+}
+
+.tab-bar__count {
+  opacity: 0.75;
+  font-weight: 600;
+  font-size: 0.85em;
+}
+
+.tab-bar__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.55);
+}
+
+.tab-bar__dot--complete {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.16);
+}
+
+.tab-bar__tab.active .tab-bar__dot {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.tab-bar__tab.active .tab-bar__dot--complete {
+  background: #4ade80;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
+}
+
+@media (max-width: 767.98px) {
+  .tab-bar {
+    width: 100%;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding: 0.3rem;
+  }
+
+  .tab-bar__tab {
+    width: 100%;
+    padding: 0.72rem 0.4rem;
+  }
+
+  .tab-bar__icon {
+    font-size: 1.15rem;
+  }
+
+  .tab-bar__tab--has-icon .tab-bar__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .tab-bar__tab--has-icon .tab-bar__count {
+    position: absolute;
+    top: 2px;
+    right: 10%;
+    opacity: 1;
+    font-size: 0.6rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 0.15rem 0.32rem;
+    border-radius: 999px;
+    background: var(--tl-blue-mid);
+    color: #f8fafc;
+  }
+
+  .tab-bar__tab--has-icon .tab-bar__dot {
+    position: absolute;
+    top: 6px;
+    left: 10%;
+  }
+}

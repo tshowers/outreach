@@ -1,0 +1,463 @@
+:host {
+  display: block;
+}
+
+/*
+ * Theme tokens - light-mode defaults here, dark overrides below via
+ * prefers-color-scheme. Surface/text/border tokens defer to the app's real
+ * global theme system (--todd-*, styles.css) instead of hardcoding a local
+ * palette - the previous version copied admin-control-panel's DARK values
+ * as unconditional defaults with no light variant at all, which is why this
+ * page looked wrong in daytime regardless of system theme.
+ */
+.page {
+  --page-text: var(--todd-text);
+  --muted-text: var(--todd-subtext);
+  --panel-bg: var(--todd-card-bg);
+  --panel-border: var(--todd-panel-border);
+  --panel-shadow: 0 24px 50px rgba(15, 23, 42, 0.08);
+  --surface-soft: var(--todd-surface-2);
+  --surface-strong: var(--todd-surface-1);
+  --surface-border: var(--todd-input-border);
+  --accent: var(--tl-blue-mid);
+  --accent-strong: var(--tl-blue-deep);
+  --accent-soft: var(--tl-blue-subtle);
+  --success-bg: rgba(34, 197, 94, 0.12);
+  --success-text: #15803d;
+  --danger-bg: rgba(220, 53, 69, 0.1);
+  --danger-text: #b91c1c;
+  --warning-border: rgba(222, 139, 56, 0.35);
+  --table-border: var(--todd-input-border);
+  padding: 24px;
+  color: var(--page-text);
+}
+
+@media (prefers-color-scheme: dark) {
+  .page {
+    --panel-shadow: 0 24px 50px rgba(2, 6, 23, 0.32);
+    --accent-soft: var(--tl-blue-glow);
+    --success-bg: rgba(34, 197, 94, 0.16);
+    --success-text: #bbf7d0;
+    --danger-bg: rgba(239, 68, 68, 0.16);
+    --danger-text: #fecaca;
+    --warning-border: rgba(244, 114, 182, 0.24);
+  }
+}
+
+.page-header {
+  margin-bottom: 18px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 3.2vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.subtitle,
+.hint,
+.panel p {
+  color: var(--muted-text);
+}
+
+.subtitle {
+  margin-top: 8px;
+  max-width: 64ch;
+}
+
+.hint {
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+/* Summary strip */
+.summary-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-radius: 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  margin-bottom: 16px;
+}
+
+.summary-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-stat strong {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.summary-stat span {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-text);
+}
+
+.summary-stat-link {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 10px;
+  transition: opacity 0.15s ease;
+}
+
+.summary-stat-link:hover {
+  opacity: 0.8;
+}
+
+.plan-reason-detail,
+.plan-reason-next-move {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  max-width: 42ch;
+}
+
+.plan-filter-toggle {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.plan-filter-toggle button {
+  appearance: none;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-soft);
+  color: var(--muted-text);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.plan-filter-toggle button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+app-tab-bar {
+  display: block;
+  margin-bottom: 16px;
+}
+
+/* Panel */
+.panel {
+  border-radius: 20px;
+  padding: 18px;
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+  line-height: 1.15;
+}
+
+/* Draft cards */
+.draft-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.draft-batch-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.btn-todd-secondary {
+  margin-top: 5px;
+  padding: 0.72rem 1.2rem;
+  font-size: var(--btn-font-size);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  border-radius: 18px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-soft);
+  color: var(--danger-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.btn-todd-secondary:hover:not(:disabled) {
+  background: var(--surface-strong);
+  border-color: var(--accent-soft);
+  transform: translateY(-1px);
+}
+
+.btn-todd-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.draft-card {
+  border-radius: 16px;
+  border: 1px solid var(--warning-border);
+  padding: 14px 16px;
+  background: linear-gradient(180deg, var(--surface-strong), var(--panel-bg));
+  cursor: pointer;
+}
+
+.draft-card.selected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel-bg));
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.draft-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.draft-card-company {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted-text);
+}
+
+.draft-card-contact-link {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.draft-card-contact-link:hover {
+  text-decoration: underline;
+}
+
+.hover-box {
+  position: fixed;
+  z-index: 1000;
+  max-width: 90vh;
+  padding: 15px;
+  background: color-mix(in srgb, var(--todd-card-bg) 82%, transparent);
+  border: 1px solid var(--todd-border);
+  color: var(--todd-text);
+}
+
+.draft-subject-label,
+.draft-body-label {
+  margin: 12px 0 2px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-text);
+}
+
+.draft-subject {
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--table-border);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--page-text);
+}
+
+.draft-body {
+  color: var(--muted-text);
+  line-height: 1.6;
+  font-size: 0.92rem;
+}
+
+.draft-body p {
+  margin: 0 0 8px;
+}
+
+/* ::ng-deep is required here: this image comes from [innerHTML]-injected
+   draft content, which bypasses Angular's template compiler entirely, so
+   the view-encapsulation attribute this component's other CSS relies on
+   never gets stamped onto it - a plain ".draft-body img" rule silently
+   never matches. :host keeps this scoped to this component only - without
+   it, ::ng-deep alone leaks the rule globally across the whole app. */
+:host ::ng-deep .draft-body img {
+  max-width: 80px;
+  max-height: 80px;
+  width: auto;
+  height: auto;
+}
+
+.draft-stop-reason {
+  margin-top: 10px;
+}
+
+.draft-error {
+  margin-top: 8px;
+  color: var(--danger-text);
+}
+
+.draft-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.draft-actions button {
+  appearance: none;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-soft);
+  color: var(--page-text);
+  font-weight: 600;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.draft-actions button:hover:not(:disabled) {
+  background: var(--surface-strong);
+  border-color: var(--accent-soft);
+  transform: translateY(-1px);
+}
+
+.draft-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.draft-actions button.danger {
+  color: var(--danger-text);
+}
+
+.draft-actions button.secondary {
+  color: var(--muted-text);
+}
+
+.draft-test-status {
+  margin-top: 8px;
+}
+
+.draft-rationale {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-soft);
+  color: var(--muted-text);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.draft-rationale-label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-text);
+  font-weight: 700;
+}
+
+/* Status pill (reused visual language from admin-tabs' status-pill) */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  background: var(--accent-soft);
+  color: var(--page-text);
+}
+
+.status-pill.tone-reply {
+  background: var(--accent-soft);
+}
+
+.status-pill.tone-outbound {
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.status-pill.tone-maya {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Table (Outbox / Sent / Plan) */
+.signal-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.signal-table th,
+.signal-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--table-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.signal-table th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-text);
+}
+
+.signal-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Briefly highlights the row a user just returned to Plan from after
+   editing in the composer (see editInComposer/isRestoredThread). */
+.signal-table tbody tr.restored-row {
+  background: var(--accent-soft);
+}
+
+.refresh-button {
+  appearance: none;
+  border-radius: 999px;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-soft);
+  color: var(--page-text);
+  font-weight: 600;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background: var(--surface-strong);
+  border-color: var(--accent-soft);
+}
+
+.refresh-button:disabled {
+  opacity: 0.6;
+}

@@ -1,0 +1,16 @@
+<div class="tab-bar" role="tablist" [attr.aria-label]="ariaLabel" [attr.data-cy]="dataCy || null">
+    <ng-container *ngFor="let tab of tabs; trackBy: trackById">
+        <a *ngIf="tab.routerLink" class="tab-bar__tab" [class.tab-bar__tab--has-icon]="!!tab.icon" [class.btn-glow]="tab.glow" [routerLink]="tab.routerLink" [queryParams]="tab.queryParams || null" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [attr.data-cy]="tab.dataCy || null" role="tab" [title]="tab.tooltip || tab.label">
+            <span class="tab-bar__dot" *ngIf="tab.statusDot" [class.tab-bar__dot--complete]="tab.statusDot === 'complete'" aria-hidden="true"></span>
+            <i *ngIf="tab.icon" class="tab-bar__icon" [ngClass]="iconClass(tab.icon)" aria-hidden="true"></i>
+            <span class="tab-bar__label">{{ tab.label }}</span>
+            <span class="tab-bar__count" *ngIf="tab.count !== null && tab.count !== undefined">{{ tab.count }}</span>
+        </a>
+        <button *ngIf="!tab.routerLink" type="button" class="tab-bar__tab" [class.tab-bar__tab--has-icon]="!!tab.icon" [class.btn-glow]="tab.glow" [class.active]="tab.id === activeId" [attr.data-cy]="tab.dataCy || null" role="tab" [attr.aria-selected]="tab.id === activeId" [title]="tab.tooltip || tab.label" (click)="tab.action ? tab.action() : select(tab.id)">
+            <span class="tab-bar__dot" *ngIf="tab.statusDot" [class.tab-bar__dot--complete]="tab.statusDot === 'complete'" aria-hidden="true"></span>
+            <i *ngIf="tab.icon" class="tab-bar__icon" [ngClass]="iconClass(tab.icon)" aria-hidden="true"></i>
+            <span class="tab-bar__label">{{ tab.label }}</span>
+            <span class="tab-bar__count" *ngIf="tab.count !== null && tab.count !== undefined">{{ tab.count }}</span>
+        </button>
+    </ng-container>
+</div>

@@ -1,0 +1,7 @@
+<div class="contact-preview">
+  <div class="contact-preview__name">{{ fullName }}</div>
+  <div class="contact-preview__meta" *ngIf="contact?.profession">{{ contact?.profession }}</div>
+  <div class="contact-preview__meta" *ngIf="contact?.company?.name">{{ contact?.company?.name }}</div>
+  <div class="contact-preview__row" *ngIf="primaryEmail">{{ primaryEmail }}</div>
+  <div class="contact-preview__row" *ngIf="primaryPhone">{{ primaryPhone }}</div>
+</div>

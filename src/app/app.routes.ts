@@ -49,6 +49,12 @@ export const routes: Routes = [
       import( './features/inbox-access/inbox-access.component' ).then( ( m ) => m.InboxAccessComponent ),
   },
   {
+    path: 'signal-engine',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import( './features/signal-engine/signal-engine.component' ).then( ( m ) => m.SignalEngineComponent ),
+  },
+  {
     path: '**',
     redirectTo: 'app',
   },
