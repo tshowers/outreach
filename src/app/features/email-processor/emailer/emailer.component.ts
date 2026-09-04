@@ -12,7 +12,7 @@ import { Address, Contact } from '../../../models/contact.model';
 import { FormsModule } from '@angular/forms';
 import { OutreachAssistantSignalService } from '../../../services/outreach-assistant-signal.service';
 import { OutreachApiService } from '../../../services/outreach-api.service';
-import { createThreadFromSentEmail } from '../../../shared/utils/momentum-thread-builder.util';
+import { OutreachMomentumThreadService } from '../../../services/outreach-momentum-thread.service';
 
 export type EmailerContactLite = Contact;
 
@@ -61,14 +61,12 @@ export interface CatalystRunContext {
  *    .updateContact(tenantId, contact.id, contact).
  *  - OpenAIService.contactInsight/getTemplateTokenAssistance ->
  *    OutreachInsightService (two-method trimmed copy).
- *  - MomentumThreadService.createThreadFromSentEmail (a stateful service
- *    method that read/wrote a localStorage thread cache this app doesn't
- *    carry) -> a pure createThreadFromSentEmail() utility function that
- *    builds the same MomentumThread object assuming no prior local
- *    thread exists (which was always true here anyway, since nothing in
- *    this extraction populates that cache). The real, load-bearing part -
- *    POSTing the built thread to the backend via
- *    OutreachApiService.upsertMomentumThread - is unchanged.
+ *  - MomentumThreadService -> OutreachMomentumThreadService, a trimmed
+ *    (not dropped - see that service's own header comment for why this
+ *    one's local thread cache is real, load-bearing state, unlike
+ *    OutreachHomeComponent's read-only use of the same original service)
+ *    copy kept to the handful of methods this component and
+ *    EmailCreateComponent actually call.
  */
 @Component( {
   selector: 'app-emailer',
@@ -194,7 +192,8 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit {
     private emailService: EmailService,
     private authService: OutreachAuthService,
     private dataService: OutreachDataService,
-    private outreachApiService: OutreachApiService
+    private outreachApiService: OutreachApiService,
+    private momentumThreadService: OutreachMomentumThreadService
   ) {
   }
 
@@ -1168,7 +1167,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit {
       const contactId = String( contact?.id || '' ).trim();
       if ( !contactId ) return;
 
-      const thread = createThreadFromSentEmail( {
+      const thread = this.momentumThreadService.createThreadFromSentEmail( {
         contactId,
         emailAddress: email.to,
         contactName: `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || email.to,

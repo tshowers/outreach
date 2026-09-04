@@ -1,0 +1,134 @@
+.todd-page {
+  --composer-signal-border: rgba(15, 15, 15, 0.08);
+  --composer-signal-bg: rgba(255, 255, 255, 0.58);
+  --composer-signal-shadow: 0 18px 45px rgba(15, 15, 15, 0.10);
+  --composer-signal-text: #0f172a;
+  --composer-signal-muted: rgba(15, 15, 15, 0.72);
+  --composer-signal-eyebrow-bg: rgba(15, 15, 15, 0.04);
+  --composer-signal-eyebrow-border: rgba(15, 15, 15, 0.10);
+  --composer-signal-eyebrow-text: rgba(15, 15, 15, 0.78);
+  --composer-signal-state-bg: rgba(255, 255, 255, 0.32);
+  --composer-signal-state-border: rgba(15, 15, 15, 0.08);
+  --composer-signal-state-label: rgba(15, 15, 15, 0.58);
+  --composer-signal-state-text: #0f172a;
+  --composer-signal-state-copy: rgba(15, 15, 15, 0.70);
+}
+
+.alert {
+  display: block;
+  /* let inner elements stack */
+}
+
+.alert .btn-close {
+  position: absolute;
+  /* Bootstrap’s default for dismissible alerts */
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+.composer-signal-card {
+  border-radius: 24px;
+  border: 1px solid var(--composer-signal-border);
+  background: var(--composer-signal-bg);
+  box-shadow: var(--composer-signal-shadow);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 1.4rem;
+  color: var(--composer-signal-text);
+}
+
+.composer-signal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.composer-signal-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.42rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--composer-signal-eyebrow-border);
+  background: var(--composer-signal-eyebrow-bg);
+  color: var(--composer-signal-eyebrow-text);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.composer-signal-title {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--composer-signal-text);
+}
+
+.composer-signal-copy {
+  margin: 0;
+  max-width: 72ch;
+  color: var(--composer-signal-muted);
+  line-height: 1.65;
+}
+
+.composer-signal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.composer-signal-state {
+  border-radius: 18px;
+  border: 1px solid var(--composer-signal-state-border);
+  background: var(--composer-signal-state-bg);
+  padding: 1rem;
+}
+
+.composer-signal-state-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--composer-signal-state-label);
+  margin-bottom: 0.65rem;
+}
+
+.composer-signal-state-diagnosis {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--composer-signal-state-text);
+  margin-bottom: 0.45rem;
+}
+
+.composer-signal-state-action {
+  color: var(--composer-signal-state-copy);
+  line-height: 1.55;
+}
+
+@media (max-width: 992px) {
+  .composer-signal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .todd-page {
+    --composer-signal-border: rgba(255, 255, 255, 0.12);
+    --composer-signal-bg: rgba(30, 33, 38, 0.54);
+    --composer-signal-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+    --composer-signal-text: #f3f4f6;
+    --composer-signal-muted: rgba(232, 232, 232, 0.78);
+    --composer-signal-eyebrow-bg: rgba(255, 255, 255, 0.05);
+    --composer-signal-eyebrow-border: rgba(255, 255, 255, 0.14);
+    --composer-signal-eyebrow-text: rgba(255, 255, 255, 0.9);
+    --composer-signal-state-bg: rgba(255, 255, 255, 0.04);
+    --composer-signal-state-border: rgba(255, 255, 255, 0.10);
+    --composer-signal-state-label: rgba(255, 255, 255, 0.66);
+    --composer-signal-state-text: #f8fafc;
+    --composer-signal-state-copy: rgba(232, 232, 232, 0.74);
+  }
+}

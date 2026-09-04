@@ -1,0 +1,49 @@
+<app-preloader [isLoading]="isLoading"></app-preloader>
+<div class="container-fluid tal-app todd-page">
+  <div class="row no-print page-header m-2">
+    <div class="col-12 col-xl-8">
+      <h1 class="pv-title">Email Composer</h1>
+      <p class="d-none d-xl-block">Compose your message here, then talk to TODD in the bottom-right chat to draft, revise, soften, or shorten the email naturally.</p>
+      <div class="alert alert-warning alert-dismissible fade show d-none d-xl-block" role="alert" *ngIf="showRegisterEmailWarning">
+        <h4 class="alert-heading">Heads Up!</h4>
+        <p>To send email through TODD, you must first register your email address by contacting support. This step helps prevent spam and abuse.</p>
+        <hr>
+        <p><a href="mailto:info@taliferro.tech?subject=Email%20Address%20Approval"> Click here to request approval</a>.</p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+    <div class="col-12 col-xl-4 text-xl-end mt-3 mt-xl-0 d-none d-xl-block">
+      <app-todd-tip icon="lightbulb" label="Tip"> {{ emailTipText }} </app-todd-tip>
+      <app-email-sending-status [userId]="userId"></app-email-sending-status>
+    </div>
+  </div>
+  <div class="row mb-4 d-none d-xl-block" *ngIf="!isLoggedIn">
+    <div class="col-12">
+      <section class="composer-signal-card">
+        <div class="composer-signal-header">
+          <div>
+            <div class="composer-signal-eyebrow">Signal Engine</div>
+            <h2 class="composer-signal-title">TODD can take over after send</h2>
+            <p class="composer-signal-copy">
+              {{ signalEngineSummary }}
+            </p>
+          </div>
+        </div>
+        <div class="composer-signal-grid">
+          <div class="composer-signal-state" *ngFor="let state of signalEngineStates">
+            <div class="composer-signal-state-label">{{ state.label }}</div>
+            <div class="composer-signal-state-diagnosis">{{ state.diagnosis }}</div>
+            <div class="composer-signal-state-action">{{ state.action }}</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <div class="row">
+    <!-- Composer  -->
+    <div class="col-12">
+      <app-email-create [tenantId]="tenantId" [nomenclature]="nomenclature" [userId]="userId" [firebaseUser]="firebaseUser" (toChange)="updateTo($event)" (subjectChange)="updateSubject($event)" (psChange)="updatePS($event)" (textChange)="updateText($event)" (loader)="setIsLoading($event)" (senderInformation)="onSenderInfo($event)" (useTemplateChange)="onUseTemplate($event)" (momentumDraftAction)="handleMomentumDraftAction($event)"></app-email-create>
+    </div>
+    <!-- Preview -->
+  </div>
+</div>

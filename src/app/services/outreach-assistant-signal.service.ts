@@ -28,6 +28,8 @@ export class OutreachAssistantSignalService {
   emitAssistantActivity ( _event: unknown ): void { }
   setPageContext ( _context: unknown ): void { }
   setAssistantPageContext ( _context: unknown ): void { }
+  /** Always null - there's no live context to hand back since setPageContext is a no-op. */
+  getPageContextSnapshot (): any { return null; }
   clearPageContext (): void { }
   pushTranscript ( _message: { role: string; content: string } ): void { }
   markAssistantUnread (): void { }
