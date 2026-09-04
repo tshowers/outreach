@@ -1,0 +1,84 @@
+.todd-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-size: 13px;
+  background: color-mix(in srgb, var(--todd-card-bg) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--todd-border) 70%, transparent);
+  color: var(--todd-text);
+}
+
+.todd-tip__icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.todd-tip__icon i {
+  color: #ffcc33;
+}
+
+.todd-tip__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.todd-tip__label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.todd-tip__text {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.todd-tip--subtle {
+  background: color-mix(in srgb, var(--todd-card-bg) 72%, transparent);
+  box-shadow: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .todd-tip {
+    background: color-mix(in srgb, var(--todd-card-bg) 72%, transparent);
+    border-color: var(--todd-panel-border);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+
+  .todd-tip__text {
+    color: var(--todd-subtext);
+  }
+
+  .todd-tip__label {
+    color: var(--todd-text);
+  }
+}
+
+.todd-tip {
+  position: relative;
+}
+
+.todd-tip__close {
+  position: relative;
+  top: 0px;
+  right: 12px;
+  font-size: 20px;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.4;
+}
+
+.todd-tip__close:hover {
+  opacity: 0.7;
+}
+
+.hidden {
+  display: none !important;
+}

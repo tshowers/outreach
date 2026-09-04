@@ -66,6 +66,12 @@ export const routes: Routes = [
       import( './features/outreach-home/outreach-home.component' ).then( ( m ) => m.OutreachHomeComponent ),
   },
   {
+    path: 'email-processor',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import( './features/email-processor/email-processor.component' ).then( ( m ) => m.EmailProcessorComponent ),
+  },
+  {
     path: '**',
     redirectTo: 'app',
   },

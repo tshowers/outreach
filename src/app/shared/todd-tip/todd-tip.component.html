@@ -1,0 +1,18 @@
+<div class="todd-tip" [class.todd-tip--subtle]="subtle" [class.hidden]="closed">
+
+
+  <span class="todd-tip__icon"  *ngIf="icon">
+    <i [ngClass]="iconClass" aria-hidden="true"></i>
+  </span>
+  <div class="todd-tip__content">
+    <div class="todd-tip__label" *ngIf="label">{{ label }}</div>
+    <div class="todd-tip__text">
+      <ng-content></ng-content>
+    </div>
+  </div>
+  <button class="todd-tip__close" (click)="close()" aria-label="Close" style="font-size: small;">
+  &times;
+</button>
+</div>
+
+

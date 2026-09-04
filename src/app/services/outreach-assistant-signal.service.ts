@@ -25,8 +25,9 @@ export class OutreachAssistantSignalService {
   private readonly engagementActionRequestSubject = new Subject<{ action: string;[key: string]: unknown; } | null>();
   readonly engagementActionRequest$: Observable<{ action: string;[key: string]: unknown; } | null> = this.engagementActionRequestSubject.asObservable();
 
-  emitAssistantActivity ( _event: Record<string, unknown> ): void { }
-  setPageContext ( _context: Record<string, unknown> ): void { }
+  emitAssistantActivity ( _event: unknown ): void { }
+  setPageContext ( _context: unknown ): void { }
+  setAssistantPageContext ( _context: unknown ): void { }
   clearPageContext (): void { }
   pushTranscript ( _message: { role: string; content: string } ): void { }
   markAssistantUnread (): void { }

@@ -3,6 +3,8 @@ import {
   Component,
   Input,
   HostListener,
+  inject,
+  NgZone,
   OnDestroy,
   OnInit,
 } from '@angular/core';
@@ -70,6 +72,8 @@ export class TopDogComponent implements OnInit, OnDestroy, AfterViewInit {
   private tenantIdSubscription!: Subscription;
   private loggedInSubscription!: Subscription;
   private firebaseUserSubscription!: Subscription;
+
+  protected zone = inject( NgZone );
 
   private readySubject = new BehaviorSubject<boolean>( false );
   public ready$ = this.readySubject.asObservable();

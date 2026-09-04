@@ -1,0 +1,181 @@
+<app-preloader [isLoading]="isLoading"></app-preloader>
+<app-back-to-top></app-back-to-top>
+<div class="container-fluid tal-app todd-page catalyst-shell">
+    <div class="catalyst-page-shell">
+        <div class="catalyst-hero ios-card fade-in-up d-none d-xl-block">
+            <div class="row align-items-start g-3">
+                <div class="col-12 col-xl-8">
+                    <div class="catalyst-hero__eyebrow">Catalyst</div>
+                    <div class="catalyst-hero__header">
+                        <div>
+                            <h1 class="catalyst-hero__title">Stale contact queue</h1>
+                            <p class="catalyst-hero__subtitle mb-0"> Review the people you have not contacted in a while. Start with the stalest relationships, then switch to Emailer when you are ready to reach back out. </p>
+                        </div>
+                    </div>
+                    <div class="catalyst-signal-card mt-3">
+                        <div class="catalyst-signal-card__eyebrow">Signal Engine</div>
+                        <div class="catalyst-signal-card__copy"> Catalyst sends the first tailored email, then Signal Engine owns the thread after send. </div>
+                        <div class="catalyst-signal-list">
+                            <div class="catalyst-signal-list__item" *ngFor="let state of signalEngineStates">
+                                {{ state }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert" *ngIf="shouldShowMessage('registerEmailWarning')">
+                        <h4 class="alert-heading">Heads Up!</h4>
+                        <p>To send email through TODD, you must first register your email address by contacting support. This step helps prevent spam and abuse.</p>
+                        <hr>
+                        <p><a href="mailto:info@taliferro.tech?subject=Email%20Address%20Approval"> Click here to request approval</a>.</p>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-4 text-xl-end mt-3 mt-xl-0 d-none d-xl-block">
+                    <app-todd-tip icon="lightbulb" label="Tip"> {{ emailTipText }} </app-todd-tip>
+                </div>
+            </div>
+        </div>
+        <div class="catalyst-panel ios-card fade-in-up" [class.d-none]="!isLoading && !isCatalystHandoffMode && liteContacts && liteContacts.length === 0">
+            <div class="catalyst-mode-banner" *ngIf="isCatalystHandoffMode">
+                <div>
+                    <div class="catalyst-mode-banner__eyebrow">Blocked handoff queue</div>
+                    <div class="catalyst-mode-banner__title">{{ catalystHandoff?.launchLabel || 'Blocked outreach' }}</div>
+                    <div class="catalyst-mode-banner__copy">{{ catalystHandoffStatus }}</div>
+                </div>
+                <div class="catalyst-mode-banner__meta">
+                    <span>{{ catalystHandoffLoadedCount }} loaded</span>
+                    <span *ngIf="catalystHandoffSkippedCount > 0">{{ catalystHandoffSkippedCount }} stayed in Outbox</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" (click)="clearCatalystHandoffMode()">Reset to stale queue</button>
+                </div>
+            </div>
+            <app-tab-bar [tabs]="catalystTabs" [activeId]="activeTab" ariaLabel="Catalyst views" dataCy="catalyst-tabs" (tabChange)="setActiveTab($event)"></app-tab-bar>
+            <div class="catalyst-tab-shell">
+                <div class="catalyst-tab-panel" [class.catalyst-tab-panel--active]="activeTab === 'emailer'" [attr.aria-hidden]="activeTab !== 'emailer'">
+                    <div class="catalyst-tab-panel__inner">
+                        <div class="mb-3">
+                            <app-email-sending-status [userId]="userId"></app-email-sending-status>
+                        </div>
+                        <div class="card border-0 shadow-sm mb-3" *ngIf="contactsToPass.length">
+                            <div class="card-body py-3">
+                                <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+                                    <div>
+                                        <div class="fw-semibold">Include Lead Vault</div>
+                                        <div class="text-muted small">Add eligible Lead Vault contacts to this Catalyst run once per workspace every rolling 7 days.</div>
+                                    </div>
+                                    <label class="form-check form-switch m-0">
+                                        <input class="form-check-input" type="checkbox" [checked]="includeLeadVaultContacts" [disabled]="leadVaultToggleDisabled" (change)="toggleLeadVaultContacts()">
+                                        <span class="form-check-label ms-2">Enable</span>
+                                    </label>
+                                </div>
+                                <div class="mt-2 small" [class.text-success]="leadVaultPreview?.allowed" [class.text-danger]="!leadVaultPreview?.allowed && !!leadVaultPreview">
+                                    {{ leadVaultPreviewLoading ? 'Checking Lead Vault availability…' : leadVaultStatusMessage }}
+                                </div>
+                            </div>
+                        </div>
+                        <app-emailer [contacts]="contactsToPass" [blockedDraftReason]="catalystBlockedDraftReason" [beforeQueueStart]="prepareCatalystQueueForStart" [runContext]="catalystRunContext" (assistantContextChange)="onAssistantContextChange($event)"></app-emailer>
+                    </div>
+                </div>
+                <div class="catalyst-tab-panel" *ngIf="!isCatalystHandoffMode" [class.catalyst-tab-panel--active]="activeTab === 'graph'" [attr.aria-hidden]="activeTab !== 'graph'">
+                    <div class="catalyst-tab-panel__inner catalyst-tab-panel__inner--chart">
+                        <div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
+                            <label for="processingCount" class="form-label mb-0">Batch Size</label>
+                            <select id="processingCount" class="form-select w-auto" [(ngModel)]="processingCount" (ngModelChange)="onProcessingCountChange($event)">
+                                <option [ngValue]="10">10</option>
+                                <option [ngValue]="25">25</option>
+                                <option [ngValue]="50">50</option>
+                                <option [ngValue]="100">100</option>
+                                <option [ngValue]="500">500</option>
+                                <option [ngValue]="1000">1000</option>
+                                <option [ngValue]="2000">2000</option>
+                                <option [ngValue]="2500">2500</option>
+                            </select>
+                            <small class="text-muted">Chart stays at 25. Processing uses the selected total.</small>
+                        </div>
+                        <app-last-contact-chart [contacts]="liteContacts" [userId]="userId" [processingCount]="processingCount" (cohortReady)="onContactsReady($event)">
+                        </app-last-contact-chart>
+                    </div>
+                </div>
+                <div class="catalyst-tab-panel" [class.catalyst-tab-panel--active]="activeTab === 'history'" [attr.aria-hidden]="activeTab !== 'history'">
+                    <div class="catalyst-tab-panel__inner">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <div class="fw-semibold">Catalyst History</div>
+                                <div class="text-muted small">Recent Catalyst runs with sent, open, and click results.</div>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="loadCatalystRuns()">Refresh</button>
+                        </div>
+
+                        <div class="alert alert-secondary mb-0" *ngIf="catalystRunsLoading">Loading recent Catalyst runs…</div>
+                        <div class="alert alert-danger mb-0" *ngIf="!catalystRunsLoading && catalystRunsError">{{ catalystRunsError }}</div>
+
+                        <div class="d-grid gap-3" *ngIf="!catalystRunsLoading && !catalystRunsError && catalystRuns.length">
+                            <div class="card border-0 shadow-sm" *ngFor="let run of catalystRuns">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+                                        <div>
+                                            <div class="fw-semibold">{{ run.name || 'Catalyst Run' }}</div>
+                                            <div class="text-muted small">
+                                                {{ run.source === 'blocked_handoff' ? 'Blocked handoff' : 'Stale contacts' }} ·
+                                                {{ run.includeLeadVaultContacts ? 'Lead Vault included' : 'Lead Vault off' }} ·
+                                                {{ run.status || 'active' }}
+                                            </div>
+                                        </div>
+                                        <div class="text-muted small text-end">
+                                            <div>Started {{ formatCatalystRunTimestamp(run.startedAt || run.createdAt) }}</div>
+                                            <div *ngIf="run.completedAt">Finished {{ formatCatalystRunTimestamp(run.completedAt) }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2 mt-2">
+                                        <div class="col-6 col-md-3">
+                                            <div class="border rounded p-2 h-100">
+                                                <div class="text-muted small">Sent</div>
+                                                <div class="fw-semibold">{{ run.sentCount || 0 }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <div class="border rounded p-2 h-100">
+                                                <div class="text-muted small">Unique Opens</div>
+                                                <div class="fw-semibold">{{ run.uniqueOpenedCount || 0 }} · {{ formatCatalystRunRate(run.openRate) }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <div class="border rounded p-2 h-100">
+                                                <div class="text-muted small">Unique Clicks</div>
+                                                <div class="fw-semibold">{{ run.uniqueClickedCount || 0 }} · {{ formatCatalystRunRate(run.clickRate) }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <div class="border rounded p-2 h-100">
+                                                <div class="text-muted small">Queue</div>
+                                                <div class="fw-semibold">{{ run.eligibleCount || run.queuedCount || 0 }} queued</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-secondary mb-0" *ngIf="!catalystRunsLoading && !catalystRunsError && !catalystRuns.length">
+                            No Catalyst runs have been recorded yet.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid catalyst-empty-state-shell" [class.d-none]="isLoading || isCatalystHandoffMode || (liteContacts && liteContacts.length > 0)">
+            <div class="catalyst-empty-state-card text-center">
+                <div class="catalyst-empty-state-icon mb-3">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <div class="catalyst-empty-state-eyebrow">Outreach</div>
+                <h2 class="catalyst-empty-state-title">Catalyst needs contacts to work</h2>
+                <p class="catalyst-empty-state-text"> Catalyst analyzes your contacts and helps you decide who to reach out to next and what to say. </p>
+                <p class="catalyst-empty-state-subtext"> You do not have any contacts yet. </p>
+                <div class="catalyst-empty-state-actions mt-3">
+                    <button class="btn btn-primary" (click)="onClickRoute('/contact-list')">Go to Network</button>
+                    <button class="btn btn-outline-secondary" (click)="onClickRoute('/contact-import')">Import Contacts</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

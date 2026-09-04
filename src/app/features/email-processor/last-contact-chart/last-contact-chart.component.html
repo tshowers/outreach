@@ -1,0 +1,82 @@
+<div class="queue-cockpit">
+    <div class="queue-cockpit__hero">
+        <div>
+            <div class="queue-cockpit__eyebrow">Stale Contacts</div>
+            <h4 class="queue-cockpit__title mb-1">People you may have forgotten</h4>
+            <p class="queue-cockpit__subtitle mb-0">This view surfaces the contacts that have gone the longest without a follow-up so you can decide who deserves attention first.</p>
+        </div>
+    </div>
+    <div class="queue-cockpit__grid">
+        <div class="queue-cockpit__card">
+            <span class="queue-cockpit__label">Oldest gap</span>
+            <span class="queue-cockpit__value">{{ oldestDays }}</span>
+            <span class="queue-cockpit__copy">days since the stalest relationship was touched</span>
+        </div>
+        <div class="queue-cockpit__card">
+            <span class="queue-cockpit__label">Average gap</span>
+            <span class="queue-cockpit__value">{{ averageDays }}</span>
+            <span class="queue-cockpit__copy">days since contact across the stale cohort</span>
+        </div>
+        <div class="queue-cockpit__card">
+            <span class="queue-cockpit__label">Queue ready</span>
+            <span class="queue-cockpit__value">{{ queueReadyCount }}</span>
+            <span class="queue-cockpit__copy">contacts currently staged for emailer</span>
+        </div>
+        <div class="queue-cockpit__card">
+            <span class="queue-cockpit__label">Urgent backlog</span>
+            <span class="queue-cockpit__value">{{ urgentCount }}</span>
+            <span class="queue-cockpit__copy">contacts at 30+ days since the last touch</span>
+        </div>
+    </div>
+    <div class="queue-cockpit__body">
+        <div class="queue-cockpit__panel">
+            <div class="queue-cockpit__panel-kicker">Action Queue</div>
+            <div class="queue-cockpit__cohorts">
+                <div *ngFor="let cohort of topCohorts" class="queue-cockpit__cohort">
+                    <div class="queue-cockpit__cohort-main">
+                        <span class="queue-cockpit__cohort-name">{{ cohort.label }}</span>
+                        <span class="queue-cockpit__cohort-copy">{{ cohort.copy }}</span>
+                    </div>
+                    <span class="queue-cockpit__cohort-value">{{ cohort.value }}</span>
+                </div>
+            </div>
+            <div *ngIf="!topCohorts.length" class="queue-cockpit__empty"> Once contacts are available, the stalest relationships will appear here first. </div>
+        </div>
+        <div class="queue-cockpit__panel">
+            <div class="queue-cockpit__panel-kicker">Queue Health</div>
+            <div class="queue-cockpit__bars">
+                <div class="queue-cockpit__bar-row">
+                    <div class="queue-cockpit__bar-meta">
+                        <span>Staleness</span>
+                        <span>{{ stalenessSignal }}%</span>
+                    </div>
+                    <div class="queue-cockpit__bar-track">
+                        <span class="queue-cockpit__bar-fill queue-cockpit__bar-fill--staleness" [style.width.%]="stalenessSignal"></span>
+                    </div>
+                </div>
+                <div class="queue-cockpit__bar-row">
+                    <div class="queue-cockpit__bar-meta">
+                        <span>Relationship drift</span>
+                        <span>{{ relationshipSignal }}%</span>
+                    </div>
+                    <div class="queue-cockpit__bar-track">
+                        <span class="queue-cockpit__bar-fill queue-cockpit__bar-fill--relationship" [style.width.%]="relationshipSignal"></span>
+                    </div>
+                </div>
+                <div class="queue-cockpit__bar-row">
+                    <div class="queue-cockpit__bar-meta">
+                        <span>Emailer readiness</span>
+                        <span>{{ readinessSignal }}%</span>
+                    </div>
+                    <div class="queue-cockpit__bar-track">
+                        <span class="queue-cockpit__bar-fill queue-cockpit__bar-fill--readiness" [style.width.%]="readinessSignal"></span>
+                    </div>
+                </div>
+            </div>
+            <p class="queue-cockpit__disclaimer">Staleness tracks the longest relationship gap, relationship drift summarizes the average time since contact, and emailer readiness shows how much of the visible queue is ready to work right now.</p>
+        </div>
+    </div>
+    <div #suggestion class="suggestion-container fade-in-up">
+        <p><small>{{ currentSuggestion }}</small></p>
+    </div>
+</div>

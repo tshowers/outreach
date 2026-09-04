@@ -440,6 +440,23 @@ export class OutreachApiService {
     return this.http.get<CampaignDetailResponse>( `${this.baseUrl}/outreach/sequences/${encodeURIComponent( sequenceId )}`, { headers } );
   }
 
+  // The real, operator-configured Daily Auto-Send Cap (Operator Control
+  // Panel's dailyAutoSendTarget) and how many auto-sends actually went out
+  // today against it - used by EmailSendingStatusComponent's warmup gauge.
+  getAutoSendCapStatus ( opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{
+    success: boolean;
+    message: string;
+    data: {
+      dailyAutoSendTarget: number;
+      sentToday: number;
+      remaining: number;
+      sendPolicyModeAtSend: string;
+    };
+  }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.get<any>( `${this.baseUrl}/outreach/momentum/auto-send-cap-status`, { headers } );
+  }
+
   previewLeadVaultAudience ( payload: { queue?: Contact[]; limit?: number; }, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<LeadVaultAudiencePreviewResponse> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.post<LeadVaultAudiencePreviewResponse>( `${this.baseUrl}/outreach/lead-vault/preview`, payload, { headers } );

@@ -1,0 +1,161 @@
+.warmup-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(18, 28, 45, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  color: #6d7685;
+}
+
+.warmup-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.email-cap-info {
+  font-size: 12px;
+  color: #7b8494;
+  line-height: 1.35;
+}
+
+.warmup-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.warmup-dot.cold {
+  background: #e53935;
+  /* red */
+}
+
+.warmup-dot.warming {
+  background: #fdd835;
+  /* yellow */
+}
+
+.warmup-dot.ready {
+  background: #43a047;
+  /* green */
+}
+
+.warmup-text {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: #4c5565;
+  white-space: nowrap;
+}
+
+.campaign-hint {
+  min-width: 0;
+  color: #7b8494;
+}
+
+@media (max-width: 640px) {
+  .warmup-summary {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .warmup-text {
+    white-space: normal;
+  }
+}
+
+
+@media (prefers-color-scheme: dark) {
+  .warmup-meter {
+    background: rgba(18, 28, 45, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #c9d1d9;
+  }
+
+  .warmup-summary {
+    color: #c9d1d9;
+  }
+
+  .email-cap-info,
+  .campaign-hint {
+    color: #9aa4b2;
+  }
+
+  .warmup-text {
+    color: #e6edf3;
+  }
+
+  .warmup-dot.cold {
+    background: #ff6b6b;
+  }
+
+  .warmup-dot.warming {
+    background: #ffd166;
+  }
+
+  .warmup-dot.ready {
+    background: #4ade80;
+  }
+}
+
+:host-context(.dark) .warmup-meter,
+:host-context(.dark-theme) .warmup-meter,
+:host-context(body.dark-mode) .warmup-meter,
+:host-context([data-theme='dark']) .warmup-meter {
+  background: rgba(18, 28, 45, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #c9d1d9;
+}
+
+:host-context(.dark) .warmup-summary,
+:host-context(.dark-theme) .warmup-summary,
+:host-context(body.dark-mode) .warmup-summary,
+:host-context([data-theme='dark']) .warmup-summary {
+  color: #c9d1d9;
+}
+
+:host-context(.dark) .email-cap-info,
+:host-context(.dark) .campaign-hint,
+:host-context(.dark-theme) .email-cap-info,
+:host-context(.dark-theme) .campaign-hint,
+:host-context(body.dark-mode) .email-cap-info,
+:host-context(body.dark-mode) .campaign-hint,
+:host-context([data-theme='dark']) .email-cap-info,
+:host-context([data-theme='dark']) .campaign-hint {
+  color: #9aa4b2;
+}
+
+:host-context(.dark) .warmup-text,
+:host-context(.dark-theme) .warmup-text,
+:host-context(body.dark-mode) .warmup-text,
+:host-context([data-theme='dark']) .warmup-text {
+  color: #e6edf3;
+}
+
+:host-context(.dark) .warmup-dot.cold,
+:host-context(.dark-theme) .warmup-dot.cold,
+:host-context(body.dark-mode) .warmup-dot.cold,
+:host-context([data-theme='dark']) .warmup-dot.cold {
+  background: #ff6b6b;
+}
+
+:host-context(.dark) .warmup-dot.warming,
+:host-context(.dark-theme) .warmup-dot.warming,
+:host-context(body.dark-mode) .warmup-dot.warming,
+:host-context([data-theme='dark']) .warmup-dot.warming {
+  background: #ffd166;
+}
+
+:host-context(.dark) .warmup-dot.ready,
+:host-context(.dark-theme) .warmup-dot.ready,
+:host-context(body.dark-mode) .warmup-dot.ready,
+:host-context([data-theme='dark']) .warmup-dot.ready {
+  background: #4ade80;
+}

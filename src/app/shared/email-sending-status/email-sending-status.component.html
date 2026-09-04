@@ -1,0 +1,19 @@
+<div class="warmup-meter" *ngIf="emailState">
+  <div class="warmup-summary">
+    <span class="warmup-dot" [ngClass]="{
+      'cold' : emailState.level === 'cold',
+      'warming' : emailState.level === 'warming',
+      'ready' : emailState.level === 'ready'
+    }"></span>
+    <span class="warmup-text" [title]="statusTitle">
+      {{ statusLabel }}
+    </span>
+    <span class="campaign-hint">
+      {{ campaignHintText }}
+    </span>
+  </div>
+  <div class="email-cap-info" *ngIf="emailState">
+    <span> Today’s cap: <strong>{{ emailState.capForToday }}</strong> • Used: <strong>{{ emailState.usedToday }}</strong> • Remaining: <strong>{{ emailState.capForToday - emailState.usedToday }}</strong>
+    </span>
+  </div>
+</div>

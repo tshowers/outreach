@@ -118,6 +118,21 @@ export class OutreachDataService {
   }
 
   /**
+   * Mirrors DataService.getEmailWarmupState(userId) - the original ignores
+   * its own userId parameter and resolves the tenant path from the
+   * caller's own auth-derived tenantId, so this takes tenantId directly
+   * rather than replicating that indirection.
+   */
+  async getEmailWarmupState ( tenantId: string ): Promise<any | null> {
+    try {
+      const snap = await getDoc( doc( this.firestore, `tenants/${tenantId}/emailWarmupState`, 'global' ) );
+      return snap.exists() ? { id: snap.id, ...( snap.data() as any ) } : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Mirrors DataService.getCollectionData('CONTACTS', ...) - the whole
    * tenant's contact collection, no pagination.
    */
