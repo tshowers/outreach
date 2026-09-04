@@ -1,0 +1,130 @@
+<div class="editor-container" data-demo="email-editor">
+  <div class="btn-toolbar mb-2 flex-wrap" data-demo="email-editor-toolbar">
+    <!-- Bold button -->
+    <button type="button" class="btn-ios icon-only" (click)="format('bold')" title="Bold">
+      <i class="fas fa-bold"></i>
+    </button>
+    <!-- Italic button -->
+    <button type="button" class="btn-ios icon-only mr-2" (click)="format('italic')" title="Italic">
+      <i class="fas fa-italic"></i>
+    </button>
+    <!-- Underline button -->
+    <button type="button" class="btn-ios icon-only" (click)="format('underline')" title="Underline">
+      <i class="fas fa-underline"></i>
+    </button>
+    <!-- Strikethrough button -->
+    <button type="button" class="btn-ios icon-only" (click)="format('strikethrough')" title="Strikethrough">
+      <i class="fas fa-strikethrough"></i>
+    </button>
+    <!-- Align left button -->
+    <button type="button" class="btn-ios icon-only" (click)="alignText('left')" title="Align Left">
+      <i class="fas fa-align-left"></i>
+    </button>
+    <!-- Align center button -->
+    <button type="button" class="btn-ios icon-only" (click)="alignText('center')" title="Align Center">
+      <i class="fas fa-align-center"></i>
+    </button>
+    <!-- Align right button -->
+    <button type="button" class="btn-ios icon-only" (click)="alignText('right')" title="Align Right">
+      <i class="fas fa-align-right"></i>
+    </button>
+    <!-- Ordered list button -->
+    <button type="button" class="btn-ios icon-only" (click)="createList('insertOrderedList')" title="Ordered List">
+      <i class="fas fa-list-ol"></i>
+    </button>
+    <!-- Unordered list button -->
+    <button type="button" class="btn-ios icon-only" (click)="createList('insertUnorderedList')" title="Unordered List">
+      <i class="fas fa-list-ul"></i>
+    </button>
+    <!-- Heading 1 button -->
+    <button type="button" class="btn-ios icon-only" (click)="formatBlock('h1')" title="Heading 1">
+      <i class="fas fa-heading"></i> 1 </button>
+    <!-- Heading 2 button -->
+    <button type="button" class="btn-ios icon-only" (click)="formatBlock('h2')" title="Heading 2">
+      <i class="fas fa-heading"></i> 2 </button>
+    <!-- Font color picker -->
+    <input type="color" class="btn-ios icon-only" (input)="changeFontColor($event)" title="Change Font Color">
+    <!-- Background color picker -->
+    <input type="color" class="btn-ios icon-only" (input)="changeBackgroundColor($event)" title="Change Background Color">
+    <button type="button" class="btn-ios icon-only" (click)="insertTwoColumnLayout()" title="Insert 2-Column Layout">
+      <i class="fas fa-columns"></i> 2 </button>
+    <button type="button" class="btn-ios icon-only" (click)="createLink()">
+      <i class="fas fa-link"></i>
+    </button>
+    <button type="button" class="btn-ios icon-only" data-demo="email-editor-spell-check" (click)="onCheckGrammar()" title="Check Grammar">
+      <i *ngIf="!isChecking" class="fas fa-spell-check"></i>
+      <div *ngIf="isChecking" class="spinner-container">
+        <i class="fa fa-spinner fa-spin spinner-blue"></i>
+      </div>
+    </button>
+    <button
+      type="button"
+      class="btn-ios icon-only maya-avatar-button"
+      data-demo="email-editor-maya-rewrite"
+      (click)="generateMayaEmailContent()"
+      [disabled]="isMayaDrafting"
+      title="Ask Maya to rewrite this draft or create one in her style"
+      aria-label="Ask Maya to rewrite this draft or create one in her style">
+      <img *ngIf="!isMayaDrafting" [src]="mayaAvatarSrc" alt="" class="maya-avatar-button__image">
+      <div *ngIf="isMayaDrafting" class="spinner-container">
+        <i class="fa fa-spinner fa-spin spinner-blue"></i>
+      </div>
+    </button>
+    <button type="button" class="btn-ios icon-only" (click)="format('removeFormat')" title="Clear Formatting">
+      <i class="fas fa-eraser"></i>
+    </button>
+    <label class="btn-ios icon-only" for="fileInput">
+      <i class="fas fa-image"></i>
+    </label>
+    <input type="file" id="fileInput" class="d-none" (change)="insertImage($event)" accept="image/*" title="Upload Image">
+    <!-- Font selection -->
+    <select class="btn-ios form-select pl-2" [(ngModel)]="selectedFont" (change)="changeFont($event)" title="Change Font">
+      <option value="" disabled selected>Font</option>
+      <option *ngFor="let font of fonts" [value]="font">{{ font }}</option>
+    </select>
+    <!-- Font size selection -->
+    <select class="btn-ios  form-select pl-2" (change)="changeFontSize($event)" title="Change Font Size">
+      <option value="" disabled selected>Size</option>
+      <option value="1">Small</option>
+      <option value="3">Normal</option>
+      <option value="5">Large</option>
+      <option value="7">Extra Large</option>
+    </select>
+    <!-- Clear formatting button -->
+    <label class="btn btn-light mt-2 d-none d-xl-block" *ngIf="mode === 'email'">
+      <input type="checkbox" [(ngModel)]="isUsingTemplate" (click)="onUseTemplate()"> Custom Template </label>
+    <select *ngIf="mode === 'email'" [(ngModel)]="selectedTemplate" class="btn-ios form-select pl-2 d-none d-xl-block" (change)="onTemplateChange()" style="min-width: 160px;">
+      <option value="">Select Template</option>
+      <option value="minimal">Minimal CTA</option>
+      <option value="hero">Hero Image</option>
+      <option value="textOnly">Text-Only</option>
+      <option value="yourSuccess">Your Success</option>
+    </select>
+    <button type="button" class="btn-ios" (click)="toggleView()" title="Toggle View" style="min-width: 150px;">
+      {{ isCodeView ? 'Switch to HTML View' : 'Switch to Code View' }}
+    </button>
+    <div *ngIf="campaignDrafts">
+      <label class="form-label">Select Draft</label>
+      <select class="btn-ios  form-select pl-2" [ngModel]="selectedDraftKey" (ngModelChange)="selectDraft($event)" style="min-width: 150px;">
+        <option *ngFor="let key of draftKeys()" [value]="key">{{ key | capitalizeFirst}}</option>
+      </select>
+    </div>
+  </div>
+  <!-- <div *ngIf="showTones" class="tone-dropdown-container mt-2">
+    <label for="toneSelect">Select Tone: </label>
+    <select id="toneSelect" class="ios-select fpl-2 mb-2" (change)="onToneChange($event)">
+      <option value="" disabled selected>Choose a tone</option>
+      <option *ngFor="let tone of emailTones" [value]="tone.tone" [title]="tone.emotionalFrame || tone.persona">
+        {{ tone.name }}
+      </option>
+    </select>
+  </div> -->
+  <div class="progress" *ngIf="uploadProgress > 0 && uploadProgress < 100" class="progress">
+    <div class="progress-bar" role="progressbar" [style.width.%]="uploadProgress" [attr.aria-valuenow]="uploadProgress" aria-valuemin="0" aria-valuemax="100">{{uploadProgress}}%</div>
+  </div>
+  <div *ngIf="!isCodeView" contenteditable="true" class="editor border p-2" data-demo="email-editor-canvas" (input)="onInput()" #editorRef (paste)="onPaste($event)"></div>
+  <div *ngIf="isCodeView">
+    <!-- Code View (textarea) -->
+    <textarea [(ngModel)]="htmlContent" (ngModelChange)="onInput()" class="code-editor border p-2" rows="12 " cols="100"></textarea>
+  </div>
+</div>

@@ -43,6 +43,12 @@ export const routes: Routes = [
       import( './features/outreach-pricing/outreach-pricing.component' ).then( ( m ) => m.OutreachPricingComponent ),
   },
   {
+    path: 'inbox-access',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import( './features/inbox-access/inbox-access.component' ).then( ( m ) => m.InboxAccessComponent ),
+  },
+  {
     path: '**',
     redirectTo: 'app',
   },

@@ -1,0 +1,257 @@
+<div class="container-fluid tal-app todd-page" *ngIf="!isProcessing">
+  <div class="inbox-access-shell">
+    <section class="inbox-access-hero" *ngIf="shouldShowConnectedHero">
+      <div class="inbox-access-hero-copy">
+        <div class="inbox-access-eyebrow">Inbox Access</div>
+        <h1>Keep your mailbox connection and live inbox in one workspace.</h1>
+        <p>Connect a mailbox, sync recent replies, open full message detail, and send short human follow-ups without burying this inside signature settings.</p>
+      </div>
+      <div class="inbox-access-hero-actions">
+        <button type="button" class="btn-todd" (click)="openOutboxDrafts()">Open Outbox Drafts</button>
+      </div>
+    </section>
+    <section class="inbox-access-card">
+      <div class="inbox-access-topbar">
+        <div class="inbox-access-tabbar" role="tablist" aria-label="Inbox access sections">
+          <button type="button" class="inbox-access-tab" [class.active]="activeTab === 'inbox'" (click)="selectTab('inbox')"> Inbox </button>
+          <button type="button" class="inbox-access-tab" [class.active]="activeTab === 'settings'" (click)="selectTab('settings')"> Inbox Settings </button>
+        </div>
+        <div class="inbox-access-topbar-actions">
+          <button type="button" class="btn-todd" *ngIf="shouldShowHeaderSendReply" (click)="mailboxAccess.sendMailboxReply()" [disabled]="mailboxAccess.isReplyingMailbox || !mailboxAccess.canSendMailboxReply">
+            {{ mailboxAccess.isReplyingMailbox ? 'Sending...' : 'Send reply' }}
+          </button>
+          <button type="button" class="btn-todd btn-todd-secondary" *ngIf="activeTab === 'inbox' && mailboxAccess.selectedMailboxMessage" (click)="deleteSelectedMessage()" [disabled]="mailboxAccess.isDeletingMailboxMessage">
+            {{ mailboxAccess.isDeletingMailboxMessage ? 'Deleting...' : 'Delete message' }}
+          </button>
+          <button type="button" class="btn-todd" (click)="openOutboxDrafts()">Open Outbox Drafts</button>
+        </div>
+      </div>
+      <div *ngIf="activeTab === 'inbox'" class="mailbox-card">
+        <div class="mailbox-card-header">
+          <div>
+            <h5>Inbox</h5>
+            <div class="field-help">Review the latest synced messages, open the full conversation, and send a direct reply from the connected mailbox.</div>
+          </div>
+          <div class="mailbox-status-badge" [class.mailbox-status-badge--connected]="mailboxAccess.hasMailboxConnection">
+            {{ mailboxAccess.hasMailboxConnection ? 'Connected' : 'Not connected' }}
+          </div>
+        </div>
+        <div class="mailbox-empty mailbox-empty--panel" *ngIf="mailboxAccess.loadingMailboxes">Loading mailbox connection...</div>
+        <div class="mailbox-empty mailbox-empty--panel" *ngIf="!mailboxAccess.loadingMailboxes && !mailboxAccess.connectedMailbox"> Connect a mailbox in <strong>Inbox Settings</strong> to start syncing messages here. </div>
+        <ng-container *ngIf="mailboxAccess.connectedMailbox">
+          <div class="mailbox-connected-summary">
+            <div class="mailbox-summary-row">
+              <span>{{ mailboxAccess.connectedMailbox.displayName || mailboxAccess.connectedMailbox.emailAddress }}</span>
+              <strong>{{ mailboxAccess.connectedMailbox.emailAddress }}</strong>
+            </div>
+            <div class="mailbox-summary-meta">
+              <span>{{ mailboxAccess.connectedMailbox.providerLabel || mailboxAccess.connectedMailbox.provider }}</span>
+              <span *ngIf="mailboxAccess.connectedMailbox.lastSyncAt">Last sync {{ mailboxAccess.connectedMailbox.lastSyncAt | date:'medium' }}</span>
+              <span *ngIf="mailboxAccess.connectedMailbox.lastConnectionStatus">Connection {{ mailboxAccess.connectedMailbox.lastConnectionStatus }}</span>
+            </div>
+          </div>
+          <div class="mailbox-actions">
+            <button type="button" class="btn-todd" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">
+              {{ mailboxAccess.isSyncingMailbox ? 'Syncing...' : 'Sync now' }}
+            </button>
+            <button type="button" class="btn-todd btn-todd-secondary" (click)="selectTab('settings')"> Open settings </button>
+          </div>
+          <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxSyncStatus">{{ mailboxAccess.mailboxSyncStatus }}</div>
+          <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxReplyStatus">{{ mailboxAccess.mailboxReplyStatus }}</div>
+          <div class="mailbox-inbox-shell">
+            <div class="mailbox-inbox-list">
+              <div class="mailbox-panel-title">Recent Inbox</div>
+              <div class="mailbox-empty" *ngIf="mailboxAccess.loadingMailboxMessages">Loading inbox...</div>
+              <div class="mailbox-empty" *ngIf="!mailboxAccess.loadingMailboxMessages && mailboxAccess.mailboxMessages.length === 0">No recent inbox messages yet.</div>
+              <button type="button" class="mailbox-message-row" *ngFor="let message of mailboxAccess.mailboxMessages; trackBy: trackMessage" (click)="mailboxAccess.openMailboxMessage(message)" [class.mailbox-message-row--active]="mailboxAccess.selectedMailboxMessage?.id === message.id">
+                <div class="mailbox-message-row-top">
+                  <strong>{{ message.fromName || message.fromEmail }}</strong>
+                  <span>{{ message.receivedAt | date:'short' }}</span>
+                </div>
+                <div class="mailbox-summary-meta" *ngIf="message.classification || getResponderBadgeLabel(message)">
+                  <span *ngIf="message.classification">Intent: {{ message.classification.replace('_', ' ') }}</span>
+                  <span *ngIf="getResponderBadgeLabel(message)">{{ getResponderBadgeLabel(message) }}</span>
+                </div>
+                <div class="mailbox-message-subject">{{ message.subject }}</div>
+                <div class="mailbox-message-preview">{{ message.preview }}</div>
+              </button>
+            </div>
+            <div class="mailbox-inbox-detail">
+              <div class="mailbox-empty" *ngIf="mailboxAccess.loadingMailboxDetail">Loading message...</div>
+              <div class="mailbox-empty" *ngIf="!mailboxAccess.loadingMailboxDetail && !mailboxAccess.selectedMailboxMessage">Choose a message to read it here.</div>
+              <div *ngIf="mailboxAccess.selectedMailboxMessage">
+                <div class="mailbox-panel-title">{{ mailboxAccess.selectedMailboxMessage.subject }}</div>
+                <div class="mailbox-detail-meta">
+                  <div><strong>From:</strong> {{ mailboxAccess.selectedMailboxMessage.fromName || mailboxAccess.selectedMailboxMessage.fromEmail }}</div>
+                  <div><strong>Received:</strong> {{ mailboxAccess.selectedMailboxMessage.receivedAt | date:'medium' }}</div>
+                </div>
+                <div class="mailbox-summary-meta" *ngIf="mailboxAccess.selectedMailboxMessage.classification || mailboxAccess.selectedMailboxMessage.signalSummary || getResponderBadgeLabel(mailboxAccess.selectedMailboxMessage)">
+                  <span *ngIf="mailboxAccess.selectedMailboxMessage.classification">Intent: {{ mailboxAccess.selectedMailboxMessage.classification.replace('_', ' ') }}</span>
+                  <span *ngIf="getResponderBadgeLabel(mailboxAccess.selectedMailboxMessage)">{{ getResponderBadgeLabel(mailboxAccess.selectedMailboxMessage) }}</span>
+                  <span *ngIf="mailboxAccess.selectedMailboxMessage.recommendedAction">Next: {{ mailboxAccess.selectedMailboxMessage.recommendedAction.replace('_', ' ') }}</span>
+                </div>
+                <div class="mailbox-status-copy" *ngIf="mailboxAccess.selectedMailboxMessage.signalSummary">{{ mailboxAccess.selectedMailboxMessage.signalSummary }}</div>
+                <div class="mailbox-status-copy" *ngIf="getResponderReasonLabel(mailboxAccess.selectedMailboxMessage)">Responder note: {{ getResponderReasonLabel(mailboxAccess.selectedMailboxMessage) }}</div>
+                <div class="mailbox-message-body" *ngIf="mailboxAccess.selectedMailboxMessage.text; else mailboxHtmlMessage">
+                  {{ mailboxAccess.selectedMailboxMessage.text }}
+                </div>
+                <ng-template #mailboxHtmlMessage>
+                  <div class="mailbox-message-body" [innerHTML]="mailboxAccess.selectedMailboxMessage.html || ''"></div>
+                </ng-template>
+                <div class="mailbox-reply-composer">
+                  <div class="mailbox-panel-title">Reply</div>
+                  <div class="mailbox-status-copy" *ngIf="mailboxAccess.selectedMailboxMessage.replyDraftBody && mailboxAccess.selectedMailboxMessage.responderDecision === 'draft_only'">
+                    {{ hasLinkedOutboxDraft(mailboxAccess.selectedMailboxMessage)
+                      ? 'TODD already prepared a suggested reply for this message. It is loaded below and linked to Outbox review.'
+                      : 'TODD prepared a suggested reply for this inbox message and loaded it below, but it is not attached to an Outbox thread yet.' }}
+                  </div>
+                  <div class="mailbox-inline-actions" *ngIf="canOpenSelectedMessageDraft(mailboxAccess.selectedMailboxMessage)">
+                    <button type="button" class="btn-todd btn-todd-secondary" (click)="openSelectedMessageDraft()">
+                      Open matching review
+                    </button>
+                  </div>
+                  <div class="mailbox-status-copy" *ngIf="isMailboxOnlyResponderDraft(mailboxAccess.selectedMailboxMessage)">
+                    This one will not show up in Outbox Drafts until it is linked to a Momentum thread.
+                  </div>
+                  <div class="form-group profile-row">
+                    <div class="profile-label">Subject</div>
+                    <input class="form-control" [(ngModel)]="mailboxAccess.mailboxReplyDraft.subject" [ngModelOptions]="{standalone: true}" type="text" />
+                  </div>
+                  <div class="form-group profile-row">
+                    <div class="profile-label">Reply format</div>
+                    <div class="mailbox-reply-mode-toggle" role="tablist" aria-label="Reply format">
+                      <button type="button" class="mailbox-reply-mode-button" [class.active]="mailboxAccess.mailboxReplyDraft.replyMode === 'text'" (click)="mailboxAccess.setReplyMode('text')">
+                        Text only
+                      </button>
+                      <button type="button" class="mailbox-reply-mode-button" [class.active]="mailboxAccess.mailboxReplyDraft.replyMode === 'rich'" (click)="mailboxAccess.setReplyMode('rich')">
+                        Rich HTML
+                      </button>
+                    </div>
+                  </div>
+                  <div class="form-group profile-row" *ngIf="mailboxAccess.mailboxReplyDraft.replyMode === 'text'; else richReplyComposer">
+                    <div class="profile-label">Reply</div>
+                    <textarea class="form-control mailbox-reply-textarea" [(ngModel)]="mailboxAccess.mailboxReplyDraft.textBody" [ngModelOptions]="{standalone: true}" rows="6" placeholder="Keep it short and human."></textarea>
+                  </div>
+                  <ng-template #richReplyComposer>
+                    <div class="form-group profile-row">
+                      <div class="profile-label">Reply</div>
+                      <div class="mailbox-rich-reply-shell">
+                        <app-email-editor
+                          [mode]="'document'"
+                          [htmlContent]="mailboxAccess.mailboxReplyDraft.htmlBody"
+                          (htmlContentChange)="onReplyHtmlChange($event)"
+                          (textContentChange)="onReplyTextFromHtmlChange($event)">
+                        </app-email-editor>
+                      </div>
+                    </div>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+      <div *ngIf="activeTab === 'settings'" class="mailbox-card">
+        <div class="mailbox-card-header">
+          <div>
+            <h5>Inbox Settings</h5>
+            <div class="field-help">Connect one mailbox so TODD can monitor real replies, surface recent inbox messages, and prepare short reply drafts without storing full emails in TODD.</div>
+          </div>
+          <div class="mailbox-status-badge" [class.mailbox-status-badge--connected]="mailboxAccess.hasMailboxConnection">
+            {{ mailboxAccess.hasMailboxConnection ? 'Connected' : 'Not connected' }}
+          </div>
+        </div>
+        <div class="mailbox-connected-summary" *ngIf="mailboxAccess.connectedMailbox">
+          <div class="mailbox-summary-row">
+            <span>{{ mailboxAccess.connectedMailbox.displayName || mailboxAccess.connectedMailbox.emailAddress }}</span>
+            <strong>{{ mailboxAccess.connectedMailbox.emailAddress }}</strong>
+          </div>
+          <div class="mailbox-summary-meta">
+            <span>{{ mailboxAccess.connectedMailbox.providerLabel || mailboxAccess.connectedMailbox.provider }}</span>
+            <span *ngIf="mailboxAccess.connectedMailbox.lastSyncAt">Last sync {{ mailboxAccess.connectedMailbox.lastSyncAt | date:'medium' }}</span>
+            <span *ngIf="mailboxAccess.connectedMailbox.lastConnectionStatus">Connection {{ mailboxAccess.connectedMailbox.lastConnectionStatus }}</span>
+          </div>
+        </div>
+        <div class="profile-list mailbox-form-list">
+          <div class="form-group profile-row">
+            <div class="profile-label">Mailbox Email</div>
+            <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.emailAddress" [ngModelOptions]="{standalone: true}" type="email" autocomplete="off" placeholder="you@yourdomain.com" />
+          </div>
+          <div class="form-group profile-row">
+            <div class="profile-label">App Password</div>
+            <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.secret" [ngModelOptions]="{standalone: true}" type="password" autocomplete="new-password" placeholder="App password or mailbox password" />
+            <small class="instructions">Use an app password when your provider supports it. TODD stores the secret encrypted.</small>
+          </div>
+          <div class="form-group profile-row">
+            <div class="profile-label">Provider</div>
+            <select class="form-select" [(ngModel)]="mailboxAccess.mailboxForm.provider" [ngModelOptions]="{standalone: true}" (ngModelChange)="mailboxAccess.onMailboxProviderChange()">
+              <option *ngFor="let provider of mailboxAccess.mailboxProviders" [ngValue]="provider.id">{{ provider.label }}</option>
+            </select>
+          </div>
+          <div class="form-group profile-row">
+            <div class="profile-label">Display Name</div>
+            <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.displayName" [ngModelOptions]="{standalone: true}" type="text" autocomplete="off" placeholder="Taliferro Tech" />
+          </div>
+          <div class="form-group profile-row">
+            <button type="button" class="btn btn-link mailbox-advanced-toggle" (click)="mailboxAccess.mailboxForm.showAdvanced = !mailboxAccess.mailboxForm.showAdvanced">
+              {{ mailboxAccess.mailboxNeedsAdvancedSettings ? 'Hide advanced settings' : 'Show advanced settings' }}
+            </button>
+          </div>
+        </div>
+        <div class="mailbox-advanced-grid" *ngIf="mailboxAccess.mailboxNeedsAdvancedSettings">
+          <div class="mailbox-advanced-panel">
+            <h6>Receiving (IMAP)</h6>
+            <div class="profile-list">
+              <div class="form-group profile-row">
+                <div class="profile-label">Host</div>
+                <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.imap.host" [ngModelOptions]="{standalone: true}" type="text" />
+              </div>
+              <div class="form-group profile-row">
+                <div class="profile-label">Port</div>
+                <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.imap.port" [ngModelOptions]="{standalone: true}" type="number" />
+              </div>
+              <label class="product-toggle-item">
+                <input type="checkbox" [(ngModel)]="mailboxAccess.mailboxForm.imap.secure" [ngModelOptions]="{standalone: true}" />
+                <span>Use secure IMAP</span>
+              </label>
+            </div>
+          </div>
+          <div class="mailbox-advanced-panel">
+            <h6>Sending (SMTP)</h6>
+            <div class="profile-list">
+              <div class="form-group profile-row">
+                <div class="profile-label">Host</div>
+                <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.smtp.host" [ngModelOptions]="{standalone: true}" type="text" />
+              </div>
+              <div class="form-group profile-row">
+                <div class="profile-label">Port</div>
+                <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.smtp.port" [ngModelOptions]="{standalone: true}" type="number" />
+              </div>
+              <label class="product-toggle-item">
+                <input type="checkbox" [(ngModel)]="mailboxAccess.mailboxForm.smtp.secure" [ngModelOptions]="{standalone: true}" />
+                <span>Use secure SMTP</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="mailbox-actions">
+          <button type="button" class="btn-todd" (click)="mailboxAccess.testMailboxConnection()" [disabled]="mailboxAccess.isTestingMailbox || mailboxAccess.isSavingMailbox">
+            {{ mailboxAccess.isTestingMailbox ? 'Testing...' : 'Test connection' }}
+          </button>
+          <button type="button" class="btn-todd" (click)="mailboxAccess.saveMailboxConnection()" [disabled]="mailboxAccess.isSavingMailbox || mailboxAccess.isTestingMailbox">
+            {{ mailboxAccess.isSavingMailbox ? 'Saving...' : 'Save' }}
+          </button>
+          <button type="button" class="btn-todd" *ngIf="mailboxAccess.connectedMailbox?.id" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">
+            {{ mailboxAccess.isSyncingMailbox ? 'Syncing...' : 'Sync now' }}
+          </button>
+          <button type="button" class="btn-todd-danger" *ngIf="mailboxAccess.connectedMailbox?.id" (click)="mailboxAccess.disconnectMailboxConnection()"> Disconnect </button>
+        </div>
+        <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxConnectionStatus">{{ mailboxAccess.mailboxConnectionStatus }}</div>
+        <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxSyncStatus">{{ mailboxAccess.mailboxSyncStatus }}</div>
+        <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxReplyStatus">{{ mailboxAccess.mailboxReplyStatus }}</div>
+      </div>
+    </section>
+  </div>
+</div>
+<app-preloader [isLoading]="isProcessing || mailboxAccess.loadingMailboxes"></app-preloader>
+<app-back-to-top></app-back-to-top>
