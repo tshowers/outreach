@@ -11,7 +11,7 @@ import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import { Observable, shareReplay, switchMap, of } from 'rxjs';
 
 /**
- * Auth service for the standalone Network app. Sign-in itself no longer
+ * Auth service for the standalone Outreach app. Sign-in itself no longer
  * happens here - it redirects to TODD's hosted login
  * (todd.taliferro.tech/login), the same page network-ios/pulse-ios open
  * via TODDAuthKit's HostedLogin (ASWebAuthenticationSession), so every

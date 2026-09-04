@@ -6,8 +6,10 @@ import { Nomenclature } from '../models/nomenclature.model';
  * TODD's real NomenclatureService (193 lines) lets a tenant relabel terms
  * across the whole app for different business verticals - CRM ("Lead",
  * "Qualification"...), LMS ("Student", "Campus"...), LIS ("Patient",
- * "Lab"...), etc. Network only ever presents as a CRM/relationship tool,
- * so rather than port the vertical-switching machinery, this just serves
+ * "Lab"...), etc. Outreach only ever presents as a CRM/relationship tool
+ * (every ported page reads and writes Contact records under the default
+ * vertical's labels), so rather than port the vertical-switching machinery,
+ * this just serves
  * that one vertical's default labels as a static, non-configurable set -
  * the exact 'default' entries from the original service.
  */
