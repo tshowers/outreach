@@ -72,6 +72,11 @@ export const routes: Routes = [
       import( './features/email-processor/email-processor.component' ).then( ( m ) => m.EmailProcessorComponent ),
   },
   {
+    path: 'compose-email',
+    loadComponent: () =>
+      import( './features/email-composer-parent/email-composer-parent.component' ).then( ( m ) => m.EmailComposerParentComponent ),
+  },
+  {
     path: '**',
     redirectTo: 'app',
   },

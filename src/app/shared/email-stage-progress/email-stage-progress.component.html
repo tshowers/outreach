@@ -1,0 +1,18 @@
+<div class="progress-container">
+    <div class="progress-line"></div> <!-- Line behind circles -->
+  
+    <div *ngFor="let stage of emailStages; let i = index" class="progress-step">
+      <!-- Circle -->
+      <div class="circle"
+           [ngClass]="{
+             'completed': i < currentStageIndex,
+             'current': i === currentStageIndex,
+             'upcoming': i > currentStageIndex
+           }" title="{{stage.explanation}}">
+        <span class="mobile-label">{{ stage.number }}</span>
+      </div>
+      
+      <!-- Label (hidden on mobile) -->
+      <span class="stage-label">{{ stage.emailType }}</span>
+    </div>
+  </div>

@@ -25,6 +25,13 @@ export class OutreachAssistantSignalService {
   private readonly engagementActionRequestSubject = new Subject<{ action: string;[key: string]: unknown; } | null>();
   readonly engagementActionRequest$: Observable<{ action: string;[key: string]: unknown; } | null> = this.engagementActionRequestSubject.asObservable();
 
+  /** Same never-emitting pattern as engagementActionRequest$ - EmailCreateComponent subscribes to both expecting an assistant chat box to push drafts/contacts into the composer, which this app doesn't have. */
+  private readonly assistantDraftApplySubject = new Subject<{ subject?: string; html?: string; body?: string; } | null>();
+  readonly assistantDraftApply$: Observable<{ subject?: string; html?: string; body?: string; } | null> = this.assistantDraftApplySubject.asObservable();
+
+  private readonly assistantComposerContactApplySubject = new Subject<{ contact: unknown; source?: string; } | null>();
+  readonly assistantComposerContactApply$: Observable<{ contact: unknown; source?: string; } | null> = this.assistantComposerContactApplySubject.asObservable();
+
   emitAssistantActivity ( _event: unknown ): void { }
   setPageContext ( _context: unknown ): void { }
   setAssistantPageContext ( _context: unknown ): void { }

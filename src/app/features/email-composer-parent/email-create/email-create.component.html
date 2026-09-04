@@ -1,0 +1,175 @@
+<app-preloader [isLoading]="isLoading"></app-preloader>
+<app-back-to-top></app-back-to-top>
+<div class="email-create-shell">
+  <app-email-stage-progress *ngIf="selectedContact && selectedContact.emailStage" [currentStage]="selectedContact.emailStage"></app-email-stage-progress>
+  <form [formGroup]="emailForm" (ngSubmit)="handleComposerSubmit()" class="email-create-form">
+    <div class="email-create-grid">
+      <section class="email-create-card email-create-fields-card">
+        <div class="email-create-subheader">
+          <div>
+            <h3>{{ isSequenceEditMode ? 'Campaign Step Editor' : (queue.length > 0 ? 'Campaign Setup' : 'Recipient Details') }}</h3>
+            <div *ngIf="isSequenceEditMode" class="email-create-mode-indicator" data-testid="sequence-edit-mode-indicator"> Editing Campaign Step {{ sequenceStepNumber || '' }}
+            </div>
+            <p>
+              {{ isSequenceEditMode ? 'Review the step draft, adjust the subject or body, then save and return to the campaign.' : (canSaveMomentumDraftToOutbox() ? 'Refine the draft in Compose Email, save it back to Outbox, and review/send it there.' : (queue.length > 0 ? 'Name the campaign, define recipients, and prepare the message.' : 'Set the recipient, copy list, and subject before sending.')) }}
+            </p>
+          </div>
+        </div>
+        <div class="email-create-field-stack">
+          <div class="form-group" *ngIf="queue.length === 0 && !isSequenceEditMode">
+            <input type="email" class="form-control" formControlName="to" id="to" (input)="onRecipientInput()" placeholder="Enter recipient's email" (focus)="showSuggestions = true" (blur)="hideSuggestions()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="off" />
+            <ul *ngIf="showSuggestions && filteredContacts.length" class="list-group position-absolute w-100 email-create-suggestion-box">
+              <li *ngFor="let contact of filteredContacts" (mousedown)="selectContact(contact)" class="list-group-item list-group-item-action email-create-suggestion-item">
+                {{ contact }}
+              </li>
+            </ul>
+            <div *ngIf="emailForm.get('to')?.invalid && emailForm.get('to')?.touched" class="text-danger email-create-error-text"> Please enter a valid email address. </div>
+          </div>
+          <div class="form-group" *ngIf="queue.length > 0 && !isSequenceEditMode">
+            <input type="text" class="form-control" formControlName="campaignName" id="campaignName" placeholder="Enter campaign name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="off" />
+            <div *ngIf="emailForm.get('campaignName')?.invalid && emailForm.get('campaignName')?.touched" class="text-danger email-create-error-text"> Campaign name is required. </div>
+          </div>
+          <div class="email-create-subsection" *ngIf="!isSequenceEditMode">
+            <div class="email-create-field-stack compact">
+              <div class="form-group">
+                <input type="email" class="form-control" formControlName="cc" id="cc" placeholder="Enter CC email" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="off" />
+                <div *ngIf="emailForm.get('cc')?.invalid && emailForm.get('cc')?.touched" class="text-danger email-create-error-text"> Please enter a valid email address. </div>
+              </div>
+              <div class="form-group">
+                <input type="email" class="form-control" formControlName="bcc" id="bcc" placeholder="Enter BCC email" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="off" />
+                <div *ngIf="emailForm.get('bcc')?.invalid && emailForm.get('bcc')?.touched" class="text-danger email-create-error-text"> Please enter a valid email address. </div>
+              </div>
+            </div>
+          </div>
+          <div class="email-create-subsection">
+            <div class="form-group">
+              <input type="text" class="form-control" formControlName="subject" id="subject" data-testid="email-subject-input" placeholder="Enter subject" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="off" />
+              <div *ngIf="emailForm.get('subject')?.invalid && emailForm.get('subject')?.touched" class="text-danger email-create-error-text"> Subject is required. </div>
+            </div>
+            <label class="email-create-ad-label" title="CAN-SPAM: required when email is a commercial advertisement">
+              <input type="checkbox" [(ngModel)]="isAdvertisement" [ngModelOptions]="{standalone: true}" data-testid="is-advertisement-toggle" />
+              Mark as advertisement (prepends "ADV:" to subject — required for promotional emails)
+            </label>
+          </div>
+          <div class="email-create-subsection" *ngIf="queue.length === 0 && !isSequenceEditMode">
+            <div class="email-create-signal-card">
+              <div class="email-create-signal-card__header">
+                <div>
+                  <div class="email-create-signal-card__eyebrow">Signal Engine</div>
+                  <h4>Let TODD continue after send</h4>
+                </div>
+                <label class="email-create-signal-card__toggle">
+                  <input type="checkbox" [(ngModel)]="signalEngineEnabled" [ngModelOptions]="{standalone: true}">
+                  <span>{{ signalEngineEnabled ? 'On' : 'Off' }}</span>
+                </label>
+              </div>
+              <p class="email-create-signal-card__text" *ngIf="signalEngineEnabled"> TODD will watch opens, clicks, and unsubscribe signals, then keep adapting the next move for this contact. </p>
+              <p class="email-create-signal-card__text" *ngIf="!signalEngineEnabled"> This send stays manual. TODD will not continue the sequence after the email goes out. </p>
+              <div class="email-create-signal-card__status" *ngIf="selectedContact">
+                <span class="email-create-signal-card__pill">{{ activeMomentumLabel }}</span>
+                <span class="email-create-signal-card__hint">{{ activeMomentumWarning }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="email-create-subsection" *ngIf="queue.length > 0 && !isSequenceEditMode">
+            <div class="email-create-signal-card email-create-signal-card--campaign">
+              <div class="email-create-signal-card__header">
+                <div>
+                  <div class="email-create-signal-card__eyebrow">Campaign Hand-off</div>
+                  <h4>Signal Engine takes over after launch</h4>
+                </div>
+                <span class="email-create-signal-card__pill">Always On</span>
+              </div>
+              <p class="email-create-signal-card__text"> Everyone in this campaign starts with the same first touch, then TODD individualizes the follow-up from their own signals. </p>
+              <p class="email-create-signal-card__warning" *ngIf="queueMomentumCount > 0">
+                {{ queueMomentumCount }} queued contact{{ queueMomentumCount === 1 ? '' : 's' }} already have live signal threads. Starting this campaign will restart those sequences.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="email-create-card email-create-editor-card">
+        <div class="email-create-subheader email-create-editor-subheader">
+          <div>
+            <h3>Message Builder</h3>
+            <p>Build the email content here, then ask TODD in chat to draft or revise it before you apply the update.</p>
+          </div>
+          <div class="email-create-action-stack" data-demo="email-compose-actions">
+            <div class="email-create-action-row">
+              <button *ngIf="canSaveMomentumDraftToOutbox()" type="button" class="btn-todd btn-todd-secondary" data-testid="composer-send-test-btn" [disabled]="!canSendComposerTest()" (click)="sendComposerTestEmail()">
+                <i class="fa-solid fa-flask-vial"></i>
+                {{ isSendingComposerTest ? 'Sending Test...' : 'Send Test' }}
+              </button>
+              <button *ngIf="canSaveMomentumDraftToOutbox()" type="button" class="btn-todd btn-todd-secondary" data-testid="composer-dismiss-draft-btn" [disabled]="isSavingMomentumDraft" (click)="dismissMomentumDraftFromCompose()">
+                <i class="fa-solid fa-xmark"></i> Dismiss Draft
+              </button>
+              <button *ngIf="canSaveMomentumDraftToOutbox()" type="button" class="btn-todd btn-todd-secondary" data-testid="composer-send-now-btn" [disabled]="!emailForm.valid" (click)="handleSendNowClick()">
+                <i class="fa-solid fa-arrow-up"></i> Send
+              </button>
+              <button type="submit" class="btn-todd" data-testid="composer-submit-btn" [attr.data-mode]="isSequenceEditMode ? 'sequence-edit' : (canSaveMomentumDraftToOutbox() ? 'save-outbox' : (queue.length > 0 ? 'queue' : 'send'))" [disabled]="isSequenceEditMode ? !emailForm.get('subject')?.valid : !emailForm.valid" (click)="canSaveMomentumDraftToOutbox() ? handleSaveToOutboxClick() : null">
+              <i class="fa-solid" [ngClass]="(isSequenceEditMode || canSaveMomentumDraftToOutbox()) ? 'fa-save' : 'fa-arrow-up'"></i>
+              {{ isSequenceEditMode ? 'Save Step' : (canSaveMomentumDraftToOutbox() ? 'Save' : (queue.length > 0 ? 'Queue Email' : 'Send Email')) }}
+              </button>
+            </div>
+            <div class="email-create-action-note" *ngIf="canSaveMomentumDraftToOutbox() && composerTestRecipient">
+              Send Test delivers this preview to {{ composerTestRecipient }} without changing the real recipient or queue.
+            </div>
+            <div class="email-create-action-note" *ngIf="composerTestStatus">
+              {{ composerTestStatus }}
+            </div>
+          </div>
+        </div>
+        <div *ngIf="showMomentumInterrupt" class="mt-3 p-4 email-create-momentum-interrupt">
+          <div class="d-flex flex-column gap-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
+              <div>
+                <div class="email-create-momentum-interrupt__eyebrow">Momentum Active</div>
+                <h4 class="mb-2">TODD is already working this thread</h4>
+                <p class="mb-0">Sending now will restart the current Signal Engine sequence for this contact and replace TODD's active timing plan.</p>
+              </div>
+              <div class="email-create-momentum-interrupt__status" *ngIf="selectedContact">
+                <div class="email-create-momentum-interrupt__status-label">Selected contact</div>
+                <div class="email-create-momentum-interrupt__status-value">
+                  {{ selectedContact.firstName }} {{ selectedContact.lastName }}
+                </div>
+              </div>
+            </div>
+            <div class="email-create-momentum-interrupt__details">
+              <div class="email-create-momentum-interrupt__detail-card">
+                <div class="email-create-momentum-interrupt__detail-label">What this means</div>
+                <div class="email-create-momentum-interrupt__detail-text">{{ activeMomentumWarning }}</div>
+              </div>
+              <div class="email-create-momentum-interrupt__detail-card">
+                <div class="email-create-momentum-interrupt__detail-label">Best next move</div>
+                <div class="email-create-momentum-interrupt__detail-text">Only continue if you want this send to become the new starting point for the relationship.</div>
+              </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn-todd" (click)="pauseToddAndSend()">Send and Restart Sequence</button>
+              <button type="button" class="btn-todd btn-todd-secondary" (click)="keepToddInControl()">Keep TODD in Control</button>
+              <button type="button" class="btn-todd btn-todd-secondary" (click)="reviewMomentumThread()">Review Thread</button>
+            </div>
+          </div>
+        </div>
+        <app-email-editor class="mb-0" data-testid="email-editor" [reason]="reason" [campaignText]="emailContent || previousCampaignText" [sender]="sender" [campaignName]="emailForm.get('campaignName')?.value" [selectedContact]="selectedContact" [userId]="userId" [subject]="emailForm.get('subject')?.value" (htmlContentChange)="onHtmlContentChange($event)" (textContentChange)="onTextOnlyContentChange($event)" (subjectChange)="onSubjectChange($event)" (useTemplateChange)="onUseTemplate($event)" (loader)="triggerLoading($event)"></app-email-editor>
+      </section>
+    </div>
+  </form>
+  <section class="email-create-card email-create-queue-card" *ngIf="queue.length > 0 && !isSequenceEditMode">
+    <div class="email-create-subheader">
+      <div>
+        <h3>Email Recipients</h3>
+        <p>Review who is currently queued before sending the campaign.</p>
+      </div>
+    </div>
+    <ul class="email-create-recipient-list">
+      <li *ngFor="let email of allEmailAddresses; let i = index" class="email-create-recipient-item">
+        <span>{{ email }}</span>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeContactFromQueue(queue[i])">Remove</button>
+      </li>
+    </ul>
+  </section>
+</div>
+<div *ngIf="hoveredContact" class="hover-box" [ngStyle]="{'top.px': hoverPosition.y, 'left.px': hoverPosition.x}">
+  <app-contact-preview-card [contact]="hoveredContact"></app-contact-preview-card>
+</div>

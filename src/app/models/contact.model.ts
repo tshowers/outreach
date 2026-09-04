@@ -82,4 +82,16 @@ export interface Contact {
   emailStage?: string;
   nickname?: string;
   birthday?: string;
+  // Outreach-only additions (email-create/emailer/email-processor need these):
+  // legacy denormalized email field several backend queries/documents still
+  // carry alongside emailAddresses[] (see OutreachDataService.getContactByEmail).
+  email?: string;
+  displayName?: string;
+  signature?: string;
+  lastContacted?: string | { seconds: number };
+  dateAdded?: string | Date | { seconds: number };
+  sector?: string;
+  type?: string;
+  /** AI relationship-insight text, computed client-side and not persisted. */
+  _insight?: string;
 }

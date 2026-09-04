@@ -1,0 +1,179 @@
+/* General Container */
+.progress-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px 0;
+}
+
+/* Progress Line */
+.progress-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  /* Thinner line */
+  background-color: #d1d5db;
+  /* Light Gray */
+  z-index: 0;
+}
+
+/* Individual Step Container */
+.progress-step {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  /* Circles should be above the line */
+  flex-grow: 1;
+  text-align: center;
+}
+
+/* Circles */
+.circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  position: relative;
+  transition: all 0.25s ease;
+  /* Glass base */
+  background: radial-gradient(circle at 30% 0%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.4));
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  /* slate-300-ish */
+  box-shadow:
+    0 8px 18px rgba(15, 15, 15, 0.18),
+    /* main drop shadow */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  /* inner highlight */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #111827;
+}
+
+/* Completed Stages (Green glass) */
+.completed {
+  background: radial-gradient(circle at 30% 0%, rgba(34, 197, 94, 0.95), rgba(22, 163, 74, 0.65));
+  border-color: rgba(22, 163, 74, 0.55);
+  color: #ecfdf5;
+  box-shadow:
+    0 10px 22px rgba(22, 163, 74, 0.36),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+}
+
+/* Current Stage (Blue glow glass) */
+.current {
+  background: radial-gradient(circle at 30% 0%, rgba(13, 17, 23, 0.96), rgba(0, 149, 204, 0.7));
+  border-color: rgba(0, 149, 204, 0.6);
+  color: #eff6ff;
+  box-shadow:
+    0 0 0 6px rgba(0, 191, 255, 0.35),
+    /* soft outer ring */
+    0 14px 26px rgba(0, 149, 204, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  animation: blink 1.2s infinite alternate;
+}
+
+/* Upcoming Stages (subtle glass gray) */
+.upcoming {
+  background: radial-gradient(circle at 30% 0%, rgba(249, 250, 251, 0.9), rgba(209, 213, 219, 0.5));
+  border-color: rgba(209, 213, 219, 0.6);
+  color: #4b5563;
+  box-shadow:
+    0 6px 14px rgba(148, 163, 184, 0.25),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+/* Blinking effect */
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.6;
+  }
+}
+
+/* Labels under Circles */
+.stage-label {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 200;
+  color: #374151;
+}
+
+/* === DARK MODE === */
+@media (prefers-color-scheme: dark) {
+
+  .progress-line {
+    background-color: #4b5563;
+    /* Darker Gray */
+  }
+
+  .completed {
+    background-color: #22c55e;
+    /* Brighter Green */
+  }
+
+  .current {
+    background-color: var(--tl-blue-mid, #0095cc);
+    /* Brighter Blue */
+  }
+
+  .upcoming {
+    background-color: #4b5563;
+    /* Darker Gray */
+    color: #9ca3af;
+  }
+
+  .stage-label {
+    color: #e5e7eb;
+    /* Lighter text for dark mode */
+  }
+
+  .circle {
+    background: radial-gradient(circle at 30% 0%, rgba(15, 15, 15, 0.95), rgba(30, 64, 175, 0.35));
+    border-color: rgba(148, 163, 184, 0.5);
+    box-shadow:
+      0 10px 24px rgba(15, 15, 15, 0.8),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    color: #e5e7eb;
+  }
+
+  .completed {
+    background: radial-gradient(circle at 30% 0%, rgba(34, 197, 94, 0.95), rgba(22, 163, 74, 0.7));
+    border-color: rgba(34, 197, 94, 0.7);
+    box-shadow:
+      0 12px 26px rgba(22, 163, 74, 0.6),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  }
+
+  .current {
+    background: radial-gradient(circle at 30% 0%, rgba(13, 17, 23, 1), rgba(0, 149, 204, 0.8));
+    border-color: rgba(0, 149, 204, 0.9);
+    box-shadow:
+      0 0 0 6px rgba(0, 149, 204, 0.55),
+      0 16px 32px rgba(0, 106, 153, 0.7),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  }
+
+  .upcoming {
+    background: radial-gradient(circle at 30% 0%, rgba(31, 41, 55, 0.95), rgba(55, 65, 81, 0.75));
+    border-color: rgba(75, 85, 99, 0.8);
+    color: #9ca3af;
+    box-shadow:
+      0 10px 22px rgba(15, 15, 15, 0.9),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+}
