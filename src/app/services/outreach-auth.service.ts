@@ -96,7 +96,12 @@ export class OutreachAuthService {
   signIn ( returnUrl?: string ): void {
     const state = crypto.randomUUID();
     sessionStorage.setItem( this.pendingLoginStorageKey, JSON.stringify( { state, returnUrl } ) );
-    window.location.href = `https://todd.taliferro.tech/login?client=outreach-web&state=${state}`;
+    const client = this.isLocalDevelopmentHost() ? 'outreach-web-local' : 'outreach-web';
+    window.location.href = `https://todd.taliferro.tech/login?client=${client}&state=${state}`;
+  }
+
+  private isLocalDevelopmentHost (): boolean {
+    return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   }
 
   /**
