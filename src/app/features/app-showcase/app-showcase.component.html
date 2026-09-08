@@ -1,0 +1,7 @@
+<main class="ios-page">
+  <header class="ios-nav"><a class="brand" routerLink="/"><img src="assets/outreach/logo.png" alt="Outreach logo"><span>OUTREACH</span></a><div class="ios-nav-actions"><a class="back-link" routerLink="/">← Back to Outreach</a><a class="nav-open" routerLink="/app">Open Outreach <span aria-hidden="true">→</span></a></div></header>
+  <section class="ios-hero"><div class="ios-copy"><p class="eyebrow">Outreach for iOS</p><h1>Your next move,<br><em>always within reach.</em></h1><p>Keep the thread moving between meetings, calls, and replies. Outreach for iOS brings campaign context and the right follow-up into the moments when you need them.</p><span class="ios-badge">Coming soon on the App Store</span></div><div class="ios-art"><img src="assets/outreach-ios.png" alt="Outreach for iOS app preview"></div></section>
+  <section class="ios-detail"><div><p class="eyebrow">Made for the in-between</p><h2>Good follow-up<br>doesn’t wait.</h2></div><div class="ios-highlights"><article *ngFor="let h of highlights"><span class="number">0{{ highlights.indexOf(h) + 1 }}</span><h3>{{ h.heading }}</h3><p>{{ h.copy }}</p></article></div></section>
+  <section class="ios-bottom"><p class="eyebrow">Stay close to the conversation</p><h2>Carry the context<br>with you.</h2><a class="ios-button" routerLink="/">Explore Outreach <span aria-hidden="true">→</span></a></section>
+  <app-site-footer></app-site-footer>
+</main>

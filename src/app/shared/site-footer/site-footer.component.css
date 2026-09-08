@@ -1,0 +1,4 @@
+:host { display:block; }
+.legal-footer { width:100%; margin-inline:auto; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:.3rem; padding:1.25rem 1rem 1.5rem; color:var(--site-muted); text-align:center; font-size:.68rem; line-height:1.6; }
+.legal-footer span, .legal-footer a { margin:0; font-size:.68rem !important; }.legal-footer a { color:var(--site-muted); text-decoration:underline; text-underline-offset:.15em; }
+@media (max-width:640px) { .legal-footer { display:block; }.legal-footer span, .legal-footer a { margin:0 .12rem; } }

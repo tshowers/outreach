@@ -1,0 +1,4 @@
+:host { position: fixed; top: 1.2rem; right: 1.25rem; z-index: 20; }
+.theme-toggle { display: inline-flex; align-items: center; gap: .45rem; border: 1px solid var(--site-line); border-radius: 999px; padding: .55rem .8rem; background: color-mix(in srgb, var(--site-panel) 88%, transparent); color: var(--site-ink); font: 700 .78rem var(--site-sans); cursor: pointer; box-shadow: 0 8px 24px rgba(20, 50, 35, .08); backdrop-filter: blur(12px); }
+.theme-toggle span:first-child { font-size: 1.05rem; line-height: 1; }
+.theme-toggle:focus-visible { outline: 3px solid var(--site-accent); outline-offset: 3px; }

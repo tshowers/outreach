@@ -4,13 +4,15 @@ import { authGuard } from './services/auth.guard';
 
 export const routes: Routes = [
   {
-    // No standalone marketing landing was in scope for this extraction
-    // (outreach-landing.component.ts in the monorepo is dead code, not
-    // reachable from any real route there either) - '/app' is the real
-    // signed-in home.
     path: '',
     pathMatch: 'full',
-    redirectTo: 'app',
+    loadComponent: () =>
+      import( './features/landing/landing.component' ).then( ( m ) => m.LandingComponent ),
+  },
+  {
+    path: 'ios',
+    loadComponent: () =>
+      import( './features/app-showcase/app-showcase.component' ).then( ( m ) => m.AppShowcaseComponent ),
   },
   {
     path: 'login',
@@ -73,6 +75,7 @@ export const routes: Routes = [
   },
   {
     path: 'compose-email',
+    canActivate: [authGuard],
     loadComponent: () =>
       import( './features/email-composer-parent/email-composer-parent.component' ).then( ( m ) => m.EmailComposerParentComponent ),
   },
