@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { Params, RouterModule } from '@angular/router';
-import { TabBarComponent, TabBarItem } from '../tab-bar/tab-bar.component';
+import { Params } from '@angular/router';
 
 export interface CockpitCommandDeckLink {
   label: string;
@@ -15,7 +14,7 @@ export interface CockpitCommandDeckLink {
 @Component( {
   selector: 'app-cockpit-command-deck',
   standalone: true,
-  imports: [CommonModule, RouterModule, TabBarComponent],
+  imports: [CommonModule],
   templateUrl: './cockpit-command-deck.component.html',
   styleUrl: './cockpit-command-deck.component.css'
 } )
@@ -30,24 +29,6 @@ export class CockpitCommandDeckComponent {
   @Input() scoreLabel = '';
   @Input() scoreValue = '';
 
-  private _links: CockpitCommandDeckLink[] = [];
-  linkTabs: TabBarItem[] = [];
-
-  @Input()
-  set links ( value: CockpitCommandDeckLink[] ) {
-    this._links = value || [];
-    this.linkTabs = this._links.map( ( link, index ) => ( {
-      id: `${index}-${link.label}`,
-      label: link.label,
-      icon: link.icon,
-      glow: link.label === 'Home',
-      routerLink: link.routerLink,
-      queryParams: link.queryParams,
-      action: link.action
-    } ) );
-  }
-
-  get links (): CockpitCommandDeckLink[] {
-    return this._links;
-  }
+  /** Retained for callers while route navigation lives in the shared menu. */
+  @Input() links: CockpitCommandDeckLink[] = [];
 }

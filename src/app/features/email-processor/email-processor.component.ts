@@ -33,6 +33,14 @@ import {
   CatalystHandoffRouteState,
   getCatalystHandoffStorageKey
 } from './catalyst-handoff';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import {
+  EmailDraftPayload,
+  HANDOFF_QUERY_PARAM,
+  HandoffDraft,
+  handoffCollectionPath,
+  isHandoffExpired,
+} from '@taliferro/ui/handoff/handoff.model';
 
 export type EmailerContactLite = Contact;
 
@@ -515,7 +523,7 @@ export class EmailProcessorComponent extends TopDogComponent {
   private async maybeActivateCatalystHandoff (): Promise<void> {
     if ( this.catalystHandoffInitialized ) return;
 
-    const payload = this.readCatalystHandoffPayload();
+    const payload = this.readCatalystHandoffPayload() || await this.readCrossAppHandoffPayload();
     if ( !payload ) return;
 
     this.catalystHandoffInitialized = true;
@@ -523,6 +531,47 @@ export class EmailProcessorComponent extends TopDogComponent {
     this.catalystHandoff = payload;
     this.activeTab = 'emailer';
     await this.loadCatalystHandoffContacts( payload );
+  }
+
+  /**
+   * The sessionStorage/router-state transport `readCatalystHandoffPayload()`
+   * uses only works same-origin - Maya lives at a different origin
+   * entirely, so a handoff from there arrives via Firestore instead (see
+   * @taliferro/ui/handoff). Mapped into the same CatalystHandoffPayload
+   * shape so it flows through the existing, already-tested
+   * loadCatalystHandoffContacts() rather than a parallel implementation.
+   */
+  private async readCrossAppHandoffPayload (): Promise<CatalystHandoffPayload | null> {
+    const draftId = String( this.route.snapshot.queryParamMap.get( HANDOFF_QUERY_PARAM ) || '' ).trim();
+    if ( !draftId || !this.tenantId ) return null;
+
+    try {
+      const snap = await getDoc( doc( getFirestore(), handoffCollectionPath( this.tenantId ), draftId ) );
+      if ( !snap.exists() ) return null;
+
+      const draft = snap.data() as HandoffDraft<'email-draft'>;
+      if ( draft.kind !== 'email-draft' || draft.tenantId !== this.tenantId || isHandoffExpired( draft ) ) {
+        return null;
+      }
+
+      const payload = draft.payload as EmailDraftPayload;
+      const contactIds = Array.isArray( payload?.contactIds ) ? payload.contactIds.filter( Boolean ) : [];
+      if ( contactIds.length === 0 ) return null;
+
+      return {
+        source: CATALYST_HANDOFF_SOURCE,
+        handoffKey: draftId,
+        launchedAt: new Date( draft.createdAt ).toISOString(),
+        contactIds,
+        launchLabel: 'Sent over from Maya',
+        reasonLabel: payload.reasonLabel,
+        reasonDetail: payload.reasonDetail,
+        sourceContext: 'maya_concept',
+      };
+    } catch ( error ) {
+      this.logger.warn( 'Unable to read cross-app handoff draft from Maya.', error );
+      return null;
+    }
   }
 
   private readCatalystHandoffPayload (): CatalystHandoffPayload | null {

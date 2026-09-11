@@ -5,6 +5,7 @@ export const environment = {
   backendURL: 'https://api.taliferro.tech/api',
   apiKey: 'AIzaSyCAAgRd8tq9PXkPKE2zddseYtZ-Xx_P8mU',
   linkPreview: '37bd4a175494ee23afba7d8a117c5f77',
+  taliferroTenantId: 'yH3nWanUv0RqDCNfwXBOXLWuxt52',
   firebaseConfig: {
     apiKey: 'AIzaSyApZSnHn8Pd2fI_0oSod0Sv9O_JsOoniBc',
     authDomain: 'taliferrotech.firebaseapp.com',

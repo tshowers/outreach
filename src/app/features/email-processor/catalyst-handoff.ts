@@ -6,7 +6,9 @@ const CATALYST_HANDOFF_STORAGE_PREFIX = 'catalystHandoff:';
 export type CatalystHandoffSourceContext =
   | 'overview_blocker'
   | 'needs_you_reason'
-  | 'needs_you_thread';
+  | 'needs_you_thread'
+  /** Handed off from Maya (a different origin) via @taliferro/ui/handoff, not sessionStorage. */
+  | 'maya_concept';
 
 export interface CatalystHandoffPayload {
   source: typeof CATALYST_HANDOFF_SOURCE;

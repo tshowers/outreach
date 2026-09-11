@@ -20,4 +20,10 @@ footer { display:flex; align-items:center; justify-content:space-between; gap:1r
 .nav-open { color:#fff !important; }
 
 .hero { min-height:100svh; box-sizing:border-box; }
+/* The shared floating action rail owns navigation on tablet widths. Hiding
+   the duplicate page nav prevents it from colliding with Menu and Light. */
+@media (min-width:801px) and (max-width:1100px) {
+  .site-nav nav { display:none; }
+  .site-nav { padding-right:6.5rem; }
+}
 @media (max-width:800px) { .hero { min-height:100svh; } }

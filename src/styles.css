@@ -86,9 +86,9 @@ body {
   transition: background-color .2s ease, color .2s ease;
 }
 
-/* The floating theme control owns the upper-right corner. Give workflow
- * routes a little header clearance; landing and iOS already manage their own
- * top navigation. */
+/* The shared menu/action rail overlays every route, so pages keep their full
+ * canvas instead of reserving space for a separate floating theme control.
+ * Keep a small shared clearance so the controls have room to breathe. */
 app-outreach-home,
 app-email-processor,
 app-email-composer-parent,
@@ -100,7 +100,11 @@ app-sign-in,
 app-auth-callback,
 app-unsubscribe-success,
 app-unsubscribe-failure,
-app-outreach-paid-success { display:block; padding-top:3.75rem; }
+app-outreach-paid-success {
+  display: block;
+  padding-top: 4.5rem;
+  box-sizing: border-box;
+}
 
 /* Outreach-wide visual language. Controls and buttons are intentionally left
  * out so each workflow keeps its existing interaction styling. */

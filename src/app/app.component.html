@@ -1,4 +1,7 @@
+<div class="app-global-actions">
+  <app-platform-menu [isAdmin]="(isAdmin$ | async) ?? false"></app-platform-menu>
+  <app-theme-toggle></app-theme-toggle>
+</div>
 <app-command-palette></app-command-palette>
-<app-theme-toggle></app-theme-toggle>
 <router-outlet></router-outlet>
 <app-toast></app-toast>
