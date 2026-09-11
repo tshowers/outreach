@@ -115,7 +115,7 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
+:host-context(html.dark) {
   .todd-page {
     --composer-signal-border: rgba(255, 255, 255, 0.12);
     --composer-signal-bg: rgba(30, 33, 38, 0.54);

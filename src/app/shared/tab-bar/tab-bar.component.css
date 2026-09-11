@@ -18,7 +18,7 @@
   --tl-blue-glow: rgba(0, 149, 204, 0.35);
 }
 
-@media (prefers-color-scheme: dark) {
+:host-context(html.dark) {
   :host {
     --todd-surface-1: rgba(255, 255, 255, 0.06);
     --todd-surface-2: rgba(255, 255, 255, 0.05);

@@ -51,6 +51,7 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   activeLane: SignalLane = 'drafts';
 
   private userSubscription: Subscription | null = null;
+  private tenantSubscription: Subscription | null = null;
   tenantId: string | null = null;
   userId = '';
   private pendingRestoreThreadId: string | null = null;
@@ -141,7 +142,9 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
 
     this.userSubscription = this.authService.getUser().subscribe( ( user ) => {
       this.userId = String( ( user && user.uid ) || '' ).trim();
-      const nextTenantId = String( ( user && ( ( user as any ).tenantId || user.uid ) ) || '' ).trim();
+    } );
+
+    this.tenantSubscription = this.authService.getTenantId().subscribe( ( nextTenantId ) => {
       if ( !nextTenantId ) {
         this.tenantId = null;
         return;
@@ -154,6 +157,7 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
 
   ngOnDestroy (): void {
     this.userSubscription?.unsubscribe();
+    this.tenantSubscription?.unsubscribe();
     this.assistantBus.clearPageContext();
   }
 

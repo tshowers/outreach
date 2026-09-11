@@ -43,7 +43,7 @@
   box-shadow: none;
 }
 
-@media (prefers-color-scheme: dark) {
+:host-context(html.dark) {
   .todd-tip {
     background: color-mix(in srgb, var(--todd-card-bg) 72%, transparent);
     border-color: var(--todd-panel-border);

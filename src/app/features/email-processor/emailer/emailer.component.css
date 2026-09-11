@@ -172,7 +172,7 @@
   background: var(--emailer-bg);
 }
 
-@media (prefers-color-scheme: dark) {
+:host-context(html.dark) {
   .emailer-panel {
     --emailer-bg: #121212;
     --emailer-border: #2a2a2a;

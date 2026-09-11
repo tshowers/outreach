@@ -372,6 +372,140 @@
     height: 16px;
 }
 
+/* The migrated inbox screen still carried the old light-only surface
+   palette. Keep the app's html.dark toggle as the source of truth here so
+   every nested panel, message row, and control follows the rest of Outreach. */
+:host-context(html.dark) {
+    --inbox-dark-surface: #19231e;
+    --inbox-dark-surface-raised: #202d26;
+    --inbox-dark-surface-soft: #24332b;
+    --inbox-dark-line: #304039;
+    --inbox-dark-text: #edf4ef;
+    --inbox-dark-muted: #a7b5ad;
+}
+
+:host-context(html.dark) .inbox-access-hero,
+:host-context(html.dark) .inbox-access-card {
+    border-color: var(--inbox-dark-line);
+    background: color-mix(in srgb, var(--site-panel) 92%, transparent);
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:host-context(html.dark) .inbox-access-eyebrow {
+    background: rgba(114, 214, 168, 0.12);
+    color: var(--site-accent);
+}
+
+:host-context(html.dark) .inbox-access-hero h1,
+:host-context(html.dark) .inbox-access-hero p,
+:host-context(html.dark) .mailbox-summary-row,
+:host-context(html.dark) .mailbox-panel-title,
+:host-context(html.dark) .profile-label,
+:host-context(html.dark) .product-toggle-item,
+:host-context(html.dark) .mailbox-message-subject {
+    color: var(--inbox-dark-text);
+}
+
+:host-context(html.dark) .inbox-access-hero p,
+:host-context(html.dark) .field-help,
+:host-context(html.dark) .instructions,
+:host-context(html.dark) .mailbox-status-copy,
+:host-context(html.dark) .mailbox-empty,
+:host-context(html.dark) .mailbox-message-preview,
+:host-context(html.dark) .mailbox-detail-meta,
+:host-context(html.dark) .mailbox-message-row-top,
+:host-context(html.dark) .mailbox-summary-meta {
+    color: var(--inbox-dark-muted);
+}
+
+:host-context(html.dark) .inbox-access-tabbar,
+:host-context(html.dark) .mailbox-reply-mode-toggle {
+    background: var(--inbox-dark-surface-soft);
+    border-color: var(--inbox-dark-line);
+}
+
+:host-context(html.dark) .inbox-access-tab,
+:host-context(html.dark) .mailbox-reply-mode-button {
+    color: var(--inbox-dark-muted);
+}
+
+:host-context(html.dark) .inbox-access-tab.active,
+:host-context(html.dark) .mailbox-reply-mode-button.active {
+    background: var(--site-accent);
+    color: #102019;
+}
+
+:host-context(html.dark) .mailbox-connected-summary {
+    background: rgba(32, 71, 53, 0.54);
+    border-color: rgba(114, 214, 168, 0.22);
+}
+
+:host-context(html.dark) .mailbox-advanced-panel,
+:host-context(html.dark) .mailbox-inbox-list,
+:host-context(html.dark) .mailbox-inbox-detail,
+:host-context(html.dark) .mailbox-empty--panel,
+:host-context(html.dark) .mailbox-rich-reply-shell {
+    border-color: var(--inbox-dark-line);
+    background: var(--inbox-dark-surface);
+}
+
+:host-context(html.dark) .mailbox-message-row {
+    border-color: var(--inbox-dark-line);
+    background: var(--inbox-dark-surface-raised);
+    color: var(--inbox-dark-text);
+}
+
+:host-context(html.dark) .mailbox-message-row:hover,
+:host-context(html.dark) .mailbox-message-row--active {
+    border-color: var(--site-accent);
+    background: var(--inbox-dark-surface-soft);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+}
+
+:host-context(html.dark) .mailbox-message-body {
+    background: #15221c;
+    color: var(--inbox-dark-text);
+}
+
+:host-context(html.dark) input.form-control,
+:host-context(html.dark) select.form-select,
+:host-context(html.dark) textarea.form-control {
+    border-color: var(--inbox-dark-line);
+    background: #15221c;
+    color: var(--inbox-dark-text);
+}
+
+:host-context(html.dark) select.form-select option {
+    background: var(--inbox-dark-surface);
+    color: var(--inbox-dark-text);
+}
+
+:host-context(html.dark) .btn-todd {
+    border-color: rgba(114, 214, 168, 0.34) !important;
+    background: linear-gradient(180deg, rgba(52, 93, 73, 0.96), rgba(30, 56, 43, 0.96)) !important;
+    color: var(--inbox-dark-text) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+:host-context(html.dark) .btn-todd:hover,
+:host-context(html.dark) .btn-todd:focus-visible {
+    border-color: var(--site-accent) !important;
+    background: linear-gradient(180deg, rgba(68, 119, 92, 0.98), rgba(35, 70, 53, 0.98)) !important;
+    color: #ffffff !important;
+}
+
+:host-context(html.dark) .btn-todd-secondary {
+    border-color: var(--inbox-dark-line);
+    background: var(--inbox-dark-surface-soft);
+    color: var(--inbox-dark-text);
+}
+
+:host-context(html.dark) .btn-todd-danger {
+    background: rgba(127, 29, 29, 0.34);
+    color: #fecaca;
+    border-color: rgba(248, 113, 113, 0.32);
+}
+
 @media (max-width: 980px) {
     .inbox-access-hero {
         flex-direction: column;

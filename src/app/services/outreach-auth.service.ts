@@ -8,7 +8,7 @@ import {
   User,
 } from 'firebase/auth';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { Observable, shareReplay, switchMap, of } from 'rxjs';
+import { Observable, shareReplay, switchMap, tap, of } from 'rxjs';
 
 /**
  * Auth service for the standalone Outreach app. Sign-in itself no longer
@@ -38,6 +38,7 @@ export class OutreachAuthService {
 
   private userId$?: Observable<string>;
   private tenantId$?: Observable<string>;
+  private cachedTenantId: string | null = null;
 
   private readonly pendingLoginStorageKey = 'outreach_hosted_login_pending';
 
@@ -68,10 +69,27 @@ export class OutreachAuthService {
     if ( !this.tenantId$ ) {
       this.tenantId$ = this.getUserId().pipe(
         switchMap( ( uid ) => ( uid ? this.resolveTenantId( uid ) : of( '' ) ) ),
+        tap( ( tenantId ) => { this.cachedTenantId = tenantId || null; } ),
         shareReplay( { bufferSize: 1, refCount: false } ),
       );
     }
     return this.tenantId$;
+  }
+
+  /**
+   * Sync counterpart to getTenantId() for the tenantInterceptor, which
+   * can't await an Observable per-request. Populated as a side effect of
+   * getTenantId() - falls back to the auth uid (the pre-resolution
+   * default every caller already treats as the tenant id) until the
+   * first Firestore resolution lands.
+   */
+  getCurrentTenantIdSync (): string | null {
+    return this.cachedTenantId || this.auth.currentUser?.uid || null;
+  }
+
+  getCurrentUserEmailSync (): string | null {
+    const email = String( this.auth.currentUser?.email || '' ).trim().toLowerCase();
+    return email || null;
   }
 
   isLoggedIn (): Observable<boolean> {

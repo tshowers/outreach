@@ -297,7 +297,7 @@
     letter-spacing: 0.01em;
 }
 
-@media (prefers-color-scheme: dark) {
+:host-context(html.dark) {
     .catalyst-page-shell {
         --page-text: #f8fafc;
         --muted-text: rgba(232, 232, 232, 0.78);
@@ -371,4 +371,66 @@
     .catalyst-panel {
         border-radius: 22px;
     }
+}
+
+/* Match the landing page's dark green surfaces when the in-app theme toggle
+   is active. The original migration only responded to OS dark preference and
+   left Bootstrap cards and alerts in a gray palette. */
+:host-context(html.dark) .catalyst-page-shell {
+    --page-text: var(--site-ink);
+    --muted-text: var(--site-muted);
+    --panel-bg: linear-gradient(180deg, rgba(25, 35, 30, 0.96), rgba(17, 24, 21, 0.94));
+    --panel-border: var(--site-line);
+    --panel-shadow: 0 24px 56px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --soft-bg: rgba(255, 255, 255, 0.045);
+    --soft-border: rgba(255, 255, 255, 0.10);
+}
+
+:host-context(html.dark) .catalyst-hero,
+:host-context(html.dark) .catalyst-panel {
+    background: var(--panel-bg);
+    border-color: var(--panel-border);
+    box-shadow: var(--panel-shadow);
+}
+
+:host-context(html.dark) .catalyst-panel .card,
+:host-context(html.dark) .catalyst-panel .border.rounded,
+:host-context(html.dark) .catalyst-panel .alert {
+    background: var(--inbox-dark-surface, #19231e) !important;
+    border-color: var(--site-line) !important;
+    color: var(--site-ink);
+}
+
+:host-context(html.dark) .catalyst-tab-panel__inner {
+    border-color: var(--site-line);
+    background: rgba(17, 24, 21, 0.68);
+}
+
+:host-context(html.dark) .catalyst-mode-banner {
+    border-color: rgba(114, 214, 168, 0.22);
+    background: linear-gradient(135deg, rgba(0, 149, 204, 0.12), rgba(32, 71, 53, 0.38));
+}
+
+:host-context(html.dark) .catalyst-signal-card {
+    background: rgba(255, 255, 255, 0.045);
+    border-color: var(--site-line);
+}
+
+:host-context(html.dark) .catalyst-panel .text-muted,
+:host-context(html.dark) .catalyst-panel .small,
+:host-context(html.dark) .catalyst-panel .form-label,
+:host-context(html.dark) .catalyst-panel .form-check-label {
+    color: var(--site-muted) !important;
+}
+
+:host-context(html.dark) .catalyst-panel .form-select {
+    color-scheme: dark;
+    background-color: #15221c;
+    color: var(--site-ink);
+    border-color: var(--site-line);
+}
+
+:host-context(html.dark) .catalyst-panel .form-select option {
+    background: #19231e;
+    color: var(--site-ink);
 }

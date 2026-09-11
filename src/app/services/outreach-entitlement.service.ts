@@ -80,20 +80,32 @@ export class OutreachEntitlementService {
     );
   }
 
+  /**
+   * Reads access off `data.products` rather than re-deriving it from raw
+   * Stripe/tenant booleans. The backend's buildProductEntitlements()
+   * (todd-backend/functions/accountRoutes.js) already folds in the
+   * internal-override allowlist - @taliferro.tech/@taliferro.com emails,
+   * admin/founder/owner roles, and an explicit UID/email allowlist all
+   * grant free access to outreach/moves/docs/knowledge/network there,
+   * with no Stripe fields ever set on the tenant doc. Re-deriving from
+   * `tenant['outreachPaidAccess']` etc. (the old approach) silently
+   * drops that override and paywalls every internal/master account.
+   */
   private mapToEntitlements ( res: AccountSummaryResponse ): Entitlements {
-    const tenant = res?.data?.tenant;
-    if ( !tenant ) return DEFAULTS;
-    const suiteStatus = String( tenant['stripeToddSuiteSubscriptionStatus'] || '' ).trim().toLowerCase();
-    const suite = !!tenant['toddSuitePaidAccess'] ||
-      ['active', 'paid', 'trial', 'trialing'].includes( suiteStatus );
+    const products = res?.data?.products;
+    if ( !Array.isArray( products ) ) return DEFAULTS;
+
+    const hasAccess = ( key: string ): boolean =>
+      !!products.find( ( product ) => product?.key === key )?.access;
+
     return {
-      suite,
-      network: suite || !!tenant['networkPaidAccess'],
-      moves: suite || !!tenant['movesPaidAccess'],
-      outreach: suite || !!tenant['outreachPaidAccess'],
-      docs: suite || !!tenant['docsPaidAccess'],
-      knowledge: suite || !!tenant['knowledgePaidAccess'],
-      pulse: suite || !!tenant['surveyPaidAccess'],
+      suite: hasAccess( 'todd_suite' ),
+      network: hasAccess( 'todd_suite' ) || hasAccess( 'network' ),
+      moves: hasAccess( 'todd_suite' ) || hasAccess( 'moves' ),
+      outreach: hasAccess( 'todd_suite' ) || hasAccess( 'outreach' ),
+      docs: hasAccess( 'todd_suite' ) || hasAccess( 'docs' ),
+      knowledge: hasAccess( 'todd_suite' ) || hasAccess( 'knowledge' ),
+      pulse: hasAccess( 'todd_suite' ) || hasAccess( 'survey_publish' ),
     };
   }
 }

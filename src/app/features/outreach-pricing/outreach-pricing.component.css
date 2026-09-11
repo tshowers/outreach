@@ -422,6 +422,98 @@
     overflow-wrap: break-word;
 }
 
+/* Use the same dark green product surface as the landing page when the
+   in-app theme toggle is active. The previous migration kept the old navy
+   pricing palette, which made this route feel like a different product. */
+:host-context(html.dark) .moves-pricing-page {
+    --tl-dark: #111815;
+    --tl-dark-mid: rgba(25, 35, 30, 0.96);
+    --tl-dark-soft: rgba(32, 51, 43, 0.94);
+    --tl-blue: var(--site-accent);
+    --tl-blue-mid: var(--site-accent);
+    color: var(--site-ink);
+}
+
+:host-context(html.dark) .moves-pricing-hero,
+:host-context(html.dark) .moves-pricing-card {
+    background: linear-gradient(180deg, rgba(25, 35, 30, 0.96), rgba(17, 24, 21, 0.94)) !important;
+    border-color: var(--site-line) !important;
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+    color: var(--site-ink);
+}
+
+:host-context(html.dark) .moves-pricing-card-accent {
+    background: rgba(32, 51, 43, 0.94) !important;
+}
+
+:host-context(html.dark) .moves-pricing-copy h1,
+:host-context(html.dark) .moves-pricing-card-header h2,
+:host-context(html.dark) .moves-pricing-field span,
+:host-context(html.dark) .moves-pricing-login-title {
+    color: var(--site-ink);
+}
+
+:host-context(html.dark) .moves-pricing-lead,
+:host-context(html.dark) .moves-pricing-card-header p,
+:host-context(html.dark) .moves-pricing-list li,
+:host-context(html.dark) .moves-pricing-price-note,
+:host-context(html.dark) .moves-pricing-login-text {
+    color: var(--site-muted);
+}
+
+:host-context(html.dark) .moves-pricing-eyebrow,
+:host-context(html.dark) .moves-pricing-price,
+:host-context(html.dark) .moves-pricing-badge {
+    color: var(--site-accent);
+}
+
+:host-context(html.dark) .moves-pricing-badge {
+    background: rgba(114, 214, 168, 0.12);
+    border-color: rgba(114, 214, 168, 0.24);
+}
+
+:host-context(html.dark) .moves-pricing-price-row,
+:host-context(html.dark) .moves-pricing-login-callout {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--site-line) !important;
+}
+
+:host-context(html.dark) .moves-pricing-price-label {
+    color: var(--site-muted);
+}
+
+:host-context(html.dark) .moves-pricing-field input {
+    background: #15221c;
+    border-color: var(--site-line);
+    color: var(--site-ink);
+}
+
+:host-context(html.dark) .moves-pricing-field input::placeholder {
+    color: rgba(167, 181, 173, 0.62);
+}
+
+:host-context(html.dark) .moves-pricing-field input:focus {
+    border-color: var(--site-accent);
+    box-shadow: 0 0 0 3px rgba(114, 214, 168, 0.16);
+}
+
+:host-context(html.dark) .moves-pricing-actions .btn-todd,
+:host-context(html.dark) .moves-pricing-login-btn,
+:host-context(html.dark) .moves-pricing-subscribe {
+    background: linear-gradient(180deg, #72d6a8, #4caf83) !important;
+    border-color: #72d6a8 !important;
+    color: #102019 !important;
+}
+
+:host-context(html.dark) .btn.btn-outline-dark {
+    border-color: var(--site-accent) !important;
+    color: var(--site-accent) !important;
+}
+
+:host-context(html.dark) .btn.btn-outline-dark:hover {
+    background: rgba(114, 214, 168, 0.10) !important;
+}
+
 @media (max-width: 900px) {
 
     .moves-pricing-hero,

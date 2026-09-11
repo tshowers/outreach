@@ -109,7 +109,7 @@
 }
 
 /* Dark mode styles */
-@media (prefers-color-scheme: dark) {
+:host-context(html.dark) {
   .editor-container {
     background-color: #2a2a2a;
   }
@@ -166,4 +166,24 @@
 
 .grammar-highlight:hover .grammar-tooltip {
   display: block;
+}
+
+:host-context(html.dark) .editor-container {
+  background: transparent;
+}
+
+:host-context(html.dark) .btn-icon {
+  background-color: #34443b;
+  color: var(--site-ink);
+}
+
+:host-context(html.dark) .btn-icon:hover {
+  background-color: #456050;
+}
+
+:host-context(html.dark) .editor,
+:host-context(html.dark) .code-editor {
+  background-color: #15221c;
+  border-color: var(--site-line);
+  color: var(--site-ink) !important;
 }
