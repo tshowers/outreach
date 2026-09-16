@@ -115,7 +115,14 @@ export class OutreachAuthService {
     const state = crypto.randomUUID();
     sessionStorage.setItem( this.pendingLoginStorageKey, JSON.stringify( { state, returnUrl } ) );
     const client = this.isLocalDevelopmentHost() ? 'outreach-web-local' : 'outreach-web';
-    window.location.href = `https://todd.taliferro.tech/login?client=${client}&state=${state}`;
+    this.navigateToHostedLogin( `https://todd.taliferro.tech/login?client=${client}&state=${state}` );
+  }
+
+  /** Split out from signIn() so tests can spy on the actual navigation -
+   * `window.location.href`'s setter isn't a configurable property in real
+   * browsers, so it can't be stubbed directly. */
+  private navigateToHostedLogin ( url: string ): void {
+    window.location.href = url;
   }
 
   private isLocalDevelopmentHost (): boolean {

@@ -1,6 +1,6 @@
 {
   "name": "outreach",
-  "version": "0.0.1",
+  "version": "2026.9.16-build.6",
   "scripts": {
     "ng": "ng",
     "generate-version": "node scripts/generate-version.js",
@@ -8,8 +8,18 @@
     "start": "ng serve",
     "prebuild": "npm run generate-version",
     "build": "ng build",
+    "deploy:hosting": "./deploy.sh",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless",
+    "cypress:open": "env -u ELECTRON_RUN_AS_NODE cypress open",
+    "cypress:run": "env -u ELECTRON_RUN_AS_NODE cypress run",
+    "cypress:run:smoke": "env -u ELECTRON_RUN_AS_NODE cypress run --spec \"cypress/e2e/smoke/**/*.cy.ts\"",
+    "cypress:run:auth": "FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 env -u ELECTRON_RUN_AS_NODE cypress run --spec \"cypress/e2e/authenticated/**/*.cy.ts\"",
+    "e2e": "start-server-and-test start http://localhost:4200 cypress:run:smoke",
+    "start:e2e": "ng serve --configuration=e2e",
+    "emulators": "PATH=\"/usr/local/opt/openjdk/bin:$PATH\" firebase emulators:start --config firebase.emulator.json --project taliferrotech",
+    "e2e:auth": "start-server-and-test emulators http://localhost:9099 start:e2e http://localhost:4200 cypress:run:auth"
   },
   "private": true,
   "dependencies": {
@@ -21,6 +31,7 @@
     "@angular/platform-browser": "^19.0.0",
     "@angular/platform-browser-dynamic": "^19.0.0",
     "@angular/router": "^19.0.0",
+    "@angular/service-worker": "^19.2.25",
     "@fortawesome/fontawesome-free": "^7.3.1",
     "@taliferro/ui": "file:../../taliferro-ui",
     "bootstrap": "^5.3.8",
@@ -38,12 +49,15 @@
     "@angular/compiler-cli": "^19.0.0",
     "@types/jasmine": "~5.1.0",
     "@types/papaparse": "^5.5.2",
+    "cypress": "^15.21.1",
+    "firebase-admin": "^14.4.0",
     "jasmine-core": "~5.4.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "start-server-and-test": "^3.0.12",
     "typescript": "~5.6.2"
   }
 }

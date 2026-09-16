@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  useAuthEmulator: false,
   COMPANY_NAME: 'Outreach',
   PLATFORM_URL: 'https://outreach.taliferro.tech',
   backendURL: 'https://api.taliferro.tech/api',
