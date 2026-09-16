@@ -75,6 +75,7 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   selectedDraftContactIds = new Set<string>();
   batchApproving = false;
   batchRejecting = false;
+  batchDiscarding = false;
 
   private readonly MAX_BATCH_ACTION_SIZE = 100;
 
@@ -121,6 +122,12 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   testSendStatusByContactId = new Map<string, string>();
 
   sentCount: number | null = null;
+  /** Fed by EmailSentComponent's assistantContextChange - used to embed
+   * email-sent detail (follow-up/warm/cold recipients, top subjects) into
+   * this page's own assistant context so the assistant box's email-sent
+   * intercept has something to read, same as how email-processor embeds
+   * its catalystAssistantContext into its own page context. */
+  emailSentContext: EmailSentAssistantContext | null = null;
   signalTabs: TabBarItem[] = [];
 
   sentLoading = false;
@@ -189,8 +196,23 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
         activeThreads: this.summary?.activeThreads ?? 0,
         queuedActions: this.summary?.queuedActions ?? 0,
         stalledWaiting: this.summary?.stalledWaiting ?? 0,
-        hotLeads: this.summary?.hotLeads ?? 0
-      }
+        hotLeads: this.summary?.hotLeads ?? 0,
+        emailOpenRate: this.emailSentContext?.openRate ?? null,
+        emailClickThroughRate: this.emailSentContext?.clickThroughRate ?? null,
+        followUpNowCount: this.emailSentContext?.followUpNow?.length ?? null,
+        warmRecipientsCount: this.emailSentContext?.warmRecipients?.length ?? null,
+        coldRecipientsCount: this.emailSentContext?.coldRecipients?.length ?? null,
+      },
+      dataPreview: this.emailSentContext ? {
+        totalEmails: this.emailSentContext.totalEmails,
+        openedEmails: this.emailSentContext.openedEmails,
+        unopenedEmails: this.emailSentContext.unopenedEmails,
+        clickedEmails: this.emailSentContext.clickedEmails,
+        followUpNow: this.emailSentContext.followUpNow.slice( 0, 5 ),
+        warmRecipients: this.emailSentContext.warmRecipients.slice( 0, 5 ),
+        coldRecipients: this.emailSentContext.coldRecipients.slice( 0, 5 ),
+        topSubjects: this.emailSentContext.topSubjects.slice( 0, 3 ),
+      } : undefined
     } );
   }
 
@@ -270,7 +292,9 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
 
   onSentContextChange ( context: EmailSentAssistantContext ): void {
     this.sentCount = context.totalEmails;
+    this.emailSentContext = context;
     this.recomputeSignalTabs();
+    this.publishPageContext();
   }
 
   onSentLoadingChange ( isLoading: boolean ): void {
@@ -458,6 +482,33 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
       for ( const contactId of contactIds ) this.actionErrorByContactId.set( contactId, message );
     } finally {
       this.batchRejecting = false;
+    }
+  }
+
+  async discardSelectedDrafts (): Promise<void> {
+    if ( !this.tenantId || !this.hasSelectedDrafts || this.batchDiscarding || this.batchApproving || this.batchRejecting ) return;
+    const contactIds = Array.from( this.selectedDraftContactIds );
+    this.batchDiscarding = true;
+    for ( const contactId of contactIds ) this.actionErrorByContactId.delete( contactId );
+
+    try {
+      for ( const chunk of this.chunkContactIds( contactIds ) ) {
+        await Promise.all( chunk.map( async ( contactId ) => {
+          try {
+            await firstValueFrom( this.outreachApi.discardMomentumDraft( contactId, { tenantId: this.tenantId! } ) );
+            this.selectedDraftContactIds.delete( contactId );
+          } catch ( error: any ) {
+            this.actionErrorByContactId.set(
+              contactId,
+              String( error?.error?.message || error?.message || 'Unable to reject this draft.' )
+            );
+          }
+        } ) );
+      }
+      await this.loadBootstrap();
+      window.scrollTo( 0, 0 );
+    } finally {
+      this.batchDiscarding = false;
     }
   }
 

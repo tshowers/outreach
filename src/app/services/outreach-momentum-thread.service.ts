@@ -27,6 +27,7 @@ export interface MomentumThreadCreatePayload {
 }
 
 const MOMENTUM_THREADS_STORAGE_KEY = 'todd.momentumThreads';
+const MAX_PERSISTED_THREADS = 1000;
 
 /**
  * Trimmed copy of services/momentum-thread.service.ts (1,181 lines) - a
@@ -308,6 +309,8 @@ export class OutreachMomentumThreadService {
   private persistThreads (): void {
     if ( typeof localStorage === 'undefined' ) return;
 
+    this.pruneOldestThreads( MAX_PERSISTED_THREADS );
+
     try {
       const serialized = JSON.stringify( Array.from( this.threads.values() ) );
       if ( serialized === this.lastPersistedSnapshot ) {
@@ -317,8 +320,57 @@ export class OutreachMomentumThreadService {
       localStorage.setItem( MOMENTUM_THREADS_STORAGE_KEY, serialized );
       this.lastPersistedSnapshot = serialized;
     } catch ( error ) {
-      this.logger.error( '[Signal Engine] Failed to persist momentum threads to localStorage.', error );
+      const storageErrorName = String( ( error as any )?.name || '' );
+      const storageErrorMessage = String( ( error as any )?.message || '' );
+      const looksLikeQuotaIssue = storageErrorName === 'QuotaExceededError'
+        || storageErrorMessage.toLowerCase().includes( 'quota' );
+
+      if ( looksLikeQuotaIssue && this.threads.size > 1 ) {
+        this.pruneOldestThreads( Math.floor( this.threads.size / 2 ) );
+
+        try {
+          const retrySerialized = JSON.stringify( Array.from( this.threads.values() ) );
+          localStorage.setItem( MOMENTUM_THREADS_STORAGE_KEY, retrySerialized );
+          this.lastPersistedSnapshot = retrySerialized;
+          return;
+        } catch {
+          // Falls through to the error log below.
+        }
+      }
+
+      this.logger.error( '[Signal Engine] Failed to persist momentum threads to localStorage.', {
+        error,
+        looksLikeQuotaIssue,
+        threadCount: this.threads.size
+      } );
     }
+  }
+
+  private pruneOldestThreads ( maxThreads: number ): void {
+    if ( this.threads.size <= maxThreads ) return;
+
+    const keep = Array.from( this.threads.values() )
+      .sort( ( a, b ) => {
+        const aTime = this.toMillis( a.lastEvaluatedAt || a.lastSentAt || a.sortAt );
+        const bTime = this.toMillis( b.lastEvaluatedAt || b.lastSentAt || b.sortAt );
+        return bTime - aTime;
+      } )
+      .slice( 0, maxThreads );
+
+    const droppedCount = this.threads.size - keep.length;
+    this.threads.clear();
+    keep.forEach( ( thread ) => this.threads.set( thread.contactId, thread ) );
+
+    this.logger.warn( '[Signal Engine] Pruned oldest momentum threads to stay within localStorage capacity.', {
+      droppedCount,
+      remainingCount: this.threads.size
+    } );
+  }
+
+  private toMillis ( value?: string ): number {
+    if ( !value ) return 0;
+    const parsed = new Date( value ).getTime();
+    return Number.isNaN( parsed ) ? 0 : parsed;
   }
 
   private schedulePersistThreads (): void {

@@ -1,0 +1,364 @@
+:host {
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+/* btn-todd / ios-input stand-ins: TODD's real design system isn't ported
+   here - same pattern already used in contact-edit.component.css and
+   csv-import.component.css for this class name. */
+.btn-todd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--todd-link, #2563eb) 30%, transparent);
+  background: var(--todd-card-bg, #fff);
+  color: var(--todd-link, #2563eb);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn-todd:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--todd-link, #2563eb) 8%, var(--todd-card-bg, #fff));
+}
+
+.btn-todd:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-todd.ghost {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--todd-text, #172033) 18%, transparent);
+  color: var(--todd-text, #172033);
+}
+
+.assistant-btn-delete {
+  padding: 0.5rem 0.65rem;
+}
+
+.ios-input {
+  padding: 0.6rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--todd-border, rgba(0, 0, 0, .12));
+  background: #fff;
+  color: #172033;
+  font-size: 0.9rem;
+}
+
+.ios-input:focus {
+  outline: none;
+  border-color: var(--todd-link, #2563eb);
+}
+
+@media (prefers-color-scheme: dark) {
+  .ios-input {
+    background: #1a2535;
+    color: #f0f6ff;
+    border-color: rgba(0, 191, 255, 0.12);
+  }
+}
+
+.assistant-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--todd-link, #2563eb) 35%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--todd-link, #2563eb) 9%, var(--todd-surface-2, #f8fafc));
+}
+
+.assistant-confirm__copy {
+  display: grid;
+  gap: 3px;
+  color: var(--todd-text, #172033);
+  font-size: 12px;
+}
+
+.assistant-confirm__copy span {
+  opacity: .75;
+}
+
+.assistant-confirm__actions {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+/* Make sure the assistant box can overlay nearby UI */
+.assistant-container {
+  position: relative;
+  z-index: 50;
+}
+
+.assistant-bar {
+  position: relative;
+  z-index: 50;
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  padding-top: 8px;
+  background: color-mix(in srgb, var(--todd-surface-2, #f8fafc) 94%, transparent);
+  box-shadow: 0 -8px 18px color-mix(in srgb, var(--todd-surface-2, #f8fafc) 72%, transparent);
+}
+
+.assistant-bar .ios-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.assistant-bar .ios-card,
+.assistant-bar .ios-list {
+  overflow: visible !important;
+  position: static;
+  width: 100%;
+}
+
+.assistant-bar .ios-input {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+/* Assistant response styling - sized for the compact launcher window
+   (~440px wide), not a full-page bar. */
+.assistant-response {
+  background-color: rgba(248, 249, 250, 0.5);
+  color: #212529;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  animation: fadeIn 0.5s ease;
+}
+
+.assistant-response-external {
+  font-size: 0.9rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .assistant-response {
+    background: #2a2a2a;
+    color: #eee;
+    border-color: #444;
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.04);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.todd-logo-container {
+  position: fixed;
+  bottom: 15px;
+  right: 5px;
+  text-align: center;
+  z-index: 6000;
+}
+
+.assistant-inline {
+  margin-top: 12px;
+}
+
+.inline-card {
+  border: 1px solid var(--ring);
+  border-radius: 14px;
+  padding: 12px;
+  background: var(--panel, #f8fafc);
+}
+
+.inline-card .field {
+  margin-bottom: 10px;
+}
+
+.inline-card label {
+  display: block;
+  font-size: 12px;
+  opacity: .8;
+  margin-bottom: 4px;
+}
+
+.inline-card input,
+.inline-card textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.inline-card .actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.assistant-container .assistant-response {
+  color: inherit;
+}
+
+.assistant-response p,
+.assistant-response strong,
+.assistant-response button,
+.assistant-response .btn-ios {
+  color: inherit;
+}
+
+.assistant-response a,
+.assistant-response .route-link {
+  color: #2563eb;
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+  cursor: pointer;
+}
+
+.assistant-response a:hover,
+.assistant-response .route-link:hover {
+  color: #1d4ed8;
+}
+
+.assistant-inline .inline-card {
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.muted {
+  opacity: 0.8;
+}
+
+.assistant-inline .chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 6px 0 10px;
+}
+
+.assistant-inline .chip {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: inherit;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.assistant-response .route-link.btn-ios {
+  display: inline-block;
+  margin: 6px 6px 0 0;
+}
+
+body.dark .assistant-inline .inline-card {
+  background: rgba(16, 18, 24, 0.9);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+body.dark .assistant-inline .chip {
+  background: rgba(30, 32, 38, 0.9);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+@media (prefers-color-scheme: dark) {
+  .assistant-inline .inline-card {
+    background: rgba(16, 18, 24, 0.9);
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+
+  .assistant-inline .chip {
+    background: rgba(30, 32, 38, 0.9);
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .assistant-response a,
+  .assistant-response .route-link {
+    color: #93c5fd;
+  }
+
+  .assistant-response a:hover,
+  .assistant-response .route-link:hover {
+    color: #bfdbfe;
+  }
+}
+
+.assistant-nudge {
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .assistant-nudge {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+}
+
+.assistant-thread {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.assistant-message {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.assistant-message-user {
+  justify-content: flex-end;
+}
+
+.assistant-message-assistant {
+  justify-content: flex-start;
+}
+
+.assistant-message-bubble {
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.assistant-message-bubble-user {
+  background: rgba(0, 149, 204, 0.12);
+  border-top-right-radius: 2px;
+}
+
+.assistant-message-bubble-assistant {
+  background: rgba(0, 0, 0, 0.04);
+  border-top-left-radius: 2px;
+  padding-left: 2rem;
+}
+
+/* Small screens: keep only the send/submit button visible */
+@media (max-width: 768px) {
+  .assistant-btn-delete {
+    display: none !important;
+  }
+}

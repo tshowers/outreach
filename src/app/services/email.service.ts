@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError, map, throwError } from 'rxjs';
+import { Observable, TimeoutError, catchError, map, throwError, timeout } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { LoggerService } from './logger.service';
@@ -90,6 +90,10 @@ export class EmailService {
   constructor ( private http: HttpClient, private logger: LoggerService ) { }
 
   private buildSendEmailError ( err: unknown ): Error {
+    if ( err instanceof TimeoutError ) {
+      return new Error( 'The email service did not respond within 25 seconds. No retry was made because the email may already have been accepted. Check your inbox before trying again.' );
+    }
+
     if ( err instanceof HttpErrorResponse ) {
       const payload = err.error && typeof err.error === 'object' ? err.error as Record<string, any> : {};
       const backendError = String( payload?.['error'] || payload?.['message'] || '' ).trim();
@@ -110,6 +114,14 @@ export class EmailService {
           ? `Email HTML is too large for safe delivery (${Math.round( actualHtmlBytes / 1024 )} KiB). Keep it under ${Math.round( maxHtmlBytes / 1024 )} KiB.`
           : 'Email HTML is too large for safe delivery. Reduce the pasted template size and try again.';
         return new Error( detail );
+      }
+
+      if ( err.status === 503 ) {
+        return new Error( 'The email service is temporarily unavailable (503). Your preview is still open; wait a moment and try again.' );
+      }
+
+      if ( err.status === 0 ) {
+        return new Error( 'The email service could not be reached. This may be a temporary outage or a browser CORS/network failure. Your preview is still open; try again in a moment.' );
       }
 
       if ( backendError ) {
@@ -136,7 +148,12 @@ export class EmailService {
       subject: ( email as any )?.subject
     } );
 
-    return this.http.post( `${environment.backendURL}/send-email`, { ...email, tenantId } ).pipe(
+    const headers = new HttpHeaders().set( 'Authorization', `Bearer ${environment.apiKey}` );
+
+    return this.http.post( `${environment.backendURL}/send-email`, { ...email, tenantId }, { headers } ).pipe(
+      // Do not retry this POST: a delayed response can mean the provider already
+      // accepted the message, and retrying could send a duplicate email.
+      timeout( { each: 25_000 } ),
       catchError( err => {
         const sendError = this.buildSendEmailError( err );
         this.logger.error( 'Email server returned error:', {

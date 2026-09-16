@@ -1,7 +1,13 @@
 <div class="app-global-actions">
-  <app-platform-menu [isAdmin]="(isAdmin$ | async) ?? false"></app-platform-menu>
+  <app-platform-menu [isAdmin]="(isAdmin$ | async) ?? false" [isLoggedIn]="(isLoggedIn$ | async) ?? false" (signOut)="signOut()"></app-platform-menu>
   <app-theme-toggle></app-theme-toggle>
+</div>
+<div *ngIf="updateNotice" class="outreach-update-notice" role="status" aria-live="polite">
+  <span>{{ updateNotice }}</span>
+  <button *ngIf="chunkRecoveryNeedsManualRefresh" type="button" (click)="refreshAfterChunkError()">Refresh</button>
+  <button *ngIf="!chunkRecoveryNeedsManualRefresh" type="button" aria-label="Dismiss update notification" (click)="dismissUpdateNotice()">×</button>
 </div>
 <app-command-palette></app-command-palette>
 <router-outlet></router-outlet>
+<app-outreach-assistant-launcher></app-outreach-assistant-launcher>
 <app-toast></app-toast>

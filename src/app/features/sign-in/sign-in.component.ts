@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { OutreachAuthService } from '../../services/outreach-auth.service';
+import { firstValueFrom } from 'rxjs';
 
 /**
  * Sign-in for Network no longer happens natively in this app - it
@@ -24,11 +25,17 @@ export class SignInComponent implements OnInit {
 
   constructor (
     private route: ActivatedRoute,
+    private router: Router,
     private authService: OutreachAuthService,
   ) { }
 
-  ngOnInit (): void {
+  async ngOnInit (): Promise<void> {
     this.returnUrl = this.route.snapshot.queryParamMap.get( 'returnUrl' ) || '/app';
+    const user = await firstValueFrom( this.authService.getUser() );
+    if ( user ) {
+      await this.router.navigateByUrl( this.returnUrl );
+      return;
+    }
     this.signIn();
   }
 

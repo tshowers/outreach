@@ -1,0 +1,367 @@
+/* TODD brand-shell tokens - Network doesn't define these globally (they're
+   the main frontend app's theme vars), so they're scoped here rather than
+   added to Network's global stylesheet, which only this launcher uses them. */
+:host {
+  --todd-text: #222;
+  --todd-border: rgba(0, 0, 0, .08);
+  --todd-panel-border: rgba(0, 0, 0, .08);
+  --todd-surface-2: rgba(248, 249, 250, 0.9);
+  --todd-card-bg: rgba(255, 255, 255, 0.92);
+  --todd-modal-bg: rgba(255, 255, 255, 0.94);
+  --todd-link: #0095cc;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --todd-text: #f0f6ff;
+    --todd-border: rgba(0, 191, 255, 0.12);
+    --todd-panel-border: rgba(0, 191, 255, 0.12);
+    --todd-surface-2: #1a2535;
+    --todd-card-bg: #1a2535;
+    --todd-modal-bg: #131c27;
+    --todd-link: #00bfff;
+  }
+}
+
+.todd-assistant-root {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10000;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+}
+
+.todd-assistant-hotzone {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: 180px;
+  height: 180px;
+  z-index: 998;
+  background: transparent;
+}
+
+/* Floating launcher pill */
+.talk-to-todd-glass {
+  position: fixed;
+  right: 1.75rem;
+  bottom: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--todd-border);
+  background: color-mix(in srgb, var(--todd-card-bg) 78%, transparent);
+  color: var(--todd-text);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .5) inset, 0 8px 20px rgba(2, 6, 23, .12);
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  outline: none;
+  white-space: nowrap;
+  z-index: 999;
+  transition:
+    transform 120ms ease-out,
+    box-shadow 120ms ease-out,
+    background 150ms ease-out,
+    border-color 150ms ease-out,
+    opacity 150ms ease-out;
+}
+
+.talk-to-todd-glass-hidden {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+.talk-to-todd-glass i {
+  font-size: 1.1rem;
+}
+
+.talk-to-todd-glass:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 42px rgba(0, 0, 0, 0.45), 0 0 0 0.5px rgba(255, 255, 255, 0.9) inset;
+  background: color-mix(in srgb, var(--todd-card-bg) 88%, transparent);
+}
+
+.talk-to-todd-glass:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.talk-to-todd-glass:has(.todd-assistant-launcher-icon-unread) {
+  border-color: color-mix(in srgb, #22c55e 45%, var(--todd-border));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .5) inset,
+    0 8px 20px rgba(2, 6, 23, .12),
+    0 0 0 1px color-mix(in srgb, #22c55e 18%, transparent);
+}
+
+.talk-to-todd-glass:has(.todd-assistant-launcher-icon-unread) .todd-assistant-launcher-label {
+  color: color-mix(in srgb, #166534 82%, var(--todd-text));
+}
+
+.todd-assistant-launcher-icon {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--todd-text) 6%, transparent);
+  font-size: 12px;
+  transition: background 150ms ease-out, color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.todd-assistant-launcher-icon-unread {
+  color: #166534;
+  background: color-mix(in srgb, #22c55e 18%, white);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, #22c55e 30%, transparent) inset,
+    0 0 18px color-mix(in srgb, #22c55e 20%, transparent);
+}
+
+.todd-assistant-launcher-icon-unread::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--todd-card-bg) 92%, transparent),
+    0 0 10px color-mix(in srgb, #22c55e 55%, transparent);
+}
+
+.todd-assistant-launcher-label {
+  font-weight: 500;
+  transition: color 150ms ease-out;
+}
+
+/* Chat window */
+.todd-assistant-window {
+  position: fixed;
+  right: 1.75rem;
+  bottom: 5.5rem;
+  width: min(440px, 100vw - 40px);
+  height: auto;
+  max-height: min(640px, 80vh);
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid var(--todd-border);
+  background: color-mix(in srgb, var(--todd-modal-bg) 96%, transparent);
+  box-shadow: 0 18px 60px rgba(15, 15, 15, 0.28);
+  backdrop-filter: blur(28px);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(.96) translateY(12px);
+  transition: all .16s ease-out;
+  z-index: 999;
+}
+
+.todd-assistant-window-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+
+.todd-assistant-header {
+  background: var(--todd-card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 10px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--todd-panel-border) 70%, transparent);
+  color: var(--todd-text);
+}
+
+.todd-assistant-header-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.todd-assistant-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.todd-assistant-avatar img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.todd-assistant-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--todd-text);
+}
+
+.todd-assistant-subtitle {
+  font-size: 11px;
+  opacity: .8;
+  color: var(--todd-text);
+}
+
+.todd-assistant-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.todd-assistant-close {
+  border: none;
+  background: transparent;
+  color: var(--todd-text);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 6px;
+  border-radius: 999px;
+}
+
+.todd-assistant-close:hover {
+  background: color-mix(in srgb, var(--todd-text) 10%, transparent);
+}
+
+.todd-assistant-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 10px 10px 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--todd-surface-2);
+}
+
+/* Guidance card */
+.todd-activation-card {
+  --todd-activation-accent: #0f766e;
+  --todd-activation-accent-soft: color-mix(in srgb, var(--todd-activation-accent) 12%, transparent);
+  --todd-activation-accent-surface-top: color-mix(in srgb, var(--todd-activation-accent) 8%, var(--todd-surface-2));
+  --todd-activation-accent-surface-bottom: color-mix(in srgb, var(--todd-activation-accent) 4%, var(--todd-surface-2));
+  --todd-activation-text: var(--todd-text);
+  --todd-activation-muted: color-mix(in srgb, var(--todd-text) 78%, transparent);
+  --todd-activation-fact-bg: color-mix(in srgb, var(--todd-card-bg) 88%, transparent);
+  margin: 0 0 4px;
+  padding: 14px 14px 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--todd-activation-accent) 24%, var(--todd-panel-border));
+  background: linear-gradient(180deg, var(--todd-activation-accent-surface-top), var(--todd-activation-accent-surface-bottom));
+}
+
+.todd-activation-card__eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--todd-activation-accent);
+  margin-bottom: 8px;
+}
+
+.todd-activation-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: var(--todd-activation-text);
+}
+
+.todd-activation-card__title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.todd-activation-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--todd-activation-accent-soft);
+  color: var(--todd-activation-accent);
+  flex: 0 0 auto;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--todd-activation-accent) 18%, transparent);
+}
+
+.todd-activation-card__icon i {
+  font-size: 13px;
+}
+
+.todd-activation-card__stage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--todd-activation-accent-soft);
+  color: var(--todd-activation-accent);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.todd-activation-card__message {
+  margin: 0 0 6px;
+  color: var(--todd-activation-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.todd-activation-card__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.todd-activation-card__fact {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--todd-activation-fact-bg);
+  border: 1px solid color-mix(in srgb, var(--todd-activation-accent) 12%, var(--todd-panel-border));
+  color: var(--todd-activation-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.todd-activation-card--neutral { --todd-activation-accent: #0f766e; }
+.todd-activation-card--progress { --todd-activation-accent: #2563eb; }
+.todd-activation-card--attention { --todd-activation-accent: #b45309; }
+.todd-activation-card--ready { --todd-activation-accent: #15803d; }
+
+@media (max-width: 560px) {
+  .todd-assistant-root,
+  .talk-to-todd-glass {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .todd-assistant-window {
+    right: 8px;
+    left: 8px;
+    bottom: 5rem;
+    width: auto;
+  }
+}

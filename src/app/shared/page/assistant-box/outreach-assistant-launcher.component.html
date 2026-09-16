@@ -1,0 +1,62 @@
+<div class="todd-assistant-root">
+  <div class="todd-assistant-hotzone" aria-hidden="true"></div>
+  <button
+    type="button"
+    class="talk-to-todd-glass"
+    [class.talk-to-todd-glass-hidden]="!launcherVisible && !showAssistant"
+    (click)="toggleAssistant()"
+    [attr.aria-expanded]="showAssistant"
+    aria-label="Talk to TODD"
+  >
+    <span class="todd-assistant-launcher-icon" [class.todd-assistant-launcher-icon-unread]="hasUnread && !showAssistant">
+      <i class="fa-solid fa-message"></i>
+    </span>
+    <span class="todd-assistant-launcher-label">{{ hasUnread && !showAssistant ? 'Do this next' : 'Talk to TODD' }}</span>
+  </button>
+
+  <div class="todd-assistant-window" [class.todd-assistant-window-open]="showAssistant">
+    <div class="todd-assistant-header">
+      <div class="todd-assistant-header-main">
+        <div class="todd-assistant-avatar">
+          <img src="assets/avatar-todd-sm.png" alt="TODD Avatar" style="max-height: 48px;">
+        </div>
+        <div>
+          <div class="todd-assistant-title">TODD</div>
+          <div class="todd-assistant-subtitle">Momentum System</div>
+        </div>
+      </div>
+      <div class="todd-assistant-header-actions">
+        <button type="button" class="todd-assistant-close" (click)="dismissAssistant()" aria-label="Close TODD assistant">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+    <div class="todd-assistant-body">
+      <section class="todd-activation-card" [ngClass]="guidanceToneClass(guidanceCard.tone)" *ngIf="guidanceCard as card">
+        <div class="todd-activation-card__eyebrow">{{ card.eyebrow }}</div>
+        <div class="todd-activation-card__header">
+          <div class="todd-activation-card__title-row">
+            <span class="todd-activation-card__icon"><i [class]="card.icon" aria-hidden="true"></i></span>
+            <strong>{{ card.title }}</strong>
+          </div>
+          <span class="todd-activation-card__stage">{{ card.stageLabel }}</span>
+        </div>
+        <p class="todd-activation-card__message">{{ card.message }}</p>
+        <p class="todd-activation-card__message"><strong>Why it matters:</strong> {{ card.whyItMatters }}</p>
+        <div class="todd-activation-card__facts" *ngIf="card.bullets.length">
+          <span class="todd-activation-card__fact" *ngFor="let line of card.bullets">{{ line }}</span>
+        </div>
+        <div class="todd-activation-card__eyebrow" style="margin-top: 10px; margin-bottom: 0;" *ngIf="card.nextStage">NEXT STAGE: {{ card.nextStage }}</div>
+      </section>
+
+      <app-assistant-box
+        [userId]="userId"
+        [tenantId]="tenantId"
+        [pageContext]="pageContext"
+        [isOpen]="showAssistant"
+        [placeholder]="isLoggedIn ? 'Ask about an email, or tell me what you need.' : 'Ask what Outreach does, or how to get started.'"
+        (navigateTo)="onAssistantNavigate($event)"
+      ></app-assistant-box>
+    </div>
+  </div>
+</div>

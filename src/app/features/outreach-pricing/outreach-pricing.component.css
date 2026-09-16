@@ -326,7 +326,7 @@
 }
 
 /* ─── Dark Mode ─────────────────────────────────────────────────── */
-@media (prefers-color-scheme: dark) {
+:host-context(html.dark) {
 
     .moves-pricing-page {
         color: #fff;

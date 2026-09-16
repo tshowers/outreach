@@ -45,8 +45,11 @@
             <button class="btn-todd" type="button" [disabled]="!hasSelectedDrafts || batchApproving" (click)="approveSelectedDrafts()" data-cy="signal-engine-approve-selected">
                 {{ batchApproving ? 'Approving…' : 'Approve Selected (' + selectedDraftContactIds.size + ')' }}
             </button>
-            <button class="btn-todd-secondary" type="button" [disabled]="!hasSelectedDrafts || batchRejecting || batchApproving" (click)="rejectRewriteSelectedDrafts()" data-cy="signal-engine-reject-rewrite-selected">
+            <button class="btn-todd-secondary" type="button" [disabled]="!hasSelectedDrafts || batchRejecting || batchApproving || batchDiscarding" (click)="rejectRewriteSelectedDrafts()" data-cy="signal-engine-reject-rewrite-selected">
                 {{ batchRejecting ? 'Queuing…' : 'Reject & Rewrite Selected (' + selectedDraftContactIds.size + ')' }}
+            </button>
+            <button class="btn-todd-secondary draft-batch-reject" type="button" [disabled]="!hasSelectedDrafts || batchRejecting || batchApproving || batchDiscarding" (click)="discardSelectedDrafts()" data-cy="signal-engine-reject-selected">
+                {{ batchDiscarding ? 'Rejecting…' : 'Reject Selected (' + selectedDraftContactIds.size + ')' }}
             </button>
             <span class="hint draft-send-timing" *ngIf="hasSelectedReplyDrafts">Includes replies, which send immediately - not through Outbox.</span>
         </div>
@@ -63,16 +66,36 @@
                     </span>
                 </div>
                 <p class="hint draft-meta" *ngIf="thread.lastUpdated">Drafted {{ thread.lastUpdated | relativeTime }}</p>
-                <p class="draft-subject-label">Subject</p>
-                <p class="draft-subject">{{ getDraftSubject(thread) || '(no subject)' }}</p>
-                <p class="draft-body-label">Body</p>
-                <div class="draft-body" [innerHTML]="getDraftBody(thread) || '<p>(no draft body)</p>'"></div>
-                <p class="hint draft-stop-reason" *ngIf="thread.stopReason as stop">
-                    <span class="status-pill">{{ stop.badge }}</span> {{ stop.title }}
-                </p>
-                <p class="draft-error" *ngIf="getActionError(thread) as err">{{ err }}</p>
-                <p class="hint draft-test-status" *ngIf="getTestSendStatus(thread) as testStatus">{{ testStatus }}</p>
-                <p class="hint draft-send-timing" *ngIf="getDraftKind(thread) === 'reply'"> Replies send immediately on approval - this doesn't go through Outbox. </p>
+                <section class="draft-message-panel" aria-label="Message that will be sent">
+                    <div class="draft-panel-kicker">Message that will be sent</div>
+                    <p class="draft-subject-label">Subject</p>
+                    <p class="draft-subject">{{ getDraftSubject(thread) || '(no subject)' }}</p>
+                    <p class="draft-body-label">Body</p>
+                    <div class="draft-body" [innerHTML]="getDraftBody(thread) || '<p>(no draft body)</p>'"></div>
+                </section>
+                <div class="draft-after-message-panel">
+                    <section class="draft-routing-card" [class.draft-routing-card--reply]="getDraftKind(thread) === 'reply'" aria-label="Send routing">
+                        <span class="draft-routing-card__label">What approval does</span>
+                        <strong *ngIf="getDraftKind(thread) === 'reply'">Reply sends immediately on approval</strong>
+                        <strong *ngIf="getDraftKind(thread) !== 'reply'">Approval queues this email in Outbox</strong>
+                        <span *ngIf="getDraftKind(thread) === 'reply'">This reply bypasses Outbox.</span>
+                        <span *ngIf="getDraftKind(thread) !== 'reply'">You can review its delivery status in Outbox.</span>
+                    </section>
+                    <section class="draft-meta-panel" aria-label="Draft metadata">
+                        <div class="draft-meta-panel__label">About this draft</div>
+                        <p class="draft-stop-reason" *ngIf="thread.stopReason as stop">
+                            <span class="status-pill">{{ stop.badge }}</span>
+                            <strong>{{ stop.title }}</strong>
+                            <span *ngIf="stop.detail">{{ stop.detail }}</span>
+                        </p>
+                        <p class="draft-error" *ngIf="getActionError(thread) as err">{{ err }}</p>
+                        <p class="hint draft-test-status" *ngIf="getTestSendStatus(thread) as testStatus">{{ testStatus }}</p>
+                        <p class="draft-rationale" *ngIf="getDraftRationale(thread) as rationale">
+                            <span class="draft-rationale-label">Internal rationale</span>
+                            {{ rationale }}
+                        </p>
+                    </section>
+                </div>
                 <div class="draft-actions">
                     <button type="button" [disabled]="isPending(thread)" (click)="$event.stopPropagation(); approveDraft(thread)" [attr.data-cy]="'signal-engine-approve-' + thread.contactId" [title]="getDraftKind(thread) === 'reply' ? 'This reply sends immediately - it does not queue in Outbox first.' : 'Queues this draft for delivery in Outbox.'">
                         {{ isPending(thread) ? 'Working…' : (getDraftKind(thread) === 'reply' ? 'Approve & Send Now' : 'Approve') }}
@@ -90,10 +113,6 @@
                         {{ isSendingTest(thread) ? 'Sending…' : 'Send Test to Me' }}
                     </button>
                 </div>
-                <p class="draft-rationale" *ngIf="getDraftRationale(thread) as rationale">
-                    <span class="draft-rationale-label">Why this draft</span>
-                    {{ rationale }}
-                </p>
             </article>
         </div>
     </section>

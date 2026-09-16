@@ -61,7 +61,6 @@
           <div class="mailbox-inbox-shell">
             <div class="mailbox-inbox-list">
               <div class="mailbox-panel-title">Recent Inbox</div>
-              <div class="mailbox-empty" *ngIf="mailboxAccess.loadingMailboxMessages">Loading inbox...</div>
               <div class="mailbox-empty" *ngIf="!mailboxAccess.loadingMailboxMessages && mailboxAccess.mailboxMessages.length === 0">No recent inbox messages yet.</div>
               <button type="button" class="mailbox-message-row" *ngFor="let message of mailboxAccess.mailboxMessages; trackBy: trackMessage" (click)="mailboxAccess.openMailboxMessage(message)" [class.mailbox-message-row--active]="mailboxAccess.selectedMailboxMessage?.id === message.id">
                 <div class="mailbox-message-row-top">
@@ -253,5 +252,5 @@
     </section>
   </div>
 </div>
-<app-preloader [isLoading]="isProcessing || mailboxAccess.loadingMailboxes"></app-preloader>
+<app-preloader [isLoading]="isProcessing || mailboxAccess.loadingMailboxes || mailboxAccess.loadingMailboxMessages"></app-preloader>
 <app-back-to-top></app-back-to-top>

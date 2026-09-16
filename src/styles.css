@@ -186,6 +186,57 @@ html.dark .outreach-home-shell {
   --cockpit-grid-line: color-mix(in srgb, var(--site-ink) 12%, transparent);
 }
 
+/* Catalyst's stale-contact chart is a child component with its own
+ * light-first cockpit palette. Keep that entire middle section on the
+ * explicit app theme when the OS preference changes underneath it. */
+html.dark app-root > router-outlet + * .catalyst-tab-panel__inner {
+  background: rgba(17, 24, 21, 0.68);
+  border-color: var(--site-line);
+}
+
+html.dark app-root > router-outlet + * .queue-cockpit {
+  background:
+    linear-gradient(180deg, rgba(33, 35, 40, 0.58), rgba(42, 45, 52, 0.5)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 132px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 112px);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark app-root > router-outlet + * .queue-cockpit__card,
+html.dark app-root > router-outlet + * .queue-cockpit__panel {
+  background: rgba(46, 51, 59, 0.38);
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+html.dark app-root > router-outlet + * .queue-cockpit__cohort {
+  background: rgba(34, 38, 44, 0.44);
+  border-color: rgba(148, 163, 184, 0.12);
+}
+
+html.dark app-root > router-outlet + * .queue-cockpit__title,
+html.dark app-root > router-outlet + * .queue-cockpit__value,
+html.dark app-root > router-outlet + * .queue-cockpit__cohort-name,
+html.dark app-root > router-outlet + * .queue-cockpit__cohort-value {
+  color: var(--site-ink);
+}
+
+html.dark app-root > router-outlet + * .queue-cockpit__subtitle,
+html.dark app-root > router-outlet + * .queue-cockpit__copy,
+html.dark app-root > router-outlet + * .queue-cockpit__cohort-copy,
+html.dark app-root > router-outlet + * .queue-cockpit__disclaimer,
+html.dark app-root > router-outlet + * .suggestion-container {
+  color: var(--site-muted);
+}
+
+html.dark app-root > router-outlet + * .queue-cockpit__label,
+html.dark app-root > router-outlet + * .queue-cockpit__bar-meta {
+  color: var(--site-ink);
+}
+
+html.dark app-root > router-outlet + * .queue-cockpit__bar-track {
+  background: rgba(92, 98, 108, 0.32);
+}
+
 /* The banner owns its own light/dark treatment. Use the app toggle as the
  * source of truth instead of letting the operating-system preference win. */
 html:not(.dark) .browse-mode-banner {
