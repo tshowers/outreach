@@ -27,6 +27,11 @@ export const routes: Routes = [
       import( './features/auth-callback/auth-callback.component' ).then( ( m ) => m.AuthCallbackComponent ),
   },
   {
+    path: 'mobile-handoff',
+    loadComponent: () =>
+      import( './features/mobile-handoff/mobile-handoff.component' ).then( ( m ) => m.MobileHandoffComponent ),
+  },
+  {
     path: 'unsubscribe-success',
     loadComponent: () =>
       import( './features/unsubscribe-success/unsubscribe-success.component' ).then( ( m ) => m.UnsubscribeSuccessComponent ),
