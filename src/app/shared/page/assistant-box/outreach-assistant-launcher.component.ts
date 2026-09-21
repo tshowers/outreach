@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -20,6 +20,10 @@ interface OutreachGuidanceCard {
   icon: string;
   nextStage?: string;
 }
+
+/** What the template actually binds to - the tone class is precomputed here
+ *  so [ngClass] can read a plain field instead of calling a method. */
+type RenderedGuidanceCard = OutreachGuidanceCard & { toneClass: string };
 
 /**
  * Outreach's launcher shell - same from-scratch equivalent of TODD's
@@ -42,6 +46,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
   private readonly authService = inject( OutreachAuthService );
   private readonly assistantBus = inject( OutreachAssistantSignalService );
   private readonly router = inject( Router );
+  private readonly zone = inject( NgZone );
 
   private readonly launcherHotzoneSize = 180;
   private readonly launcherRevealDurationMs = 2400;
@@ -58,34 +63,46 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
 
   private readonly subscriptions: Subscription[] = [];
 
+  private readonly onDocumentMouseMove = ( event: MouseEvent ): void => {
+    if ( this.isInBottomRightHotzone( event.clientX, event.clientY ) && !this.isOverOtherInteractiveElement( event.target ) ) {
+      this.revealLauncherTemporarily();
+    }
+  };
+
+  private readonly onDocumentTouchStart = ( event: TouchEvent ): void => {
+    const touch = event.touches?.[0];
+    if ( touch && this.isInBottomRightHotzone( touch.clientX, touch.clientY ) && !this.isOverOtherInteractiveElement( event.target ) ) {
+      this.revealLauncherTemporarily();
+    }
+  };
+
   ngOnInit (): void {
     this.subscriptions.push(
-      this.authService.isLoggedIn().subscribe( ( loggedIn ) => ( this.isLoggedIn = loggedIn ) ),
+      this.authService.isLoggedIn().subscribe( ( loggedIn ) => { this.isLoggedIn = loggedIn; this.refreshGuidanceCard(); } ),
       this.authService.getUserId().subscribe( ( id ) => ( this.userId = id || null ) ),
       this.authService.getTenantId().subscribe( ( id ) => ( this.tenantId = id || null ) ),
-      this.assistantBus.pageContext$.subscribe( ( ctx ) => ( this.pageContext = ctx ) ),
+      this.assistantBus.pageContext$.subscribe( ( ctx ) => { this.pageContext = ctx; this.refreshGuidanceCard(); } ),
       this.assistantBus.unread$.subscribe( ( unread ) => ( this.hasUnread = unread ) ),
     );
+
+    // Bound manually (rather than @HostListener) and outside Angular's zone:
+    // @HostListener always runs its callback inside the zone, which means
+    // zone.js schedules a full app-wide change detection pass after every
+    // single mousemove/touchstart anywhere on the page, whether or not the
+    // pointer is anywhere near the hotzone. Only re-enter the zone
+    // (`this.zone.run`) on the rare occasion the pointer is actually in the
+    // hotzone and launcherVisible needs to update.
+    this.zone.runOutsideAngular( () => {
+      document.addEventListener( 'mousemove', this.onDocumentMouseMove, { passive: true } );
+      document.addEventListener( 'touchstart', this.onDocumentTouchStart, { passive: true } );
+    } );
   }
 
   ngOnDestroy (): void {
     if ( this.launcherHideTimer ) clearTimeout( this.launcherHideTimer );
     this.subscriptions.forEach( ( s ) => s.unsubscribe() );
-  }
-
-  @HostListener( 'document:mousemove', ['$event'] )
-  onMouseMove ( event: MouseEvent ): void {
-    if ( this.isInBottomRightHotzone( event.clientX, event.clientY ) ) {
-      this.revealLauncherTemporarily();
-    }
-  }
-
-  @HostListener( 'document:touchstart', ['$event'] )
-  onTouchStart ( event: TouchEvent ): void {
-    const touch = event.touches?.[0];
-    if ( touch && this.isInBottomRightHotzone( touch.clientX, touch.clientY ) ) {
-      this.revealLauncherTemporarily();
-    }
+    document.removeEventListener( 'mousemove', this.onDocumentMouseMove );
+    document.removeEventListener( 'touchstart', this.onDocumentTouchStart );
   }
 
   private isInBottomRightHotzone ( clientX: number, clientY: number ): boolean {
@@ -93,15 +110,32 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
       && clientY >= ( window.innerHeight - this.launcherHotzoneSize );
   }
 
+  /**
+   * The hotzone is a broad 180x180 proximity area, not just the pill's own
+   * footprint - on narrower viewports a page's own bottom-right-anchored
+   * button can fall inside it. Revealing the pill there put it, at a higher
+   * z-index, physically on top of that button for the rest of the same
+   * synthetic event sequence, so a click meant for the page's button could
+   * land on the pill instead. Skip the reveal whenever the pointer/touch is
+   * already on top of some other clickable element.
+   */
+  private isOverOtherInteractiveElement ( target: EventTarget | null ): boolean {
+    if ( !( target instanceof Element ) ) return false;
+    if ( target.closest( '.todd-assistant-root' ) ) return false;
+    return !!target.closest( 'button, a, input, select, textarea, [role="button"]' );
+  }
+
   private revealLauncherTemporarily (): void {
-    this.launcherVisible = true;
-    if ( this.launcherHideTimer ) clearTimeout( this.launcherHideTimer );
+    this.zone.run( () => {
+      this.launcherVisible = true;
+      if ( this.launcherHideTimer ) clearTimeout( this.launcherHideTimer );
 
-    if ( this.showAssistant ) return;
+      if ( this.showAssistant ) return;
 
-    this.launcherHideTimer = setTimeout( () => {
-      if ( !this.showAssistant ) this.launcherVisible = false;
-    }, this.launcherRevealDurationMs );
+      this.launcherHideTimer = setTimeout( () => {
+        if ( !this.showAssistant ) this.launcherVisible = false;
+      }, this.launcherRevealDurationMs );
+    } );
   }
 
   toggleAssistant (): void {
@@ -123,9 +157,11 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
     void this.router.navigate( [target.path], { queryParams: target.queryParams, fragment: target.fragment } );
   }
 
-  get guidanceCard (): OutreachGuidanceCard | null {
-    if ( !this.isLoggedIn ) return this.guestOrientationCard;
-    return this.computeGuidanceCard( this.pageContext );
+  guidanceCard: RenderedGuidanceCard | null = null;
+
+  private refreshGuidanceCard (): void {
+    const card = this.isLoggedIn ? this.computeGuidanceCard( this.pageContext ) : this.guestOrientationCard;
+    this.guidanceCard = card ? { ...card, toneClass: `todd-activation-card--${card.tone}` } : null;
   }
 
   private get guestOrientationCard (): OutreachGuidanceCard {
@@ -319,9 +355,5 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
       whyItMatters: 'A clear queue means TODD’s doing its job - new work will land here as it comes in.',
       bullets: [],
     };
-  }
-
-  guidanceToneClass ( tone: GuidanceTone ): string {
-    return `todd-activation-card--${tone}`;
   }
 }

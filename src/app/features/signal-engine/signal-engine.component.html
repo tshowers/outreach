@@ -54,7 +54,7 @@
             <span class="hint draft-send-timing" *ngIf="hasSelectedReplyDrafts">Includes replies, which send immediately - not through Outbox.</span>
         </div>
         <div class="draft-list">
-            <article class="draft-card" [class.selected]="isSelected(thread)" (click)="toggleDraftSelection(thread)" *ngFor="let thread of draftThreads" [attr.data-cy]="'signal-engine-draft-' + thread.contactId">
+            <article class="draft-card" [class.selected]="isSelected(thread)" (click)="toggleDraftSelection(thread)" *ngFor="let thread of draftThreads; trackBy: trackByThreadId" [attr.data-cy]="'signal-engine-draft-' + thread.contactId">
                 <div class="draft-card-header">
                     <strong class="draft-card-contact-link" [routerLink]="['/contact', thread.contactId]" (click)="$event.stopPropagation()" (mouseenter)="showContactHover(thread, $event)" (mouseleave)="hideContactHover()">{{ thread.contactName || 'Unknown contact' }}</strong>
                     <span class="draft-card-company">
@@ -131,7 +131,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let thread of outboxThreads">
+                <tr *ngFor="let thread of outboxThreads; trackBy: trackByThreadId">
                     <td>{{ thread.contactName }}</td>
                     <td>{{ thread.companyName }}</td>
                     <td>{{ thread.draftSubject }}</td>
@@ -165,7 +165,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let thread of planThreads" [class.restored-row]="isRestoredThread(thread)">
+                <tr *ngFor="let thread of planThreads; trackBy: trackByThreadId" [class.restored-row]="isRestoredThread(thread)">
                     <td>{{ thread.contactName }}</td>
                     <td>
                         <span class="status-pill" [class.tone-reply]="thread.bucket === 'needs_human_edit' || thread.bucket === 'needs_you'">

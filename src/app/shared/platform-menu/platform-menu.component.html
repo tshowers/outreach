@@ -25,7 +25,7 @@
         <span class="platform-menu-eyebrow">Outreach</span>
         <nav class="platform-menu-route-list" aria-label="Outreach routes">
           <a
-            *ngFor="let link of outreachLinks"
+            *ngFor="let link of outreachLinks; trackBy: trackByLabel"
             class="platform-menu-route"
             [routerLink]="link.route"
             (click)="handleOutreachLink(link)"
@@ -37,7 +37,7 @@
         <span class="platform-menu-eyebrow">Products</span>
         <div class="platform-menu-launcher">
           <a
-            *ngFor="let link of productLinks"
+            *ngFor="let link of productLinks; trackBy: trackByLabel"
             class="platform-menu-app"
             [href]="link.url"
             target="_blank"
@@ -55,7 +55,7 @@
         <span class="platform-menu-eyebrow">Account</span>
         <nav class="platform-menu-editorial">
           <a
-            *ngFor="let item of accountItems"
+            *ngFor="let item of accountItems; trackBy: trackByLabel"
             class="platform-menu-editorial__link"
             [href]="item.url"
             target="_blank"

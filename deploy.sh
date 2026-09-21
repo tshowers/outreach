@@ -16,6 +16,9 @@ npm run build
 echo "Running unit tests..."
 npm run test:ci
 
+echo "Running Cypress smoke suite..."
+npm run e2e
+
 if [ -n "$(git status --porcelain)" ]; then
   echo "Build and tests passed - committing changes before deploy..."
   VERSION="$(node -p "require('./package.json').version")"

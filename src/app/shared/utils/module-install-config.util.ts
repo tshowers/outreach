@@ -96,7 +96,7 @@ const MODULE_INSTALL_CONFIGS: Record<ModuleInstallKey, ModuleInstallConfig> = {
     marketingEntryPath: '/outreach/',
     launchRoute: '/outreach/app',
     manifestPath: '/manifest.webmanifest',
-    iconPath: '/assets/outreach/outreach.png',
+    iconPath: '/assets/find/entities/outreach/logo.png',
     themeColor: '#0b0b0f',
     iosInstructionTitle: 'Install Outreach on your iPhone or iPad',
     iosInstructionSteps: [

@@ -92,7 +92,7 @@ export class MailboxAccessService {
     this.context = { ...context };
     this.lastContextKey = nextContextKey;
 
-    if (!this.connectedMailbox) {
+    if (!this.connectedMailbox && !this.mailboxConfigs.length) {
       this.hydrateMailboxForm(null);
     }
 
@@ -118,6 +118,37 @@ export class MailboxAccessService {
     }
   }
 
+  startAddingMailbox(): void {
+    this.connectedMailbox = null;
+    this.selectedMailboxMessage = null;
+    this.mailboxMessages = [];
+    this.mailboxConnectionStatus = '';
+    this.mailboxSyncStatus = '';
+    this.hydrateMailboxForm(null);
+  }
+
+  selectMailbox(mailbox: MailboxConfigSummary): void {
+    if (!mailbox?.id || mailbox.id === this.connectedMailbox?.id) return;
+    this.connectedMailbox = mailbox;
+    this.hydrateMailboxForm(mailbox);
+    this.selectedMailboxMessage = null;
+    this.mailboxReplyDraft = this.createMailboxReplyDraft();
+    this.loadMailboxMessages(mailbox.id);
+  }
+
+  setPrimaryMailbox(mailbox: MailboxConfigSummary): void {
+    if (!mailbox?.id || mailbox.isPrimary) return;
+    this.outreachApi.setPrimaryMailbox(mailbox.id, this.getMailboxRequestOptions())
+      .pipe(take(1))
+      .subscribe({
+        next: () => this.loadMailboxConfigs(),
+        error: (error) => {
+          this.mailboxConnectionStatus = error?.error?.message || 'Unable to update the primary mailbox.';
+          this.notificationService.show('Error', this.mailboxConnectionStatus, 'error');
+        }
+      });
+  }
+
   loadMailboxConfigs(): void {
     if (!this.context?.tenantId || !this.context?.userId) return;
 
@@ -128,7 +159,9 @@ export class MailboxAccessService {
         next: (response) => {
           this.loadingMailboxes = false;
           this.mailboxConfigs = Array.isArray(response?.data) ? response.data : [];
-          this.connectedMailbox = this.selectPreferredMailbox(this.mailboxConfigs);
+          const selectedId = this.connectedMailbox?.id;
+          this.connectedMailbox = this.mailboxConfigs.find((mailbox) => mailbox.id === selectedId)
+            || this.selectPreferredMailbox(this.mailboxConfigs);
           this.hydrateMailboxForm(this.connectedMailbox);
 
           if (this.connectedMailbox?.id) {
@@ -414,7 +447,7 @@ export class MailboxAccessService {
 
   private createMailboxForm(): MailboxFormState {
     return {
-      id: 'primary',
+      id: undefined,
       displayName: '',
       emailAddress: '',
       provider: 'gmail' as MailboxProviderId,
@@ -490,7 +523,7 @@ export class MailboxAccessService {
 
   private buildMailboxPayload() {
     return {
-      id: this.mailboxForm.id || 'primary',
+      ...(this.mailboxForm.id ? { id: this.mailboxForm.id } : {}),
       displayName: (this.mailboxForm.displayName || this.context?.companyName || this.context?.displayName || '').toString().trim(),
       emailAddress: (this.mailboxForm.emailAddress || '').toString().trim().toLowerCase(),
       provider: this.mailboxForm.provider,
@@ -620,7 +653,7 @@ export class MailboxAccessService {
     }
 
     this.mailboxForm = {
-      id: mailbox.id || 'primary',
+      id: mailbox.id || undefined,
       displayName: mailbox.displayName || '',
       emailAddress: mailbox.emailAddress || '',
       provider: mailbox.provider || 'gmail',

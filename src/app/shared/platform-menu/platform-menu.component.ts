@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import packageJson from '../../../../package.json';
 import { RouterModule } from '@angular/router';
 
@@ -32,7 +32,7 @@ interface OutreachLink {
   templateUrl: './platform-menu.component.html',
   styleUrl: './platform-menu.component.css',
 } )
-export class PlatformMenuComponent {
+export class PlatformMenuComponent implements OnChanges {
   @Input() isAdmin = false;
   @Input() isLoggedIn = false;
   @Output() readonly signOut = new EventEmitter<void>();
@@ -49,8 +49,19 @@ export class PlatformMenuComponent {
     { label: 'Email Composer', route: '/compose-email' },
   ];
 
-  get outreachLinks (): OutreachLink[] {
-    return [
+  outreachLinks: OutreachLink[] = [];
+  accountItems: PlatformMenuItem[] = [];
+
+  constructor () {
+    this.recompute();
+  }
+
+  ngOnChanges (): void {
+    this.recompute();
+  }
+
+  private recompute (): void {
+    this.outreachLinks = [
       ...this.baseOutreachLinks,
       this.isLoggedIn
         ? { label: 'Sign Out', route: '/', signOut: true }
@@ -58,6 +69,12 @@ export class PlatformMenuComponent {
       { label: 'iOS App', route: '/ios' },
       ...( this.isLoggedIn ? [] : [{ label: 'Pricing', route: '/pricing' }] ),
     ];
+
+    this.accountItems = getPlatformMenuItems().filter( ( item ) => item.label !== 'Document' && ( !item.adminOnly || this.isAdmin ) );
+  }
+
+  trackByLabel ( _index: number, item: { label: string } ): string {
+    return item.label;
   }
 
   readonly productLinks: ProductLink[] = [
@@ -74,10 +91,6 @@ export class PlatformMenuComponent {
     { label: 'Email Signature', url: 'https://signature.taliferro.tech', icon: 'assets/find/entities/email-signature-builder/logo-bw-icon.png', description: 'Make every email carry your brand.' },
     { label: 'Music', url: 'https://music.taliferro.com', icon: 'assets/find/entities/music/logo-bw-icon.png', description: 'Let the soundtrack keep moving.' },
   ];
-
-  get accountItems (): PlatformMenuItem[] {
-    return getPlatformMenuItems().filter( ( item ) => item.label !== 'Document' && ( !item.adminOnly || this.isAdmin ) );
-  }
 
   toggle (): void {
     this.isOpen = !this.isOpen;

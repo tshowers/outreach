@@ -36,6 +36,16 @@
             {{ mailboxAccess.hasMailboxConnection ? 'Connected' : 'Not connected' }}
           </div>
         </div>
+        <div class="mailbox-connected-summary" *ngIf="mailboxAccess.mailboxConfigs.length > 1">
+          <div class="mailbox-summary-row">
+            <span>Viewing inbox</span>
+            <select class="form-select" [ngModel]="mailboxAccess.connectedMailbox?.id" (ngModelChange)="selectMailboxById($event)">
+              <option *ngFor="let mailbox of mailboxAccess.mailboxConfigs" [ngValue]="mailbox.id">
+                {{ mailbox.emailAddress }}{{ mailbox.isPrimary ? ' · Primary' : '' }}
+              </option>
+            </select>
+          </div>
+        </div>
         <div class="mailbox-empty mailbox-empty--panel" *ngIf="mailboxAccess.loadingMailboxes">Loading mailbox connection...</div>
         <div class="mailbox-empty mailbox-empty--panel" *ngIf="!mailboxAccess.loadingMailboxes && !mailboxAccess.connectedMailbox"> Connect a mailbox in <strong>Inbox Settings</strong> to start syncing messages here. </div>
         <ng-container *ngIf="mailboxAccess.connectedMailbox">
@@ -170,6 +180,22 @@
             <span *ngIf="mailboxAccess.connectedMailbox.lastSyncAt">Last sync {{ mailboxAccess.connectedMailbox.lastSyncAt | date:'medium' }}</span>
             <span *ngIf="mailboxAccess.connectedMailbox.lastConnectionStatus">Connection {{ mailboxAccess.connectedMailbox.lastConnectionStatus }}</span>
           </div>
+        </div>
+        <div class="mailbox-connected-summary" *ngIf="mailboxAccess.mailboxConfigs.length">
+          <div class="mailbox-panel-title">Connected inboxes</div>
+          <div class="mailbox-summary-row" *ngFor="let mailbox of mailboxAccess.mailboxConfigs">
+            <span>
+              <strong>{{ mailbox.emailAddress }}</strong>
+              <small class="mailbox-summary-meta">{{ mailbox.providerLabel || mailbox.provider }} · {{ mailbox.isPrimary ? 'Primary' : 'Connected' }}</small>
+            </span>
+            <span class="mailbox-inline-actions">
+              <button type="button" class="btn-todd btn-todd-secondary" (click)="selectMailbox(mailbox)">Open</button>
+              <button type="button" class="btn btn-link" *ngIf="!mailbox.isPrimary" (click)="mailboxAccess.setPrimaryMailbox(mailbox)">Make primary</button>
+            </span>
+          </div>
+        </div>
+        <div class="mailbox-actions">
+          <button type="button" class="btn-todd btn-todd-secondary" (click)="startAddingMailbox()">+ Add another inbox</button>
         </div>
         <div class="profile-list mailbox-form-list">
           <div class="form-group profile-row">

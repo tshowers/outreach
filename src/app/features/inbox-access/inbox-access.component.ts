@@ -11,7 +11,7 @@ import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.compone
 import { EmailEditorComponent } from '../../shared/page/email-editor/email-editor.component';
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { MailboxAccessService } from '../../services/mailbox-access.service';
-import { MailboxMessageListItem } from '../../services/outreach-api.service';
+import { MailboxConfigSummary, MailboxMessageListItem } from '../../services/outreach-api.service';
 
 /**
  * Ported from features/email/pages/inbox-access/. Swapped AuthService for
@@ -87,6 +87,21 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
 
   selectTab ( tab: 'inbox' | 'settings' ): void {
     this.activeTab = tab;
+  }
+
+  selectMailbox ( mailbox: MailboxConfigSummary ): void {
+    this.mailboxAccess.selectMailbox( mailbox );
+    this.activeTab = 'inbox';
+  }
+
+  selectMailboxById ( mailboxId: string ): void {
+    const mailbox = this.mailboxAccess.mailboxConfigs.find( (item) => item.id === mailboxId );
+    if ( mailbox ) this.mailboxAccess.selectMailbox( mailbox );
+  }
+
+  startAddingMailbox (): void {
+    this.mailboxAccess.startAddingMailbox();
+    this.activeTab = 'settings';
   }
 
   get shouldShowConnectedHero (): boolean {

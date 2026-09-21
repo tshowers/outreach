@@ -216,21 +216,31 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
     } );
   }
 
-  get draftThreads (): MomentumThread[] {
-    return this.threads.filter( ( thread ) => thread.userLane === 'drafts' && !thread.rewriteQueueState );
-  }
+  draftThreads: MomentumThread[] = [];
+  queuedForRewriteCount = 0;
+  outboxThreads: MomentumThread[] = [];
+  planThreads: MomentumThread[] = [];
 
-  get queuedForRewriteCount (): number {
-    return this.threads.filter( ( thread ) => !!thread.rewriteQueueState ).length;
-  }
-
-  get outboxThreads (): MomentumThread[] {
-    return this.threads.filter( ( thread ) => thread.userLane === 'outbox' );
-  }
-
-  get planThreads (): MomentumThread[] {
+  /**
+   * These were getters that filtered `this.threads` fresh on every access -
+   * Angular property bindings/interpolations re-run on every change-detection
+   * pass (which fires constantly app-wide), so each one allocated a new
+   * array every single check, and any *ngFor reading them with no trackBy
+   * would destroy/recreate every row on every check too. Computed once here
+   * instead, and only recomputed (via recomputeSignalTabs, which every
+   * threads/planNeedsYouOnly mutation site already calls) when the
+   * underlying data actually changes.
+   */
+  private recomputeThreadLanes (): void {
+    this.draftThreads = this.threads.filter( ( thread ) => thread.userLane === 'drafts' && !thread.rewriteQueueState );
+    this.queuedForRewriteCount = this.threads.filter( ( thread ) => !!thread.rewriteQueueState ).length;
+    this.outboxThreads = this.threads.filter( ( thread ) => thread.userLane === 'outbox' );
     const planLane = this.threads.filter( ( thread ) => thread.userLane === 'plan' );
-    return this.planNeedsYouOnly ? planLane.filter( ( thread ) => thread.bucket === 'needs_you' ) : planLane;
+    this.planThreads = this.planNeedsYouOnly ? planLane.filter( ( thread ) => thread.bucket === 'needs_you' ) : planLane;
+  }
+
+  trackByThreadId ( _index: number, thread: MomentumThread ): string {
+    return thread.id;
   }
 
   getDraftKind ( thread: MomentumThread ): DraftKind {
@@ -270,14 +280,17 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   showNeedsYou (): void {
     this.activeLane = 'plan';
     this.planNeedsYouOnly = true;
+    this.recomputeSignalTabs();
     this.publishPageContext();
   }
 
   setPlanNeedsYouOnly ( value: boolean ): void {
     this.planNeedsYouOnly = value;
+    this.recomputeSignalTabs();
   }
 
   private recomputeSignalTabs (): void {
+    this.recomputeThreadLanes();
     this.signalTabs = [
       { id: 'drafts', label: 'Drafts', icon: 'pen-to-square', count: this.draftThreads.length, dataCy: 'signal-engine-tab-drafts' },
       { id: 'outbox', label: 'Outbox', icon: 'layer-group', count: this.outboxThreads.length, dataCy: 'signal-engine-tab-outbox', tooltip: 'Approved drafts waiting to send. Sending runs weekdays only, 7am–11pm Pacific — items sit here over the weekend.' },

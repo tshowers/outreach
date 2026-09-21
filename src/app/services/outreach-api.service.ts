@@ -627,6 +627,11 @@ export class OutreachApiService {
     return this.http.delete<{ success: boolean; message: string; data: { deleted: boolean; mailboxId: string; }; }>( `${this.baseUrl}/outreach/mailboxes/${encodeURIComponent( mailboxId )}`, { headers } );
   }
 
+  setPrimaryMailbox ( mailboxId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<MailboxConfigMutationResponse> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.post<MailboxConfigMutationResponse>( `${this.baseUrl}/outreach/mailboxes/${encodeURIComponent( mailboxId )}/set-primary`, {}, { headers } );
+  }
+
   getOutreachProvisioning ( opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<OutreachProvisioningResponse> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.get<OutreachProvisioningResponse>( `${this.baseUrl}/outreach/provisioning`, { headers } );

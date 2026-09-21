@@ -32,7 +32,7 @@
       </div>
     </div>
     <div class="todd-assistant-body">
-      <section class="todd-activation-card" [ngClass]="guidanceToneClass(guidanceCard.tone)" *ngIf="guidanceCard as card">
+      <section class="todd-activation-card" [ngClass]="card.toneClass" *ngIf="guidanceCard as card">
         <div class="todd-activation-card__eyebrow">{{ card.eyebrow }}</div>
         <div class="todd-activation-card__header">
           <div class="todd-activation-card__title-row">
