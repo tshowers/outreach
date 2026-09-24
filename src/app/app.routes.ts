@@ -17,6 +17,11 @@ export const routes: Routes = [
       import( './features/app-showcase/app-showcase.component' ).then( ( m ) => m.AppShowcaseComponent ),
   },
   {
+    path: 'help',
+    loadComponent: () =>
+      import( './features/help/help.component' ).then( ( m ) => m.HelpComponent ),
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import( './features/sign-in/sign-in.component' ).then( ( m ) => m.SignInComponent ),

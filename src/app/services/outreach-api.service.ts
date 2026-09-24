@@ -590,6 +590,11 @@ export class OutreachApiService {
     return this.http.post<MailboxConnectionTestResponse>( `${this.baseUrl}/outreach/mailboxes/test`, payload, { headers } );
   }
 
+  startGoogleMailboxOAuth ( opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; message: string; data: { url: string; provider: string; }; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.post<{ success: boolean; message: string; data: { url: string; provider: string; }; }>( `${this.baseUrl}/outreach/mailboxes/oauth/google/start`, {}, { headers } );
+  }
+
   saveMailbox ( payload: MailboxConnectionTestRequest, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<MailboxConfigMutationResponse> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.post<MailboxConfigMutationResponse>( `${this.baseUrl}/outreach/mailboxes`, payload, { headers } );

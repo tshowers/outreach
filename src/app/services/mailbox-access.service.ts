@@ -127,6 +127,24 @@ export class MailboxAccessService {
     this.hydrateMailboxForm(null);
   }
 
+  connectGoogleMailbox(): void {
+    if (!this.context?.tenantId || !this.context?.userId) return;
+    this.mailboxConnectionStatus = 'Opening Google authorization...';
+    this.outreachApi.startGoogleMailboxOAuth(this.getMailboxRequestOptions())
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          if (response?.data?.url && typeof window !== 'undefined') {
+            window.location.href = response.data.url;
+          }
+        },
+        error: (error) => {
+          this.mailboxConnectionStatus = error?.error?.message || 'Unable to start Google mailbox connection.';
+          this.notificationService.show('Error', this.mailboxConnectionStatus, 'error');
+        }
+      });
+  }
+
   selectMailbox(mailbox: MailboxConfigSummary): void {
     if (!mailbox?.id || mailbox.id === this.connectedMailbox?.id) return;
     this.connectedMailbox = mailbox;

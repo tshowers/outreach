@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { OutreachPurchaseFlowService } from '../../services/outreach-purchase-flow.service';
 import { OUTREACH_PURCHASE_FLOW } from '../../services/purchase-flow.config';
 import { ClickSoundDirective } from '../../shared/directives/click-sound.directive';
@@ -15,7 +15,7 @@ import { ClickSoundDirective } from '../../shared/directives/click-sound.directi
 @Component( {
   selector: 'app-outreach-paid-success',
   standalone: true,
-  imports: [CommonModule, RouterLink, ClickSoundDirective],
+  imports: [CommonModule, ClickSoundDirective],
   templateUrl: './outreach-paid-success.component.html',
   styleUrl: './outreach-paid-success.component.css'
 } )

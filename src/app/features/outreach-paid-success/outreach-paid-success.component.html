@@ -10,7 +10,6 @@
         <p> You can now move toward paid Outreach sending, campaign activity, and signal-driven follow-up inside Outreach. </p>
         <div class="moves-success-actions">
             <button type="button" class="btn btn-dark" (click)="goToOutreach()">Go to Outreach</button>
-            <a class="btn btn-outline-dark" routerLink="/pricing">View pricing</a>
         </div>
     </section>
     <section class="moves-success-card card shadow-sm border-0 moves-success-error-card" *ngIf="!isConfirming && !isSuccess">
@@ -18,7 +17,6 @@
         <h1>We could not confirm your subscription</h1>
         <p>{{ errorMessage }}</p>
         <div class="moves-success-actions">
-            <a class="btn-todd btn-glow" routerLink="/pricing">Back to Outreach pricing</a>
             <button type="button" class="btn-todd" (click)="goToOutreach()">Go to Outreach</button>
         </div>
     </section>

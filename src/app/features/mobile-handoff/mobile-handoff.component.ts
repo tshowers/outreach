@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { filter, firstValueFrom, take } from 'rxjs';
 import { OutreachAuthService } from '../../services/outreach-auth.service';
 
 /**
@@ -45,6 +46,12 @@ export class MobileHandoffComponent implements OnInit {
 
     try {
       await this.authService.signInWithCustomToken( token );
+      // signInWithCustomToken's promise resolves before Firebase's own
+      // onAuthStateChanged listener fires - navigating immediately after
+      // the promise risks the next route's component mounting before
+      // getUser() reflects the sign-in. Waiting for the real emission
+      // here closes that race.
+      await firstValueFrom( this.authService.getUser().pipe( filter( ( user ) => !!user ), take( 1 ) ) );
       await this.router.navigateByUrl( returnUrl );
     } catch ( error: any ) {
       this.errorMessage = 'This sign-in link has expired. Please open the app again.';

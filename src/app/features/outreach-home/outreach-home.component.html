@@ -20,12 +20,6 @@
             surfaceLabel="Growth"
         ></app-cockpit-browse-mode-banner>
 
-        <section class="cockpit-panel outreach-paywall-banner" *ngIf="hasAuthenticatedOutreachContext && (entitlements$ | async) as entitlements" [hidden]="entitlements.outreach || entitlements.suite">
-            <div class="cockpit-panel__kicker">Outreach access</div>
-            <p>Your account is signed in, but Outreach sending and Signal Engine routing require an active subscription.</p>
-            <a class="btn-todd" routerLink="/pricing">View Outreach pricing</a>
-        </section>
-
         <section class="cockpit-panel diagnosis-health-panel">
             <div class="cockpit-panel__kicker">Business Health</div>
             <div class="diagnosis-health-grid">

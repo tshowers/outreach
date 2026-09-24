@@ -197,6 +197,11 @@
         <div class="mailbox-actions">
           <button type="button" class="btn-todd btn-todd-secondary" (click)="startAddingMailbox()">+ Add another inbox</button>
         </div>
+        <div class="mailbox-connected-summary" *ngIf="!mailboxAccess.mailboxForm.id && mailboxAccess.mailboxForm.provider === 'gmail'">
+          <div class="mailbox-panel-title">Google mailbox</div>
+          <div class="field-help">Use Google authorization so TODD never receives your Google password.</div>
+          <button type="button" class="btn-todd" (click)="mailboxAccess.connectGoogleMailbox()">Connect with Google</button>
+        </div>
         <div class="profile-list mailbox-form-list">
           <div class="form-group profile-row">
             <div class="profile-label">Mailbox Email</div>

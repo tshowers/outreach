@@ -1,0 +1,140 @@
+<main class="outreach-help" data-cy="help-shell">
+  <header class="help-hero">
+    <div class="help-hero__eyebrow">Outreach Help · New here? Start here</div>
+    <div class="help-hero__content">
+      <div>
+        <h1>Outreach makes sure your follow-ups don't slip.</h1>
+        <p class="help-hero__lead">Outreach connects to your email, notices which contacts have gone quiet or are showing interest, drafts the next message for you, and lets you approve it before it goes out. You spend a few minutes a day deciding instead of hours working out who to contact.</p>
+      </div>
+      <img src="assets/find/entities/outreach/logo.png" alt="Outreach" class="help-hero__logo" />
+    </div>
+    <nav class="help-quick-links" aria-label="Jump to a help section">
+      <a href="#help-why-title" (click)="jumpTo($event, 'help-why-title')">Why Outreach</a>
+      <a href="#help-first-title" (click)="jumpTo($event, 'help-first-title')">Get started</a>
+      <a href="#help-loop-title" (click)="jumpTo($event, 'help-loop-title')">How it works</a>
+      <a href="#help-glossary-title" (click)="jumpTo($event, 'help-glossary-title')">Terms</a>
+      <a href="#help-start-title" (click)="jumpTo($event, 'help-start-title')">Walkthrough</a>
+      <a href="#help-faq-title" (click)="jumpTo($event, 'help-faq-title')">FAQ</a>
+    </nav>
+  </header>
+
+  <section class="help-section" aria-labelledby="help-why-title">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">Is Outreach for me?</p>
+      <h2 id="help-why-title">Who it's for, why it's different, and what you get</h2>
+    </div>
+    <div class="help-card-grid">
+      <article class="help-card" *ngFor="let card of whyCards">
+        <i class="fa-solid {{ card.icon }}" aria-hidden="true"></i>
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.copy }}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="help-section" aria-labelledby="help-first-title">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">Your first 10 minutes</p>
+      <h2 id="help-first-title">What to do first</h2>
+      <p>Do these in order the first time. After that, most days are just step 5.</p>
+    </div>
+    <ol class="help-checklist">
+      <li *ngFor="let step of firstSteps; let i = index">
+        <span class="help-checklist__num">{{ i + 1 }}</span>
+        <div>
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.copy }}</p>
+          <a *ngIf="step.route" class="help-try-link" [routerLink]="step.route">{{ step.action }} <span aria-hidden="true">→</span></a>
+          <a *ngIf="step.href" class="help-try-link" [href]="step.href" target="_blank" rel="noopener">{{ step.action }} <span aria-hidden="true">↗</span></a>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="help-section" aria-labelledby="help-loop-title">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">The big picture</p>
+      <h2 id="help-loop-title">How the pieces fit together</h2>
+      <p>Each part of Outreach handles one stage of the same cycle. What you learn at the end feeds the next round of follow-ups.</p>
+    </div>
+    <ol class="help-loop">
+      <li *ngFor="let stage of loop">
+        <strong>{{ stage.label }}</strong>
+        <span class="help-loop__where">{{ stage.where }}</span>
+        <p>{{ stage.copy }}</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="help-section" aria-labelledby="help-glossary-title">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">Names you'll see</p>
+      <h2 id="help-glossary-title">Outreach terms, in plain language</h2>
+    </div>
+    <dl class="help-glossary">
+      <div *ngFor="let item of glossary">
+        <dt>{{ item.term }} <small *ngIf="item.aka">also called {{ item.aka }}</small></dt>
+        <dd>{{ item.copy }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="help-todd-callout" aria-labelledby="help-todd-title">
+    <div class="help-todd-callout__icon"><i class="fa-solid fa-message" aria-hidden="true"></i></div>
+    <div>
+      <p class="help-section-kicker">Help on every page</p>
+      <h2 id="help-todd-title">Stuck? Ask TODD.</h2>
+      <p>TODD is the assistant built into Outreach. Move your mouse toward the bottom-right corner of any page and the <strong>Talk to TODD</strong> box appears. Click it to ask about an email, a contact, a signal, or the page you're on. TODD can see the page you're looking at, so you can skip the explaining.</p>
+      <p class="help-todd-callout__tip"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> On a phone or tablet, tap the bottom-right corner to show the launcher.</p>
+    </div>
+  </section>
+
+  <section class="help-section" aria-labelledby="help-start-title">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">A closer look</p>
+      <h2 id="help-start-title">How to use each workspace</h2>
+      <p>Come back here whenever you want more detail on a specific part of Outreach.</p>
+    </div>
+
+    <div class="help-steps">
+      <article class="help-step" *ngFor="let step of steps">
+        <div class="help-step__number">{{ step.number }}</div>
+        <div class="help-step__body">
+          <h3>{{ step.title }}</h3>
+          <p class="help-step__copy">{{ step.copy }}</p>
+          <ul>
+            <li *ngFor="let detail of step.details">{{ detail }}</li>
+          </ul>
+          <a class="help-try-link" [routerLink]="step.route">{{ step.action }} <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="help-section" aria-labelledby="help-faq-title">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">Common questions</p>
+      <h2 id="help-faq-title">Before you get started</h2>
+    </div>
+    <div class="help-faq">
+      <details *ngFor="let faq of faqs">
+        <summary>{{ faq.question }}<span aria-hidden="true">+</span></summary>
+        <p>{{ faq.answer }}</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="help-section help-section--compact" aria-labelledby="help-account-title">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">Ready?</p>
+      <h2 id="help-account-title">Pick up where you are</h2>
+    </div>
+    <div class="help-destination-grid">
+      <a class="help-destination" routerLink="/login"><span><strong>Sign in</strong><small>Connect your workspace to use your own mailbox and contacts.</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      <a class="help-destination" routerLink="/pricing"><span><strong>Pricing</strong><small>See the plans for ongoing outreach sending.</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      <a class="help-destination" routerLink="/ios"><span><strong>Outreach for iOS</strong><small>See the mobile Outreach experience.</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  </section>
+
+  <footer class="help-footer"><a routerLink="/">← Back to Outreach</a><span>Need help right now? Move to the bottom-right corner and ask TODD.</span></footer>
+</main>

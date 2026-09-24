@@ -46,7 +46,8 @@ export class PlatformMenuComponent implements OnChanges {
     { label: 'Inbox', route: '/inbox-access' },
     { label: 'Outbox', route: '/signal-engine' },
     { label: 'Catalyst', route: '/email-processor' },
-    { label: 'Email Composer', route: '/compose-email' },
+      { label: 'Email Composer', route: '/compose-email' },
+      { label: 'Help', route: '/help' },
   ];
 
   outreachLinks: OutreachLink[] = [];
@@ -67,10 +68,13 @@ export class PlatformMenuComponent implements OnChanges {
         ? { label: 'Sign Out', route: '/', signOut: true }
         : { label: 'Sign In', route: '/login' },
       { label: 'iOS App', route: '/ios' },
-      ...( this.isLoggedIn ? [] : [{ label: 'Pricing', route: '/pricing' }] ),
     ];
 
-    this.accountItems = getPlatformMenuItems().filter( ( item ) => item.label !== 'Document' && ( !item.adminOnly || this.isAdmin ) );
+    // Outreach owns its own in-product help page. Hide the shared TODD-level
+    // Help item so Outreach users stay on outreach.taliferro.tech/help.
+    this.accountItems = getPlatformMenuItems().filter( ( item ) =>
+      item.label !== 'Document' && item.label !== 'Billing' && item.label !== 'Help' && ( !item.adminOnly || this.isAdmin )
+    );
   }
 
   trackByLabel ( _index: number, item: { label: string } ): string {
@@ -89,6 +93,7 @@ export class PlatformMenuComponent implements OnChanges {
     { label: 'SayIt', url: 'https://sayit.taliferro.tech', icon: 'assets/find/entities/sayit/logo-bw-icon.png', description: 'Make your message worth sharing.' },
     { label: 'Find', url: 'https://find.taliferro.tech', icon: 'assets/find/entities/find/logo-bw-icon.png', description: 'Get to the answer faster.' },
     { label: 'Email Signature', url: 'https://signature.taliferro.tech', icon: 'assets/find/entities/email-signature-builder/logo-bw-icon.png', description: 'Make every email carry your brand.' },
+    { label: 'Image Creator', url: 'https://images.taliferro.tech', icon: 'assets/find/entities/image-creator/logo-bw-icon.svg', description: 'Turn an idea into an image.' },
     { label: 'Music', url: 'https://music.taliferro.com', icon: 'assets/find/entities/music/logo-bw-icon.png', description: 'Let the soundtrack keep moving.' },
   ];
 

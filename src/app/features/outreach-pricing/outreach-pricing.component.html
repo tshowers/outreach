@@ -30,21 +30,6 @@
             <ul class="moves-pricing-list">
                 <li *ngFor="let item of highlights">{{ item }}</li>
             </ul>
-            <div class="moves-pricing-form">
-                <div class="moves-pricing-login-callout" *ngIf="requiresLogin">
-                    <div class="moves-pricing-login-title">Sign in first</div>
-                    <p class="moves-pricing-login-text"> We use your login to find you before starting checkout. </p>
-                    <button type="button" class="btn btn-dark moves-pricing-login-btn" (click)="goToLogin()"> Sign in to purchase </button>
-                </div>
-                <label class="moves-pricing-field" *ngIf="!requiresLogin">
-                    <span>Email</span>
-                    <input type="email" [(ngModel)]="email" placeholder="Enter your billing email">
-                </label>
-                <button *ngIf="!requiresLogin" type="button" class="btn btn-dark moves-pricing-subscribe" (click)="startCheckout()" [disabled]="isStartingCheckout">
-                    {{ isStartingCheckout ? 'Starting checkout...' : 'Subscribe to Outreach' }}
-                </button>
-                <div class="moves-pricing-error" *ngIf="checkoutError">{{ checkoutError }}</div>
-            </div>
         </article>
         <article class="moves-pricing-card card shadow-sm border-0 moves-pricing-card-accent">
             <div class="moves-pricing-card-header">
