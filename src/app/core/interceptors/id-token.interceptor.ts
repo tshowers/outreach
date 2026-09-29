@@ -30,15 +30,23 @@ export const idTokenInterceptor: HttpInterceptorFn = ( req, next ) => {
     return next( req );
   }
 
-  let user;
-  try {
-    user = getAuth().currentUser;
-  } catch {
-    user = null;
-  }
-  if ( !user ) return next( req );
-
-  return from( user.getIdToken().catch( () => '' ) ).pipe(
+  return from( currentIdToken() ).pipe(
     switchMap( ( token ) => next( token ? req.clone( { setHeaders: { Authorization: `Bearer ${token}` } } ) : req ) ),
   );
 };
+
+/**
+ * The signed-in person's ID token, or '' when signed out. Waits for
+ * Firebase to finish restoring the session first - calls made the moment a
+ * page opens (e.g. Network's dashboard counts) used to go out before that,
+ * without the token. Capped so a request can never hang on it.
+ */
+async function currentIdToken (): Promise<string> {
+  try {
+    const auth = getAuth();
+    await Promise.race( [auth.authStateReady(), new Promise( ( resolve ) => setTimeout( resolve, 3000 ) )] );
+    return auth.currentUser ? await auth.currentUser.getIdToken() : '';
+  } catch {
+    return '';
+  }
+}
