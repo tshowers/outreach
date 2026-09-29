@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { OutreachAuthService } from '../../services/outreach-auth.service';
@@ -11,7 +11,7 @@ import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.compone
 import { EmailEditorComponent } from '../../shared/page/email-editor/email-editor.component';
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { MailboxAccessService } from '../../services/mailbox-access.service';
-import { MailboxConfigSummary, MailboxMessageListItem } from '../../services/outreach-api.service';
+import { MailboxConfigSummary, MailboxMessageListItem, MailboxProviderId } from '../../services/outreach-api.service';
 
 /**
  * Ported from features/email/pages/inbox-access/. Swapped AuthService for
@@ -38,6 +38,9 @@ import { MailboxConfigSummary, MailboxMessageListItem } from '../../services/out
 } )
 export class InboxAccessComponent implements OnInit, OnDestroy {
   activeTab: 'inbox' | 'settings' = 'inbox';
+  /** Gmail: the password form stays tucked away unless asked for - Google
+   * authorization is the way to connect. */
+  showPasswordForm = false;
   isProcessing = false;
 
   private userId = '';
@@ -51,10 +54,22 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
   constructor (
     public mailboxAccess: MailboxAccessService,
     public router: Router,
+    private route: ActivatedRoute,
     private authService: OutreachAuthService,
     private dataService: OutreachDataService,
     private logger: LoggerService
   ) { }
+
+  /** Arrived from the Outreach wizard (sign-up, or the iOS app's "Connect
+   * your inbox"), which passes the address they said they send from. */
+  get cameFromSignUp (): boolean {
+    return !!this.route.snapshot.queryParamMap.get( 'email' );
+  }
+
+  /** A Gmail / Google Workspace inbox that isn't connected yet. */
+  get isNewGmail (): boolean {
+    return !this.mailboxAccess.mailboxForm.id && this.mailboxAccess.mailboxForm.provider === 'gmail';
+  }
 
   ngOnInit (): void {
     this.userSubscription = this.authService.getUser().subscribe( ( user ) => {
@@ -206,6 +221,11 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
       userEmail: this.userEmail || undefined,
       displayName: '',
       companyName: this.companyName,
+      // Arriving from the Outreach app's "Connect your inbox" step: the
+      // address (and provider) the wizard asked for pre-fill the form.
+      // Never a password - that's only ever typed here, signed in.
+      preferredEmail: ( this.route.snapshot.queryParamMap.get( 'email' ) || '' ).trim().toLowerCase() || undefined,
+      preferredProvider: ( this.route.snapshot.queryParamMap.get( 'provider' ) || undefined ) as MailboxProviderId | undefined,
     } );
 
     if ( !this.mailboxAccess.connectedMailbox && !this.mailboxAccess.loadingMailboxes ) {

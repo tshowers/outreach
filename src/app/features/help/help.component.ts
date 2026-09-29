@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { OutreachAuthService } from '../../services/outreach-auth.service';
+import { GettingStarted, GettingStartedService, GettingStartedStep } from '../../services/getting-started.service';
 
 interface HelpStep {
   number: string;
@@ -49,7 +51,36 @@ interface HelpFaq {
   templateUrl: './help.component.html',
   styleUrl: './help.component.css',
 })
-export class HelpComponent {
+export class HelpComponent implements OnInit {
+  /** Signed-in only: the Getting Started checklist, checked off from real data. */
+  progress: GettingStarted | null = null;
+  showAfterSignIn = true;
+
+  constructor (
+    private readonly authService: OutreachAuthService,
+    readonly gettingStarted: GettingStartedService,
+  ) { }
+
+  ngOnInit (): void {
+    this.showAfterSignIn = this.gettingStarted.showAfterSignIn;
+    this.authService.getUserId().subscribe( ( userId ) => {
+      if ( !userId || userId === 'user not logged in' ) {
+        this.progress = null;
+        return;
+      }
+      this.gettingStarted.load().then( ( progress ) => ( this.progress = progress ) ).catch( () => ( this.progress = null ) );
+    } );
+  }
+
+  toggleShowAfterSignIn ( value: boolean ): void {
+    this.showAfterSignIn = value;
+    this.gettingStarted.showAfterSignIn = value;
+  }
+
+  trackStep ( _index: number, step: GettingStartedStep ): string {
+    return step.id;
+  }
+
   readonly whyCards: HelpCard[] = [
     {
       icon: 'fa-user-group',
@@ -77,8 +108,8 @@ export class HelpComponent {
     },
     {
       title: 'Sign in',
-      copy: 'Signing in connects Outreach to your own workspace. Nothing uses your real data until you do.',
-      route: '/login',
+      copy: 'Tell us which email you send from, then sign in. Nothing uses your real data until you do.',
+      route: '/get-started',
       action: 'Sign in',
     },
     {

@@ -1,0 +1,88 @@
+<main class="gs-shell" data-cy="get-started-shell">
+  <section class="gs-card" aria-live="polite">
+    <div class="gs-card__nav">
+      <button *ngIf="stepIndex > 0" type="button" class="gs-back" (click)="back()" data-cy="get-started-back">
+        <span aria-hidden="true">&lsaquo;</span> Back
+      </button>
+      <span class="gs-count">Step {{ step.section + 1 }} of {{ sections.length }}</span>
+    </div>
+
+    <ol class="gs-progress" role="progressbar" aria-label="Setup progress"
+        [attr.aria-valuenow]="step.section + 1" aria-valuemin="1" [attr.aria-valuemax]="sections.length" data-cy="get-started-progress">
+      <li *ngFor="let section of sections; let i = index" class="gs-progress__segment"
+          [class.is-done]="sectionFill(i) >= 1" [class.is-active]="i === step.section">
+        <span class="gs-progress__track"><span class="gs-progress__fill" [style.width.%]="sectionFill(i) * 100"></span></span>
+        <span class="gs-progress__label">
+          <span *ngIf="sectionFill(i) >= 1" class="gs-progress__check" aria-hidden="true">&#10003;</span>{{ section }}
+        </span>
+      </li>
+    </ol>
+
+    <ng-container [ngSwitch]="step.key">
+      <ng-container *ngSwitchCase="'email'">
+        <p class="gs-lede">You're already 1 step in. Outreach watches for replies and tells you who to follow up with next &mdash; sign up only happens at the very end.</p>
+        <h1 class="gs-question" data-cy="get-started-question">Which email do you send from?</h1>
+        <p class="gs-hint">Just the address for now &mdash; no password.</p>
+        <form (ngSubmit)="next()">
+          <input #textInput class="gs-input" type="email" name="email" autocomplete="email" inputmode="email" aria-label="Email address"
+                 placeholder="you@company.com" [(ngModel)]="draft.emailAddress" (ngModelChange)="onEmailChange()" data-cy="get-started-input" />
+        </form>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'provider'">
+        <h1 class="gs-question" data-cy="get-started-question">Who hosts that email?</h1>
+        <p class="gs-asked">{{ draft.emailAddress }}</p>
+        <div class="gs-chips" role="radiogroup" aria-label="Email provider">
+          <button *ngFor="let option of providers" type="button" class="gs-chip" role="radio"
+                  [class.is-selected]="draft.provider === option.key" [attr.aria-checked]="draft.provider === option.key"
+                  (click)="chooseProvider(option.key)" data-cy="get-started-provider">
+            <span *ngIf="draft.provider === option.key" aria-hidden="true">&#10003;</span>
+            {{ option.label }}
+          </button>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'preview'">
+        <h1 class="gs-question" data-cy="get-started-question">Here's how Outreach connects</h1>
+        <div class="gs-preview" data-cy="get-started-preview">
+          <span class="gs-preview__category">{{ provider.label }}</span>
+          <h2>{{ draft.emailAddress }}</h2>
+          <ul class="gs-preview__points">
+            <li>Outreach reads replies, so it knows who answered.</li>
+            <li>It only sends what you approve.</li>
+            <li>{{ provider.howItConnects }}</li>
+          </ul>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'firstName'">
+        <h1 class="gs-question" data-cy="get-started-question">What's your first name?</h1>
+        <p class="gs-hint">It goes on the emails you send.</p>
+        <form (ngSubmit)="next()"><input #textInput class="gs-input" name="firstName" autocomplete="given-name" aria-label="First name"
+               [(ngModel)]="draft.firstName" (ngModelChange)="persist()" data-cy="get-started-input" /></form>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'lastName'">
+        <h1 class="gs-question" data-cy="get-started-question">And your last name?</h1>
+        <form (ngSubmit)="next()"><input #textInput class="gs-input" name="lastName" autocomplete="family-name" aria-label="Last name"
+               [(ngModel)]="draft.lastName" (ngModelChange)="persist()" data-cy="get-started-input" /></form>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'signUp'">
+        <h1 class="gs-question" data-cy="get-started-question">Last step: create your account</h1>
+        <p class="gs-hint">Sign in with TODD, then connect {{ draft.emailAddress }} in one step.</p>
+        <div class="gs-actions">
+          <button type="button" class="gs-button" [disabled]="isSigningIn" (click)="signIn()" data-cy="get-started-sign-in">
+            {{ isSigningIn ? 'Redirecting...' : 'Sign in with TODD' }}</button>
+        </div>
+      </ng-container>
+    </ng-container>
+
+    <div *ngIf="step.key !== 'signUp'" class="gs-actions">
+      <button type="button" class="gs-button" [disabled]="!canAdvance" (click)="next()" data-cy="get-started-next">
+        {{ step.key === 'preview' ? 'Continue to sign up' : 'Next' }}</button>
+    </div>
+
+    <a class="gs-existing" routerLink="/login" [queryParams]="{ returnUrl: '/app' }" data-cy="get-started-existing">Already have an account? Sign in</a>
+  </section>
+</main>

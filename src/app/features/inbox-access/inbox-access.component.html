@@ -197,11 +197,21 @@
         <div class="mailbox-actions">
           <button type="button" class="btn-todd btn-todd-secondary" (click)="startAddingMailbox()">+ Add another inbox</button>
         </div>
-        <div class="mailbox-connected-summary" *ngIf="!mailboxAccess.mailboxForm.id && mailboxAccess.mailboxForm.provider === 'gmail'">
-          <div class="mailbox-panel-title">Google mailbox</div>
-          <div class="field-help">Use Google authorization so TODD never receives your Google password.</div>
-          <button type="button" class="btn-todd" (click)="mailboxAccess.connectGoogleMailbox()">Connect with Google</button>
+        <div class="mailbox-connected-summary mailbox-google-step" *ngIf="isNewGmail" data-cy="inbox-google-step">
+          <div class="mailbox-panel-title">{{ cameFromSignUp ? 'One more step' : 'Google mailbox' }}</div>
+          <div class="field-help" *ngIf="cameFromSignUp">
+            Signing in with Google told TODD who you are. Letting Outreach see replies and send from
+            <strong>{{ mailboxAccess.mailboxForm.emailAddress }}</strong> is a separate permission Google asks you to approve once.
+          </div>
+          <div class="field-help">Google handles it &mdash; TODD never sees your Google password, and you can remove access any time in your Google account.</div>
+          <button type="button" class="btn-todd" (click)="mailboxAccess.connectGoogleMailbox()" data-cy="inbox-connect-google">
+            Connect {{ mailboxAccess.mailboxForm.emailAddress || 'Gmail' }} with Google
+          </button>
+          <button type="button" class="btn btn-link mailbox-password-toggle" (click)="showPasswordForm = !showPasswordForm" data-cy="inbox-use-password">
+            {{ showPasswordForm ? 'Hide the app password option' : 'Use an app password instead' }}
+          </button>
         </div>
+        <ng-container *ngIf="!isNewGmail || showPasswordForm">
         <div class="profile-list mailbox-form-list">
           <div class="form-group profile-row">
             <div class="profile-label">Mailbox Email</div>
@@ -276,6 +286,7 @@
           </button>
           <button type="button" class="btn-todd-danger" *ngIf="mailboxAccess.connectedMailbox?.id" (click)="mailboxAccess.disconnectMailboxConnection()"> Disconnect </button>
         </div>
+        </ng-container>
         <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxConnectionStatus">{{ mailboxAccess.mailboxConnectionStatus }}</div>
         <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxSyncStatus">{{ mailboxAccess.mailboxSyncStatus }}</div>
         <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxReplyStatus">{{ mailboxAccess.mailboxReplyStatus }}</div>

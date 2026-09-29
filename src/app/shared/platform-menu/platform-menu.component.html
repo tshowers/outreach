@@ -54,6 +54,9 @@
       <div class="platform-menu-col">
         <span class="platform-menu-eyebrow">Account</span>
         <nav class="platform-menu-editorial">
+          <a *ngIf="isLoggedIn" class="platform-menu-editorial__link" routerLink="/profile" (click)="close()" data-cy="platform-menu-profile">
+            <span>Profile</span>
+          </a>
           <a
             *ngFor="let item of accountItems; trackBy: trackByLabel"
             class="platform-menu-editorial__link"

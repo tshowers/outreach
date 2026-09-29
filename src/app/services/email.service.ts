@@ -148,9 +148,9 @@ export class EmailService {
       subject: ( email as any )?.subject
     } );
 
-    const headers = new HttpHeaders().set( 'Authorization', `Bearer ${environment.apiKey}` );
-
-    return this.http.post( `${environment.backendURL}/send-email`, { ...email, tenantId }, { headers } ).pipe(
+    // No Authorization here: idTokenInterceptor adds the signed-in person's
+    // ID token, which /send-email now requires (sendEmailAuth.js).
+    return this.http.post( `${environment.backendURL}/send-email`, { ...email, tenantId } ).pipe(
       // Do not retry this POST: a delayed response can mean the provider already
       // accepted the message, and retrying could send a duplicate email.
       timeout( { each: 25_000 } ),

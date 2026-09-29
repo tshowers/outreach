@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { GetTheAppBannerComponent } from '../../shared/get-the-app-banner/get-the-app-banner.component';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 
@@ -36,7 +37,7 @@ type SignalLane = 'drafts' | 'outbox' | 'sent' | 'plan';
 @Component( {
   selector: 'app-signal-engine',
   standalone: true,
-  imports: [CommonModule, RouterModule, EmailSentComponent, TabBarComponent, PreloaderComponent, RelativeTimePipe, ContactPreviewCardComponent, BackToTopComponent],
+  imports: [CommonModule, GetTheAppBannerComponent, RouterModule, EmailSentComponent, TabBarComponent, PreloaderComponent, RelativeTimePipe, ContactPreviewCardComponent, BackToTopComponent],
   templateUrl: './signal-engine.component.html',
   styleUrl: './signal-engine.component.css',
 } )

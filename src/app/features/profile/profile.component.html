@@ -1,0 +1,151 @@
+<main class="pf-shell" data-cy="profile-shell">
+  <div class="pf-inner">
+    <header class="pf-header">
+      <div>
+        <h1>Profile</h1>
+        <p>Outreach, Maya, and TODD use this to personalize everything they do for you.</p>
+      </div>
+      <button *ngIf="profile && !isEditing" type="button" class="pf-button" (click)="startEditing()" data-cy="profile-edit">
+        {{ justSaved ? 'Saved' : 'Edit' }}</button>
+    </header>
+
+    <ng-container *ngIf="profile && !isEditing">
+      <section *ngIf="completion as c" class="pf-card pf-completion" data-cy="profile-completion">
+        <div class="pf-completion__head">
+          <strong>{{ c.percent === 100 ? 'Profile complete' : 'Profile ' + c.percent + '% complete' }}</strong>
+          <span>{{ c.percent }}%</span>
+        </div>
+        <div class="pf-completion__meter" role="progressbar" [attr.aria-valuenow]="c.percent" aria-valuemin="0" aria-valuemax="100">
+          <span [style.width.%]="c.percent" [class.is-complete]="c.percent === 100"></span>
+        </div>
+        <p *ngIf="c.percent < 100" class="pf-note">Still to add: {{ missingSummary }}.
+          <button type="button" class="pf-link" (click)="startEditing()">Complete profile</button></p>
+      </section>
+      <section class="pf-card" data-cy="profile-read">
+        <h2>About you</h2>
+        <dl class="pf-read">
+          <div><dt>Name</dt><dd [class.is-empty]="!profile.firstName && !profile.lastName">{{ ( profile.firstName + ' ' + profile.lastName ).trim() || 'Not set' }}</dd></div>
+          <div><dt>Role</dt><dd [class.is-empty]="!profile.profession">{{ profile.profession || 'Not set' }}</dd></div>
+        </dl>
+      </section>
+      <section class="pf-card">
+        <h2>Your business</h2>
+        <dl class="pf-read">
+          <div><dt>Company</dt><dd [class.is-empty]="!profile.companyName">{{ profile.companyName || 'Not set' }}</dd></div>
+          <div><dt>What your company does</dt><dd [class.is-empty]="!profile.companyDescription">{{ profile.companyDescription || 'Not set' }}</dd></div>
+          <div><dt>Value proposition</dt><dd [class.is-empty]="!profile.valueProp">{{ profile.valueProp || 'Not set' }}</dd></div>
+          <div><dt>Mission</dt><dd [class.is-empty]="!profile.companyGoal">{{ profile.companyGoal || 'Not set' }}</dd></div>
+          <div><dt>What Outreach should help you with</dt><dd [class.is-empty]="!profile.jobDescriptionForTODD">{{ profile.jobDescriptionForTODD || 'Not set' }}</dd></div>
+        </dl>
+      </section>
+      <section class="pf-card">
+        <h2>Your workday</h2>
+        <dl class="pf-read">
+          <div><dt>Timezone</dt><dd [class.is-empty]="!timezoneDisplay">{{ timezoneDisplay || 'Not set' }}</dd></div>
+          <div><dt>Phone</dt><dd [class.is-empty]="!profile.phone">{{ profile.phone || 'Not set' }}</dd></div>
+        </dl>
+      </section>
+    </ng-container>
+
+    <p *ngIf="errorMessage" class="pf-error" role="alert" data-cy="profile-error">{{ errorMessage }}</p>
+
+    <section *ngIf="isSignedIn === false" class="pf-card" data-cy="profile-signed-out">
+      <h2>Sign in to manage your profile</h2>
+      <p class="pf-note">Your profile is shared across Outreach, Maya, and TODD.</p>
+      <button type="button" class="pf-button" (click)="signIn()" data-cy="profile-sign-in">Sign in</button>
+    </section>
+
+    <div *ngIf="isSignedIn && !profile && !errorMessage" class="pf-loading">Loading your profile…</div>
+
+    <form *ngIf="profile && isEditing" (ngSubmit)="save()" data-cy="profile-form">
+      <section class="pf-card">
+        <h2>About you</h2>
+        <div class="pf-row">
+          <label class="pf-field"><span>First name</span>
+            <input class="pf-input" name="firstName" autocomplete="given-name" [(ngModel)]="profile.firstName" data-cy="profile-first-name" /></label>
+          <label class="pf-field"><span>Last name</span>
+            <input class="pf-input" name="lastName" autocomplete="family-name" [(ngModel)]="profile.lastName" /></label>
+        </div>
+        <div class="pf-field">
+          <span id="pf-role-label">Role</span>
+          <div class="pf-chips" role="radiogroup" aria-labelledby="pf-role-label">
+            <button *ngFor="let role of roles" type="button" class="pf-chip" role="radio"
+                    [class.is-selected]="!isCustomRole && profile.profession === role"
+                    [attr.aria-checked]="!isCustomRole && profile.profession === role"
+                    (click)="selectRole(role)" data-cy="profile-role">{{ role }}</button>
+            <button type="button" class="pf-chip" role="radio" [class.is-selected]="isCustomRole"
+                    [attr.aria-checked]="isCustomRole" (click)="selectOtherRole()" data-cy="profile-role-other">Other</button>
+          </div>
+          <input *ngIf="isCustomRole" class="pf-input" name="profession" placeholder="Your role" aria-label="Your role"
+                 autocomplete="organization-title" [(ngModel)]="profile.profession" />
+        </div>
+      </section>
+
+      <section class="pf-card">
+        <h2>Your business</h2>
+        <label class="pf-field"><span>Company name</span>
+          <input class="pf-input" name="companyName" autocomplete="organization" [(ngModel)]="profile.companyName" /></label>
+
+        <div *ngFor="let field of choiceFields" class="pf-field">
+          <span [id]="'pf-' + field.key">{{ field.title }}</span>
+          <div class="pf-chips" role="group" [attr.aria-labelledby]="'pf-' + field.key">
+            <button *ngFor="let choice of field.choices" type="button" class="pf-chip"
+                    [class.is-selected]="isChoiceSelected(field, choice)"
+                    [attr.aria-pressed]="isChoiceSelected(field, choice)"
+                    (click)="selectChoice(field, choice)" [attr.data-cy]="'profile-choice-' + field.key">{{ choice.label }}</button>
+          </div>
+          <textarea class="pf-input" rows="3" [name]="field.key" placeholder="Write your own"
+                    [attr.aria-labelledby]="'pf-' + field.key" [(ngModel)]="profile[field.key]"
+                    [attr.data-cy]="'profile-text-' + field.key"></textarea>
+        </div>
+
+        <label class="pf-field"><span>What should Outreach help you with?</span>
+          <textarea class="pf-input" rows="2" name="jobDescriptionForTODD"
+                    placeholder="For example: hear what customers and my team really think."
+                    [(ngModel)]="profile.jobDescriptionForTODD"></textarea></label>
+      </section>
+
+      <section class="pf-card">
+        <h2>Your workday</h2>
+        <div class="pf-row">
+          <label class="pf-field"><span>Timezone</span>
+            <select class="pf-input" name="timezone" [(ngModel)]="profile.timezone">
+              <option *ngFor="let zone of timezones" [value]="zone">{{ timezoneLabel(zone) }}</option>
+            </select></label>
+          <label class="pf-field"><span>Phone <small>(optional)</small></span>
+            <input class="pf-input" name="phone" type="tel" autocomplete="tel" [(ngModel)]="profile.phone" /></label>
+        </div>
+      </section>
+
+      <div class="pf-savebar">
+        <span class="pf-savebar__status" aria-live="polite">{{ justSaved ? 'Saved' : ( isDirty ? 'Unsaved changes' : '' ) }}</span>
+        <button type="button" class="pf-button pf-button--ghost" (click)="cancelEditing()" [disabled]="isSaving" data-cy="profile-cancel">Cancel</button>
+        <button type="submit" class="pf-button" [disabled]="!isDirty || isSaving" data-cy="profile-save">{{ isSaving ? 'Saving…' : 'Save' }}</button>
+      </div>
+    </form>
+
+    <ng-container *ngIf="profile">
+      <section class="pf-card">
+        <h2>Account</h2>
+        <p class="pf-meta"><span>Email</span>{{ profile.email || '—' }}</p>
+        <p class="pf-note">Products, email signature, and billing are managed in TODD.
+          <a [href]="toddProfileUrl" target="_blank" rel="noopener noreferrer">More settings in TODD <span aria-hidden="true">&#8599;</span></a></p>
+      </section>
+
+      <section class="pf-card pf-card--danger">
+        <h2>Delete account</h2>
+        <p class="pf-note">Permanently deletes your login, your profile, and the contacts and other data in your workspace. This can't be undone. If you share a workspace with a team, their data stays.</p>
+        <button *ngIf="!isConfirmingDelete" type="button" class="pf-button pf-button--danger-ghost"
+                (click)="isConfirmingDelete = true" data-cy="profile-delete">Delete account</button>
+        <div *ngIf="isConfirmingDelete" class="pf-confirm" data-cy="profile-delete-confirm">
+          <strong>Are you sure? This permanently deletes your account and data.</strong>
+          <div class="pf-actions">
+            <button type="button" class="pf-button pf-button--ghost" (click)="isConfirmingDelete = false" [disabled]="isDeleting">Cancel</button>
+            <button type="button" class="pf-button pf-button--danger" (click)="deleteAccount()" [disabled]="isDeleting" data-cy="profile-delete-yes">
+              {{ isDeleting ? 'Deleting…' : 'Yes, delete my account' }}</button>
+          </div>
+        </div>
+      </section>
+    </ng-container>
+  </div>
+</main>

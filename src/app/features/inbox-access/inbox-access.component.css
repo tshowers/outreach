@@ -554,3 +554,7 @@
         flex: 1 1 0;
     }
 }
+
+/* "One more step" - Google authorization for a Gmail inbox. */
+.mailbox-google-step .field-help { margin-bottom: .6rem; }
+.mailbox-password-toggle { display: block; margin-top: .5rem; padding-left: 0; }

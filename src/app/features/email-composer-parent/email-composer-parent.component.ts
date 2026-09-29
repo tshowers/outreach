@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { GetTheAppBannerComponent } from '../../shared/get-the-app-banner/get-the-app-banner.component';
 import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom, Subscription } from 'rxjs';
@@ -24,7 +25,7 @@ import { buildOutreachPageActions } from '../../shared/utils/page-action-presets
 @Component( {
   selector: 'app-email-composer-parent',
   standalone: true,
-  imports: [CommonModule, EmailCreateComponent,
+  imports: [CommonModule, GetTheAppBannerComponent, EmailCreateComponent,
     PreloaderComponent,
     ToddTipComponent,
     EmailSendingStatusComponent

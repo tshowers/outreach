@@ -1,0 +1,8 @@
+<section *ngIf="(state$ | async) === 'browsing'" class="gta-banner" role="status" data-cy="outreach-get-the-app-banner">
+  <div>
+    <p class="gta-banner__eyebrow">You're browsing</p>
+    <h2 class="gta-banner__title">Get the Outreach app to create campaigns and send</h2>
+    <p class="gta-banner__copy">Look around as much as you like. Creating campaigns and sending need the Outreach app on your iPhone or iPad &mdash; one subscription unlocks it here too.</p>
+  </div>
+  <a class="gta-banner__link" routerLink="/pricing" data-cy="outreach-get-the-app-link">Get the app</a>
+</section>

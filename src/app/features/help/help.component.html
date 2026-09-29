@@ -18,6 +18,33 @@
     </nav>
   </header>
 
+  <section *ngIf="progress" id="your-progress" class="help-section help-progress" aria-labelledby="help-progress-title" data-cy="help-progress">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">Your progress</p>
+      <h2 id="help-progress-title">{{ progress.allDone ? "You're all set" : 'Get the most out of Outreach' }}</h2>
+      <p>Each step checks itself off as you go.</p>
+    </div>
+    <div class="help-progress__meter" role="progressbar" [attr.aria-valuenow]="progress.completedSteps" aria-valuemin="0" [attr.aria-valuemax]="progress.totalSteps">
+      <span class="help-progress__meter-fill" [style.width.%]="progress.completedSteps / progress.totalSteps * 100"></span>
+    </div>
+    <p class="help-progress__count">{{ progress.completedSteps }} of {{ progress.totalSteps }} done</p>
+    <ol class="help-progress__list">
+      <li *ngFor="let step of progress.steps; trackBy: trackStep" class="help-progress__step" [class.is-done]="step.done" data-cy="help-progress-step">
+        <span class="help-progress__check" aria-hidden="true">{{ step.done ? '✓' : '' }}</span>
+        <div class="help-progress__body">
+          <strong>{{ step.title }}</strong>
+          <span>{{ step.detail }}</span>
+        </div>
+        <a class="help-try-link" [routerLink]="gettingStarted.routeFor(step)">{{ gettingStarted.actionFor(step) }} <span aria-hidden="true">→</span></a>
+        <span class="visually-hidden">{{ step.done ? 'Done' : 'Not done' }}</span>
+      </li>
+    </ol>
+    <label class="help-progress__toggle">
+      <input type="checkbox" [checked]="showAfterSignIn" (change)="toggleShowAfterSignIn($any($event.target).checked)" />
+      Show this after I sign in
+    </label>
+  </section>
+
   <section class="help-section" aria-labelledby="help-why-title">
     <div class="help-section__heading">
       <p class="help-section-kicker">Is Outreach for me?</p>
@@ -130,7 +157,7 @@
       <h2 id="help-account-title">Pick up where you are</h2>
     </div>
     <div class="help-destination-grid">
-      <a class="help-destination" routerLink="/login"><span><strong>Sign in</strong><small>Connect your workspace to use your own mailbox and contacts.</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      <a class="help-destination" routerLink="/get-started"><span><strong>Sign in</strong><small>Connect your workspace to use your own mailbox and contacts.</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
       <a class="help-destination" routerLink="/pricing"><span><strong>Pricing</strong><small>See the plans for ongoing outreach sending.</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
       <a class="help-destination" routerLink="/ios"><span><strong>Outreach for iOS</strong><small>See the mobile Outreach experience.</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
     </div>

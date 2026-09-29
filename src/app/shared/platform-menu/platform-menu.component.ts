@@ -66,14 +66,16 @@ export class PlatformMenuComponent implements OnChanges {
       ...this.baseOutreachLinks,
       this.isLoggedIn
         ? { label: 'Sign Out', route: '/', signOut: true }
-        : { label: 'Sign In', route: '/login' },
+        // New visitors start in the wizard; it links returning users to /login.
+        : { label: 'Sign In', route: '/get-started' },
       { label: 'iOS App', route: '/ios' },
     ];
 
     // Outreach owns its own in-product help page. Hide the shared TODD-level
     // Help item so Outreach users stay on outreach.taliferro.tech/help.
     this.accountItems = getPlatformMenuItems().filter( ( item ) =>
-      item.label !== 'Document' && item.label !== 'Billing' && item.label !== 'Help' && ( !item.adminOnly || this.isAdmin )
+      // Profile is in-app (/profile), linked on its own in the template.
+      item.id !== 'platform-profile' && item.label !== 'Document' && item.label !== 'Billing' && item.label !== 'Help' && ( !item.adminOnly || this.isAdmin )
     );
   }
 

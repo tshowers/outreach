@@ -1,5 +1,6 @@
 import { Component, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { GetTheAppBannerComponent } from '../../shared/get-the-app-banner/get-the-app-banner.component';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
@@ -50,7 +51,7 @@ import { MomentumThread } from '../../models/momentum-thread.model';
 @Component( {
   selector: 'app-outreach-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, BackToTopComponent, ArcGaugeComponent, CockpitCommandDeckComponent, CockpitBrowseModeBannerComponent, StatusLedComponent],
+  imports: [CommonModule, GetTheAppBannerComponent, RouterModule, BackToTopComponent, ArcGaugeComponent, CockpitCommandDeckComponent, CockpitBrowseModeBannerComponent, StatusLedComponent],
   templateUrl: './outreach-home.component.html',
   styleUrl: './outreach-home.component.css'
 } )

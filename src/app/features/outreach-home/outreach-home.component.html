@@ -19,6 +19,7 @@
             *ngIf="!hasAuthenticatedOutreachContext"
             surfaceLabel="Growth"
         ></app-cockpit-browse-mode-banner>
+        <app-get-the-app-banner *ngIf="hasAuthenticatedOutreachContext"></app-get-the-app-banner>
 
         <section class="cockpit-panel diagnosis-health-panel">
             <div class="cockpit-panel__kicker">Business Health</div>

@@ -16,6 +16,9 @@ export interface MailboxAccessContext {
   userEmail?: string;
   displayName?: string;
   companyName?: string;
+  /** From the wizard's "which email do you send from?" (/inbox-access?email=...&provider=...). */
+  preferredEmail?: string;
+  preferredProvider?: MailboxProviderId;
 }
 
 export interface MailboxFormState {
@@ -665,8 +668,10 @@ export class MailboxAccessService {
       this.mailboxForm = {
         ...this.createMailboxForm(),
         displayName: this.context?.companyName || this.context?.displayName || '',
-        emailAddress: this.context?.userEmail || '',
+        emailAddress: this.context?.preferredEmail || this.context?.userEmail || '',
+        ...(this.context?.preferredProvider ? { provider: this.context.preferredProvider } : {}),
       };
+      if (this.context?.preferredProvider) this.onMailboxProviderChange();
       return;
     }
 

@@ -10,6 +10,7 @@ import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { tenantInterceptor } from './core/interceptors/tenant.interceptor';
 import { swBypassInterceptor } from './core/interceptors/sw-bypass.interceptor';
+import { idTokenInterceptor } from './core/interceptors/id-token.interceptor';
 
 initializeApp( environment.firebaseConfig );
 
@@ -22,7 +23,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([tenantInterceptor, swBypassInterceptor])),
+    provideHttpClient(withInterceptors([idTokenInterceptor, tenantInterceptor, swBypassInterceptor])),
     provideServiceWorker('ngsw-worker.js', {
       enabled: environment.production,
       registrationStrategy: 'registerWhenStable:30000',
