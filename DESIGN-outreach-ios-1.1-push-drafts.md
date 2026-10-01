@@ -1,8 +1,11 @@
 # Outreach iOS 1.1: push notifications, Maya activity, Drafts and Needs You in the app
 
 Status: in progress (2026-10-01).
-- **Done, deployed 2026-10-01:** automatic inbox checking (step 0).
-- **Done, not deployed:** push foundation, Replies and Inbox-problem pushes, and the iOS registration, settings and Activity screens.
+- **Done and deployed:** automatic inbox checking, the push foundation, Replies and Inbox-problem pushes, Needs You, and Drafts (backend). The iOS side of the same is in Outreach 1.1 build 8.
+- **Left:**
+  - Catalyst-finished, Sending-approved and the two Maya pushes.
+  - The "Maya's day" web summary page.
+  - Removing Drafts from the web Signal Engine once 1.1 is live on the App Store.
 
 Outreach 1.0 ships without push. 1.1 does three things:
 
