@@ -527,6 +527,12 @@ export class OutreachApiService {
     return this.http.get<any>( `${this.baseUrl}/outreach/signal-engine/bootstrap`, { headers } );
   }
 
+  /** Maya's day summary - todd-backend outreachRoutes.js /outreach/maya-day. */
+  getMayaDay ( opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; data: MayaDaySummary; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.get<{ success: boolean; data: MayaDaySummary; }>( `${this.baseUrl}/outreach/maya-day`, { headers } );
+  }
+
   upsertMomentumThread ( payload: Partial<MomentumThread>, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<MomentumThreadResponse> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.post<MomentumThreadResponse>( `${this.baseUrl}/outreach/momentum-threads`, payload, { headers } );
@@ -695,4 +701,23 @@ export class OutreachApiService {
       { headers }
     );
   }
+}
+
+export interface MayaDaySummary {
+  dateKey: string;
+  timeZone: string;
+  emailsSent: number;
+  emailsOpened: number;
+  emailsClicked: number;
+  socialPostsPublished: number;
+  repliesReceived: number;
+  draftsWaiting: number;
+  needsYou: number;
+  rewriting: number;
+  startStatus: string;
+  startReason: string;
+  plannedActionCount: number;
+  plannedActionTitles: string[];
+  finishedAt: string;
+  activity: Array<{ category: string; title: string; body: string; createdAt: string; }>;
 }

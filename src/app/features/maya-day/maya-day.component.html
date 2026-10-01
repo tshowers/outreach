@@ -1,0 +1,57 @@
+<div class="page" data-cy="maya-day">
+    <header class="page-header">
+        <p class="eyebrow">{{ dateLabel || 'Today' }}</p>
+        <h1>{{ headline || "Maya's day" }}</h1>
+        <p class="subtitle" *ngIf="summary?.startStatus === 'failed'">{{ summary?.startReason }}</p>
+    </header>
+
+    <app-preloader *ngIf="loading && !summary"></app-preloader>
+    <p class="error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
+
+    <ng-container *ngIf="summary as s">
+        <section class="stats" aria-label="Today's numbers">
+            <div class="stat"><strong>{{ s.emailsSent }}</strong><span>Emails sent</span></div>
+            <div class="stat"><strong>{{ s.repliesReceived }}</strong><span>Replies</span></div>
+            <div class="stat"><strong>{{ s.emailsOpened }}</strong><span>Opens</span></div>
+            <div class="stat"><strong>{{ s.emailsClicked }}</strong><span>Clicks</span></div>
+        </section>
+
+        <section class="panel waiting" *ngIf="s.needsYou || s.draftsWaiting || s.rewriting">
+            <h2>Waiting on you</h2>
+            <ul>
+                <li *ngIf="s.needsYou"><strong>{{ s.needsYou }}</strong> {{ s.needsYou === 1 ? 'person needs' : 'people need' }} you - replies and threads Maya handed back.</li>
+                <li *ngIf="s.draftsWaiting"><strong>{{ s.draftsWaiting }}</strong> {{ s.draftsWaiting === 1 ? 'draft is' : 'drafts are' }} waiting for your approval.</li>
+                <li *ngIf="s.rewriting"><strong>{{ s.rewriting }}</strong> {{ s.rewriting === 1 ? 'draft is' : 'drafts are' }} being rewritten by Maya.</li>
+            </ul>
+            <p class="hint">Review them in the Outreach app's Needs You and Drafts.</p>
+        </section>
+
+        <section class="panel" *ngIf="s.plannedActionCount">
+            <h2>Her plan this morning</h2>
+            <ul class="plan">
+                <li *ngFor="let title of s.plannedActionTitles">{{ title }}</li>
+            </ul>
+            <p class="hint" *ngIf="s.plannedActionCount > s.plannedActionTitles.length">and {{ s.plannedActionCount - s.plannedActionTitles.length }} more.</p>
+        </section>
+
+        <section class="panel">
+            <h2>What happened today</h2>
+            <ol class="timeline" *ngIf="s.activity.length; else quiet">
+                <li *ngFor="let item of s.activity">
+                    <span class="icon" aria-hidden="true">{{ categoryIcon( item.category ) }}</span>
+                    <div>
+                        <p class="title">{{ item.title }}</p>
+                        <p class="body" *ngIf="item.body">{{ item.body }}</p>
+                        <p class="time">{{ item.createdAt | relativeTime }}</p>
+                    </div>
+                </li>
+            </ol>
+            <ng-template #quiet><p class="hint">Nothing yet today.</p></ng-template>
+        </section>
+
+        <p class="links">
+            <a routerLink="/signal-engine">Open Signal Engine</a>
+            <button type="button" class="link-button" (click)="load()" [disabled]="loading">Refresh</button>
+        </p>
+    </ng-container>
+</div>

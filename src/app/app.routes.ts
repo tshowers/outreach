@@ -83,6 +83,12 @@ export const routes: Routes = [
       import( './features/inbox-access/inbox-access.component' ).then( ( m ) => m.InboxAccessComponent ),
   },
   {
+    path: 'maya-day',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import( './features/maya-day/maya-day.component' ).then( ( m ) => m.MayaDayComponent ),
+  },
+  {
     path: 'signal-engine',
     canActivate: [authGuard],
     loadComponent: () =>
