@@ -71,7 +71,11 @@
                                 </div>
                             </div>
                         </div>
-                        <app-emailer [contacts]="contactsToPass" [blockedDraftReason]="catalystBlockedDraftReason" [beforeQueueStart]="prepareCatalystQueueForStart" [runContext]="catalystRunContext" (assistantContextChange)="onAssistantContextChange($event)"></app-emailer>
+                        <div class="alert alert-info small" role="status" *ngIf="emailCreatorTemplate" data-cy="email-creator-template-loaded">
+                            Your design from Email Creator is loaded as the template. Each contact gets their own name and company; pick who gets it, preview a few, then start.
+                        </div>
+                        <div class="alert alert-warning small" role="alert" *ngIf="emailCreatorHandoffError">{{ emailCreatorHandoffError }}</div>
+                        <app-emailer [initialTemplate]="emailCreatorTemplate" [contacts]="contactsToPass" [blockedDraftReason]="catalystBlockedDraftReason" [beforeQueueStart]="prepareCatalystQueueForStart" [runContext]="catalystRunContext" (assistantContextChange)="onAssistantContextChange($event)"></app-emailer>
                     </div>
                 </div>
                 <div class="catalyst-tab-panel" *ngIf="!isCatalystHandoffMode" [class.catalyst-tab-panel--active]="activeTab === 'graph'" [attr.aria-hidden]="activeTab !== 'graph'">

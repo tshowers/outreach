@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, Output, EventEmitter, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, Output, EventEmitter, ViewChild, ElementRef, AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LoggerService } from '../../../services/logger.service';
 import { OutreachInsightService } from '../../../services/outreach-insight.service';
@@ -75,7 +75,7 @@ export interface CatalystRunContext {
   templateUrl: './emailer.component.html',
   styleUrl: './emailer.component.css'
 } )
-export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit {
+export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges {
   private static readonly MAX_EMAIL_HTML_BYTES = 256 * 1024;
 
 
@@ -83,6 +83,8 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() blockedDraftReason = '';
   @Input() beforeQueueStart: (() => Promise<EmailerContactLite[] | null>) | null = null;
   @Input() runContext: CatalystRunContext | null = null;
+  /** A design handed over from Email Creator - opens Catalyst in template mode with it. */
+  @Input() initialTemplate: { subject: string; html: string } | null = null;
   @Output() emailSent = new EventEmitter<string>();
   @Output() assistantContextChange = new EventEmitter<CatalystAssistantContext>();
 
@@ -197,6 +199,16 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {
   }
 
+
+  ngOnChanges ( changes: SimpleChanges ): void {
+    const template = changes['initialTemplate']?.currentValue as { subject: string; html: string } | null;
+    if ( template?.html ) {
+      this.useTemplate = true;
+      this.templateHtml = template.html;
+      this.templateSubject = template.subject || '';
+      this.emitAssistantContext();
+    }
+  }
 
   ngOnInit (): void {
     this.checkTenant();

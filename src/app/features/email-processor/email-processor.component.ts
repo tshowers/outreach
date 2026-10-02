@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, ViewChild, inject } from '@angular/core';
+import { EMAIL_CREATOR_HANDOFF_PARAM, EmailCreatorHandoffService } from '../../services/email-creator-handoff.service';
 import { firstValueFrom } from 'rxjs';
 import { LastContactChartComponent } from './last-contact-chart/last-contact-chart.component';
 import { EmailerComponent, CatalystAssistantContext, CatalystAssistantDraftPayload } from './emailer/emailer.component';
@@ -65,6 +66,10 @@ export type EmailerContactLite = Contact;
 } )
 export class EmailProcessorComponent extends TopDogComponent {
   private readonly pageActionsService = inject( OutreachPageActionsService );
+  private readonly emailCreatorHandoff = inject( EmailCreatorHandoffService );
+  /** Design from Email Creator, handed to the emailer as its template. */
+  emailCreatorTemplate: { subject: string; html: string } | null = null;
+  emailCreatorHandoffError = '';
 
   liteContacts: Contact[] = [];
   contactsToPass: Contact[] = [];
@@ -147,6 +152,7 @@ export class EmailProcessorComponent extends TopDogComponent {
   override ngOnInit (): void {
     super.ngOnInit();
     this.publishPageContext();
+    void this.loadEmailCreatorHandoff();
 
     this.readySubscription = this.ready$.subscribe( ( isReady ) => {
       if ( isReady ) {
@@ -517,6 +523,19 @@ export class EmailProcessorComponent extends TopDogComponent {
       replaceUrl: true
     } );
 
+    try { this.cdr.detectChanges(); } catch { }
+  }
+
+  /** ?emailCreatorHandoff=<id>: a finished design from Email Creator becomes Catalyst's template. */
+  private async loadEmailCreatorHandoff (): Promise<void> {
+    const id = String( this.route.snapshot.queryParamMap.get( EMAIL_CREATOR_HANDOFF_PARAM ) || '' ).trim();
+    if ( !id ) return;
+    try {
+      const handoff = await this.emailCreatorHandoff.open( id, 'email-template' );
+      this.emailCreatorTemplate = { subject: handoff.subject, html: handoff.html };
+    } catch ( error: any ) {
+      this.emailCreatorHandoffError = String( error?.error?.message || error?.message || 'Couldn\'t open the email from Email Creator.' );
+    }
     try { this.cdr.detectChanges(); } catch { }
   }
 

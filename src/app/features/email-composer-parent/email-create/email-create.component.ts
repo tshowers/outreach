@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { catchError, from, map, mergeMap, Observable, of, take, toArray, firstValueFrom } from 'rxjs';
@@ -15,6 +15,7 @@ import { SoundService } from '../../../services/sound.service';
 import { OutreachDataService } from '../../../services/outreach-data.service';
 import { Contact } from '../../../models/contact.model';
 import { EmailEditorComponent } from '../../../shared/page/email-editor/email-editor.component';
+import { EMAIL_CREATOR_HANDOFF_PARAM, EmailCreatorHandoffService } from '../../../services/email-creator-handoff.service';
 import { EmailStageProgressComponent } from '../../../shared/email-stage-progress/email-stage-progress.component';
 
 import { ContactPreviewCardComponent } from '../../../shared/contact-preview-card/contact-preview-card.component';
@@ -213,6 +214,8 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
   }
 
 
+  private readonly emailCreatorHandoff = inject( EmailCreatorHandoffService );
+
   constructor ( private dataService: OutreachDataService,
     private fb: FormBuilder,
     private alertService: AlertService,
@@ -290,6 +293,28 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
   }
 
   /**
+   * A finished design from Email Creator: subject and HTML go straight into
+   * the composer, sender details already filled in. The user picks the
+   * recipient and sends as usual.
+   */
+  private async loadEmailCreatorHandoff ( id: string ): Promise<void> {
+    try {
+      const handoff = await this.emailCreatorHandoff.open( id, 'email-design' );
+      if ( handoff.subject ) this.emailForm.patchValue( { subject: handoff.subject } );
+      if ( handoff.html ) {
+        const doc = new DOMParser().parseFromString( handoff.html, 'text/html' );
+        this.onTextOnlyContentChange( ( doc.body?.textContent || '' ).replace( /\s+/g, ' ' ).trim() );
+        this.emailContent = doc.body?.innerHTML || handoff.html;
+      }
+      this.cdr.detectChanges();
+    } catch ( error: any ) {
+      const message = String( error?.error?.message || error?.message || 'Couldn\'t open the email from Email Creator.' );
+      this.logger.warn( 'Email Creator handoff failed', message );
+      this.notificationService.show( 'Couldn\'t open the email', message, 'warning' );
+    }
+  }
+
+  /**
    * Prefill subject/body when navigated from chat (inline Apply).
    * Prefers navigation state for large bodies; falls back to query params.
    */
@@ -299,6 +324,8 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
       const state = ( nav?.extras?.state ?? {} ) as any;
 
       this.route.queryParamMap.pipe( take( 1 ) ).subscribe( qp => {
+        const emailCreatorHandoffId = ( qp.get( EMAIL_CREATOR_HANDOFF_PARAM ) || '' ).trim();
+        if ( emailCreatorHandoffId ) void this.loadEmailCreatorHandoff( emailCreatorHandoffId );
         const campaignId = ( state?.campaignId ?? qp.get( 'campaignId' ) ?? '' ).trim();
         const stepId = ( state?.stepId ?? qp.get( 'stepId' ) ?? '' ).trim();
         const stepNumber = ( state?.stepNumber ?? qp.get( 'stepNumber' ) ?? '' ).trim();
