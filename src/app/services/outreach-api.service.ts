@@ -581,6 +581,12 @@ export class OutreachApiService {
   // Removes a needs-human-edit thread from the Plan tab (soft-archive, not a
   // hard delete) - the contact stays eligible for Maya's normal rotation to
   // pick back up later.
+  /** Maya drafts a reply for one conversation now ("Help me write it"). */
+  draftAssistMomentumReply ( contactId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; message: string; data: any; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.post<{ success: boolean; message: string; data: any; }>( `${this.baseUrl}/outreach/momentum-threads/draft-assist`, { contactId, purpose: 'needs_you' }, { headers } );
+  }
+
   dismissMomentumThreadFromPlan ( contactId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; message: string; data: { contactId: string; archived: boolean; }; }> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.post<{ success: boolean; message: string; data: { contactId: string; archived: boolean; }; }>( `${this.baseUrl}/outreach/momentum-threads/${encodeURIComponent( contactId )}/dismiss-from-plan`, {}, { headers } );

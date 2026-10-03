@@ -8,7 +8,7 @@
 </div>
 <app-command-palette></app-command-palette>
 <div class="app-frame" [class.app-frame--shell]="showShell">
-  <app-sidebar *ngIf="showShell" class="app-frame__sidebar" [isAdmin]="(isAdmin$ | async) ?? false" [isLoggedIn]="(isLoggedIn$ | async) ?? false" (signOut)="signOut()"></app-sidebar>
+  <app-sidebar *ngIf="showShell" class="app-frame__sidebar" [isAdmin]="(isAdmin$ | async) ?? false" [isLoggedIn]="(isLoggedIn$ | async) ?? false" [counts]="(sidebarCounts$ | async) ?? {}" (signOut)="signOut()"></app-sidebar>
   <main class="app-frame__main">
     <router-outlet></router-outlet>
   </main>

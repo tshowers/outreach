@@ -151,6 +151,43 @@ footer { display:flex; align-items:center; justify-content:space-between; gap:1r
   color: var(--text);
 }
 
+.made-by a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted) !important;
+  text-decoration: none;
+}
+
+.made-by a:hover strong {
+  text-decoration: underline;
+}
+
+/* TODD's mark sits in a small white circle (design 4g). */
+.made-by__todd {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--surface2);
+}
+
+.made-by__todd img {
+  border-radius: 50%;
+}
+
+.made-by > i {
+  width: 3px;
+  height: 3px;
+  margin: 0 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: .6;
+}
+
 /* The illustration over a soft blue circle. */
 .hero-art {
   position: relative;

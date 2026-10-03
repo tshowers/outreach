@@ -7,6 +7,7 @@ import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 
 import { environment } from '../environments/environment';
 import { OutreachAuthService } from './services/outreach-auth.service';
+import { NeedsYouCountService } from './services/needs-you-count.service';
 import { CommandPaletteComponent } from './shared/page/command-palette/command-palette.component';
 import { ToastComponent } from './shared/toast/toast.component';
 import { AppSidebarComponent } from './shared/app-sidebar/app-sidebar.component';
@@ -33,6 +34,8 @@ export class AppComponent implements OnInit {
   chunkRecoveryNeedsManualRefresh = false;
   readonly isAdmin$ = this.authService.getUser().pipe( map( user => user?.uid === environment.taliferroTenantId ) );
   readonly isLoggedIn$ = this.authService.isLoggedIn();
+  private readonly needsYouCount = inject( NeedsYouCountService );
+  readonly sidebarCounts$ = this.needsYouCount.count$.pipe( map( count => ( { '/needs-you': count } ) ) );
 
   title = 'outreach';
 
@@ -47,6 +50,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit (): void {
     this.followSystemTheme();
+    void this.needsYouCount.refresh();
     this.updateShell( this.router.url );
     this.router.events.pipe( filter( event => event instanceof NavigationEnd ) ).subscribe( ( event ) => {
       this.updateShell( ( event as NavigationEnd ).urlAfterRedirects );

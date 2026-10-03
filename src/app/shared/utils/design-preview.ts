@@ -87,8 +87,9 @@ const needsYou = ( contactId: string, contactName: string, companyName: string, 
 } );
 
 export const DESIGN_PREVIEW_NEEDS_YOU = [
-  needsYou( 'gd', 'George Dimov', 'Dimov Tax', 'Happy to talk. Could we schedule a call about tax planning next week?', 'Offered to schedule a call about tax planning.', 'reply_came_in', 30, { replyClassification: 'positive', replyDraftSubject: 'Re: Quick question', replyDraftBody: '<p>Great - how does Tuesday at 10 work?</p>' } ),
-  needsYou( 'tr', 'Theodore Ricks-Freeman', 'The DC Voice', '________________________________\nFrom: Zoom <no-reply@zoom.us>\nSent: Thursday, October 1, 2026 4:22 PM\n\nMeeting assets for Theodore Freeman - The DC Voice\'s Zoom Meeting are ready!', 'The email is an automated notification from Zoom about meeting assets being ready, not a direct reply from Theodore Ricks-Freeman.', 'no_safe_draft', 31 ),
-  needsYou( 'wp', 'William Pierce', 'A.T. Chadwick', 'I will be out of the office Sept 28, 29, and 30th, with limited availability to email.', '', 'no_safe_draft', 96 ),
-  needsYou( 'rl', 'Robert Leung', 'Rosendin', 'I am currently out of the office and will return on Monday, October 5, 2026.', 'Out until Oct 5.', 'no_safe_draft', 13 )
+  needsYou( 'dl', 'Dana Lee', 'Lee & Co', "Thursday works for me. Could we do 2pm Pacific? I'd like to bring our ops lead, Sam.", 'Wants to meet Thursday', 'reply_came_in', 2, { replyClassification: 'positive', replyDraftSubject: 'Re: Which do you think is better, Finding or Searching?', replyDraftBody: "<p>Hi Dana, Thursday at 2pm Pacific works. I'll send an invite for you and Sam. Talk then, Ty</p>" } ),
+  needsYou( 'gd', 'George Dimov', 'Dimov Tax', 'What would onboarding look like for a five-person firm?', 'Asked about onboarding', 'no_safe_draft', 30, { replyClassification: 'question' } ),
+  needsYou( 'tr', 'Theodore Ricks-Freeman', 'The DC Voice', 'Timing is tight until after our board meeting on the 20th.', 'Timing concern', 'reply_came_in', 31, { replyClassification: 'timing_objection', replyDraftSubject: 'Re: Finding', replyDraftBody: '<p>Understood - I\'ll check back after the 20th.</p>' } ),
+  needsYou( 'rl', 'Robert Leung', 'Rosendin', 'I am currently out of the office and will return on Monday, October 5, 2026. If any immediate needs, please contact Matt Zika at mzika@rosendin.com.', 'Out until Oct 5.', 'no_safe_draft', 13 ),
+  needsYou( 'gt', 'Glenn Torrez', 'Torrez Design', 'This is an automated message. This address is no longer active.', '', 'no_safe_draft', 96 )
 ];

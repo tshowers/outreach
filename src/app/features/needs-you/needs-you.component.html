@@ -1,94 +1,153 @@
-<div class="needs-you todd-page">
-  <header class="needs-you__head">
-    <div>
-      <h1>Needs you</h1>
-      <p>People waiting on a decision from you: someone replied, or Maya stopped and handed the conversation back. Everything Maya is still handling herself is in <a routerLink="/signal-engine" [queryParams]="{ tab: 'plan' }">Plan</a>.</p>
-    </div>
-    <button type="button" class="pill" (click)="load()" [disabled]="loading">{{ loading ? 'Refreshing…' : 'Refresh' }}</button>
-  </header>
+<div class="needs-you todd-page" [class.needs-you--empty]="!loading && !items.length && !error">
+  <!-- Cleared to zero (5d) -->
+  <section class="zero" *ngIf="!loading && !items.length && !error">
+    <span class="zero__check" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </span>
+    <h1>Nobody's waiting on you</h1>
+    <p>Maya is running {{ planCount }} conversation{{ planCount === 1 ? '' : 's' }} on her own. You'll see someone here as soon as they reply.</p>
+    <a class="pill pill--violet" routerLink="/signal-engine" [queryParams]="{ tab: 'plan' }">See Plan · {{ planCount }}</a>
+  </section>
 
   <p class="note note--error" *ngIf="error">{{ error }}</p>
   <p class="note" *ngIf="loading && !items.length">Loading…</p>
 
-  <div class="caught-up" *ngIf="!loading && !items.length && !error">
-    <span aria-hidden="true">✓</span>
-    <h2>You're all caught up</h2>
-    <p>When someone replies or Maya needs you, they'll show up here.</p>
-  </div>
-
-  <div class="needs-you__panes" *ngIf="items.length">
+  <div class="panes" *ngIf="items.length">
+    <!-- The list (5e, middle) -->
     <aside class="list" aria-label="Waiting on you">
-      <span class="eyebrow">{{ items.length }} waiting</span>
-      <button type="button" class="row" *ngFor="let item of items" [class.is-current]="item.contactId === selectedId" (click)="select(item)">
-        <span class="badge" aria-hidden="true">{{ initials(item.contactName) }}</span>
-        <span class="row__main">
-          <span class="row__top"><strong>{{ item.contactName || item.emailAddress }}</strong><span>{{ age(item.latestReplyAt) }}</span></span>
-          <span class="row__company" *ngIf="item.companyName">{{ item.companyName }}</span>
-          <span class="row__pills">
-            <span class="tag" [attr.data-tint]="tints[kind(item)]">{{ labels[kind(item)] }}</span>
-            <span class="tag" data-tint="green" *ngIf="hasMayaReply(item)">✦ Reply drafted</span>
-          </span>
-          <span class="row__preview">{{ preview(item) }}</span>
-        </span>
-      </button>
-    </aside>
-
-    <article class="person" *ngIf="selected as item">
-      <header class="person__head">
-        <span class="badge badge--big" aria-hidden="true">{{ initials(item.contactName) }}</span>
+      <header class="list__head">
         <div>
-          <h2>{{ item.contactName || item.emailAddress }}</h2>
-          <span>{{ item.companyName }}<ng-container *ngIf="item.companyName && item.emailAddress"> · </ng-container>{{ item.emailAddress }}</span>
+          <h1>Needs you</h1>
+          <p>{{ answerItems.length }} need{{ answerItems.length === 1 ? 's' : '' }} an answer · {{ clearItems.length }} to clear</p>
         </div>
-        <span class="tag" [attr.data-tint]="tints[kind(item)]">{{ labels[kind(item)] }}</span>
+        <span class="list__count">{{ items.length }}</span>
       </header>
 
-      <section class="why">
-        <span class="eyebrow">Why it needs you</span>
-        <h3>{{ why(item).title }}</h3>
-        <p>{{ why(item).detail }}</p>
-        <p class="why__next">{{ why(item).suggestion }}</p>
-      </section>
+      <ng-container *ngIf="answerItems.length">
+        <span class="eyebrow">Needs an answer</span>
+        <ng-container *ngFor="let item of answerItems">
+          <ng-container *ngTemplateOutlet="row; context: { $implicit: item, answer: true }"></ng-container>
+        </ng-container>
+      </ng-container>
 
-      <div class="todd-note" *ngIf="item.replySummary && item.replySummary !== reply(item)">
-        <span class="todd-note__label">✦ Maya's read</span>
-        <p>{{ item.replySummary }}</p>
+      <ng-container *ngIf="clearItems.length">
+        <div class="list__group">
+          <span class="eyebrow">Nothing to answer</span>
+          <button type="button" class="link" (click)="markDone(clearItems)">Mark {{ clearItems.length === 2 ? 'both' : 'all' }} done</button>
+        </div>
+        <ng-container *ngFor="let item of clearItems">
+          <ng-container *ngTemplateOutlet="row; context: { $implicit: item, answer: false }"></ng-container>
+        </ng-container>
+      </ng-container>
+
+      <ng-template #row let-item let-answer="answer">
+        <button type="button" class="row" [class.is-current]="item.contactId === selectedId" (click)="select(item)">
+          <span class="badge" [class.badge--quiet]="!answer" aria-hidden="true">{{ initials(item.contactName) }}</span>
+          <span class="row__main">
+            <span class="row__top"><strong>{{ item.contactName || item.emailAddress }}</strong><span>{{ age(item.latestReplyAt) }}</span></span>
+            <span class="row__pills">
+              <span class="tag" [attr.data-tint]="tints[kind(item)]">{{ kindLabel(item) }}</span>
+              <span class="tag" data-tint="green" *ngIf="hasMayaReply(item)">Maya drafted</span>
+            </span>
+            <span class="row__preview">{{ preview(item) }}</span>
+          </span>
+        </button>
+      </ng-template>
+    </aside>
+
+    <!-- The decision (5e, right) -->
+    <article class="person" *ngIf="selected as item">
+      <nav class="pager" aria-label="Move between people">
+        <button type="button" class="pager__side" [disabled]="!previous" (click)="select(previous)">
+          <span class="pager__arrow" aria-hidden="true">‹</span>
+          <span class="pager__name" *ngIf="previous"><small>Previous</small>{{ previous.contactName }}</span>
+        </button>
+        <span class="pager__count"><b>{{ selectedIndex + 1 }}</b> of {{ items.length }}</span>
+        <button type="button" class="pager__side pager__side--next" [disabled]="!next" (click)="select(next)">
+          <span class="pager__name" *ngIf="next"><small>Next</small>{{ next.contactName }}</span>
+          <span class="pager__arrow" aria-hidden="true">›</span>
+        </button>
+      </nav>
+
+      <header class="person__head">
+        <span class="badge badge--big" [class.badge--quiet]="!answers(item)" aria-hidden="true">{{ initials(item.contactName) }}</span>
+        <div class="person__who">
+          <h2>{{ item.contactName || item.emailAddress }} <span class="tag" [attr.data-tint]="tints[kind(item)]">{{ labels[kind(item)] }}</span></h2>
+          <span>{{ item.companyName }}<ng-container *ngIf="item.companyName"> · </ng-container>{{ item.emailAddress }}<ng-container *ngIf="item.latestReplyAt"> · replied {{ age(item.latestReplyAt) }} ago</ng-container></span>
+        </div>
+        <div class="person__contact">
+          <a class="round" [class.is-off]="!phone" [attr.href]="phone ? 'tel:' + phone : null" title="Call" aria-label="Call">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </a>
+          <a class="round" [class.is-off]="!phone" [attr.href]="phone ? 'sms:' + phone : null" title="Text" aria-label="Text">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+          </a>
+          <a class="round" [class.is-off]="!item.emailAddress" [attr.href]="item.emailAddress ? 'mailto:' + item.emailAddress : null" title="Email" aria-label="Email">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          </a>
+        </div>
+      </header>
+
+      <!-- Out of office (5c) replaces the reason card. -->
+      <ng-container *ngIf="kind(item) === 'out_of_office'; else whyCard">
+        <section class="away" *ngIf="outOfOffice(item) as away">
+          <span class="away__date" *ngIf="away.returnDate">
+            <small>{{ away.returnDate | date:'MMM' }}</small>
+            <b>{{ away.returnDate | date:'d' }}</b>
+          </span>
+          <div>
+            <strong>Out of office{{ away.returnDate ? ' until ' + (away.returnDate | date:'EEEE') : '' }}</strong>
+            <p>Nothing to answer.<ng-container *ngIf="away.alternate"> {{ away.alternate }} covers anything urgent.</ng-container></p>
+          </div>
+        </section>
+      </ng-container>
+      <ng-template #whyCard>
+        <p class="why"><strong>Why it's here.</strong> {{ why(item) }}</p>
+      </ng-template>
+
+      <div class="conversation" [class.conversation--two]="draftOpen">
+        <section class="said" *ngIf="reply(item)">
+          <span class="eyebrow">{{ kind(item) === 'automated' ? 'The email' : 'What ' + firstName(item) + ' said' }}</span>
+          <p class="said__bubble">{{ reply(item) }}</p>
+          <div class="said__foot">
+            <span class="said__read" *ngIf="item.replySummary">✦ Maya's read: {{ item.replySummary }}</span>
+            <button type="button" class="link" *ngIf="item.latestReplyText && item.latestReplyText.trim() !== reply(item)" (click)="showOriginal = !showOriginal">{{ showOriginal ? 'Hide original' : 'Original' }}</button>
+          </div>
+          <pre class="said__original" *ngIf="showOriginal">{{ item.latestReplyText }}</pre>
+        </section>
+
+        <section class="draft" *ngIf="draftOpen">
+          <span class="eyebrow">{{ hasMayaReply(item) && draftBody ? "Maya's reply · edit here" : 'Your reply' }}</span>
+          <div class="draft__card">
+            <input type="text" [(ngModel)]="draftSubject" aria-label="Subject">
+            <textarea [(ngModel)]="draftBody" rows="6" placeholder="Keep it short and human." aria-label="Reply"></textarea>
+          </div>
+        </section>
       </div>
 
-      <section class="message" *ngIf="reply(item)">
-        <span class="eyebrow">{{ kind(item) === 'automated' ? 'The email' : 'What ' + (item.contactName || 'they').split(' ')[0] + ' said' }}<ng-container *ngIf="item.latestReplyAt"> · {{ age(item.latestReplyAt) }} ago</ng-container></span>
-        <p class="message__subject" *ngIf="item.lastSubject">Re: {{ item.lastSubject }}</p>
-        <p class="message__body">{{ reply(item) }}</p>
-        <details *ngIf="item.latestReplyText && item.latestReplyText.trim() !== reply(item)">
-          <summary>Original email</summary>
-          <pre>{{ item.latestReplyText }}</pre>
-        </details>
-      </section>
+      <p class="note note--error" *ngIf="notice">{{ notice }}</p>
 
-      <section class="reply" *ngIf="replyMode">
-        <span class="eyebrow">{{ replyMode === 'maya' ? "Maya's reply - edit anything" : 'Your reply' }}</span>
-        <input type="text" [(ngModel)]="replySubject" aria-label="Subject">
-        <textarea [(ngModel)]="replyBody" rows="8" placeholder="Keep it short and human."></textarea>
-        <div class="reply__foot">
-          <button type="button" class="link" (click)="openInComposer(item)" [disabled]="!!working">Open in Composer</button>
-          <button type="button" class="pill" (click)="replyMode = null">Cancel</button>
-          <button type="button" class="pill pill--primary" (click)="sendReply(item)" [disabled]="!replyBody.trim() || !!working">{{ working === 'send' ? 'Sending…' : 'Send' }}</button>
-        </div>
-      </section>
-
-      <p class="note" *ngIf="notice">{{ notice }}</p>
-
-      <div class="actions" *ngIf="!replyMode">
-        <ng-container *ngIf="noAnswer(item); else answerable">
-          <button type="button" class="pill pill--primary pill--big" (click)="markDone(item)" [disabled]="!!working">{{ working === 'done' ? 'Marking done…' : 'Mark as done' }}</button>
-          <button type="button" class="pill pill--big" (click)="startReply(item, 'own')">Reply anyway</button>
+      <div class="actions">
+        <ng-container [ngSwitch]="draftOpen ? 'send' : action(item)">
+          <button *ngSwitchCase="'send'" type="button" class="pill pill--primary pill--big" (click)="send(item)" [disabled]="!draftBody.trim() || !!working">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+            {{ working === 'send' ? 'Sending…' : (hasMayaReply(item) ? "Send Maya's reply" : 'Send reply') }} <kbd>⌘↵</kbd>
+          </button>
+          <button *ngSwitchCase="'help_write'" type="button" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ {{ working === 'help' ? 'Maya is writing…' : 'Help me write it' }}</button>
+          <a *ngSwitchCase="'connect_inbox'" class="pill pill--primary pill--big" routerLink="/inbox-access">Connect inbox</a>
+          <button *ngSwitchCase="'mark_done'" type="button" class="pill pill--primary pill--big" (click)="markDone([item])">✓ Mark as done</button>
+          <button *ngSwitchDefault type="button" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ Help me write it</button>
         </ng-container>
-        <ng-template #answerable>
-          <button type="button" class="pill pill--primary pill--big" *ngIf="hasMayaReply(item)" (click)="startReply(item, 'maya')">✦ Review Maya's reply</button>
-          <button type="button" class="pill pill--big" [class.pill--primary]="!hasMayaReply(item)" (click)="startReply(item, 'own')">Write {{ hasMayaReply(item) ? 'my own' : 'a reply' }}</button>
-          <button type="button" class="pill pill--big" (click)="markDone(item)" [disabled]="!!working">{{ working === 'done' ? 'Marking done…' : 'Mark as done' }}</button>
-        </ng-template>
+        <button type="button" class="pill pill--big" *ngIf="!draftOpen || hasMayaReply(item)" (click)="writeOwn(item)">Write my own <kbd>W</kbd></button>
+        <a class="pill pill--big" *ngIf="kind(item) === 'out_of_office' && outOfOffice(item).alternateEmail" [href]="'mailto:' + outOfOffice(item).alternateEmail">Email {{ outOfOffice(item).alternate }}</a>
+        <button type="button" class="pill pill--big" (click)="openInComposer(item)" [disabled]="!!working">Open in Composer</button>
+        <button type="button" class="pill pill--big actions__done" *ngIf="action(item) !== 'mark_done' || draftOpen" (click)="markDone([item])">✓ Mark as done <kbd>D</kbd></button>
       </div>
     </article>
+  </div>
+
+  <div class="toast" *ngIf="toast" role="status">
+    <span>{{ toast.text }}</span>
+    <button type="button" *ngIf="toast.canUndo" (click)="undo()">↶ Undo</button>
   </div>
 </div>

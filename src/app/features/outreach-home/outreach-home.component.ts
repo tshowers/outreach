@@ -19,6 +19,7 @@ import { PageAction } from '../../models/page-actions.models';
 import { buildCockpitDiagnosisRows, CockpitDiagnosisRowVm } from '../../shared/utils/cockpit-diagnosis-board.util';
 import { MomentumThread } from '../../models/momentum-thread.model';
 import { isNeedsYou } from '../../shared/utils/needs-you.util';
+import { NeedsYouCountService } from '../../services/needs-you-count.service';
 
 /**
  * Ported from features/email/pages/outreach-home/. Two real trims beyond
@@ -64,6 +65,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
     { label: 'Signal Engine', icon: 'tower-broadcast', routerLink: '/signal-engine' }
   ];
   readonly entitlements$ = inject( OutreachEntitlementService ).getEntitlements();
+  private readonly needsYouCount = inject( NeedsYouCountService );
   private readonly platformId = inject( PLATFORM_ID );
   tenantId: string | null = null;
   userId: string | null = null;
@@ -689,6 +691,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
           age: this.shortAge( thread.latestReplyAt || thread.lastSentAt )
         };
       } );
+    if ( threads.length ) this.needsYouCount.setFromThreads( threads );
     this.draftsCount = threads.filter( thread => thread.userLane === 'drafts' && !thread.rewriteQueueState ).length;
     const signalThreads = threads.filter( thread => thread.mode !== 'completed' && thread.mode !== 'unsubscribed' );
     const signalThreadBaseCount = signalThreads.length || 1;

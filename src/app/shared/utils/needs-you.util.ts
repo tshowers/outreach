@@ -94,3 +94,45 @@ export function needsYouWhy ( thread: MomentumThread ): { title: string; detail:
     ? { title: `${ name } replied`, detail: 'Maya drafted an answer for you to review.', suggestion: 'Check it, change anything you like, and send.' }
     : { title: `${ name } replied`, detail: 'Replies always come to you before Maya continues.', suggestion: 'Read what they said and reply.' };
 }
+
+/** Needs an answer, or something to clear (design 5a). */
+export function needsAnswer ( thread: MomentumThread ): boolean {
+  const kind = needsYouKind( thread );
+  return !needsNoAnswer( kind ) && kind !== 'not_interested';
+}
+
+export type NeedsYouAction = 'review_maya' | 'help_write' | 'mark_done' | 'connect_inbox';
+
+/** The main button for this person (design 5e rules). */
+export function primaryAction ( thread: MomentumThread ): NeedsYouAction {
+  if ( !needsAnswer( thread ) ) return 'mark_done';
+  if ( thread.needsYouReason?.key === 'missing_sender' ) return 'connect_inbox';
+  return hasMayaReply( thread ) ? 'review_maya' : 'help_write';
+}
+
+/** "Why it's here." in one sentence - never the internal reason labels. */
+export function whyItsHere ( thread: MomentumThread ): string {
+  const why = needsYouWhy( thread );
+  return `${ why.title }. ${ why.detail }`;
+}
+
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+/**
+ * From an away message: when they're back and who covers meanwhile -
+ * "return on Monday, October 5" and "please contact Matt Zika at ...".
+ */
+export function outOfOfficeDetails ( text: string, now = new Date() ): { returnDate: Date | null; alternate: string; alternateEmail: string; } {
+  const value = String( text || '' );
+  let returnDate: Date | null = null;
+  const match = value.match( /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?/i );
+  if ( match ) {
+    const month = MONTHS.indexOf( match[1].slice( 0, 3 ).toLowerCase() );
+    const year = match[3] ? Number( match[3] ) : now.getFullYear();
+    returnDate = new Date( year, month, Number( match[2] ) );
+    // "Oct 5" with no year, already past - next year's.
+    if ( !match[3] && returnDate.getTime() < now.getTime() - 30 * 86400000 ) returnDate.setFullYear( year + 1 );
+  }
+  const contact = value.match( /(?:contact|reach out to|email|call)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)(?:\s+(?:at|on|via)\s+([\w.+-]+@[\w-]+\.[\w.]+))?/ );
+  return { returnDate, alternate: contact?.[1] || '', alternateEmail: contact?.[2] || '' };
+}
