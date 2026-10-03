@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { OutreachAssistantSignalService } from '../../../services/outreach-assistant-signal.service';
 import { OutreachApiService } from '../../../services/outreach-api.service';
 import { OutreachMomentumThreadService } from '../../../services/outreach-momentum-thread.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 export type EmailerContactLite = Contact;
 
@@ -115,6 +116,8 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
 
   showInsight = false;
   useTemplate = false;
+  /** The pasted template, rendered in a sandboxed frame (no scripts). */
+  showTemplatePreview = false;
   templateHtml = '';
   templateSubject = '';
   originalTemplateHtml = '';
@@ -129,6 +132,8 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
   private bulkIsRunning = false;
   private bulkCurrentContact: EmailerContactLite | null = null;
   private initialQueueSnapshot: EmailerContactLite[] = [];
+  /** Emails sent in this batch - the Send column's "N / total sent". */
+  batchSentCount = 0;
   private currentCatalystRunId = '';
   private currentCatalystRunName = '';
   private currentCatalystRunFinalized = false;
@@ -195,7 +200,8 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
     private authService: OutreachAuthService,
     private dataService: OutreachDataService,
     private outreachApiService: OutreachApiService,
-    private momentumThreadService: OutreachMomentumThreadService
+    private momentumThreadService: OutreachMomentumThreadService,
+    private sanitizer: DomSanitizer
   ) {
   }
 
@@ -249,6 +255,21 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
 
   get isRunning (): boolean {
     return this.bulkIsRunning && !this.stopSending;
+  }
+
+  get templatePreviewHtml (): SafeHtml {
+    // The user's own pasted HTML, shown in an iframe with sandbox="" - scripts,
+    // forms and navigation are all off.
+    return this.sanitizer.bypassSecurityTrustHtml( String( this.templateHtml || '' ) );
+  }
+
+  /** The batch size the Send column counts against. */
+  get batchTotal (): number {
+    return this.initialQueueSnapshot.length || this.contacts?.length || 0;
+  }
+
+  get batchProgress (): number {
+    return this.batchTotal ? Math.min( 100, Math.round( ( this.batchSentCount / this.batchTotal ) * 100 ) ) : 0;
   }
 
   get remainingCount (): number {
@@ -375,6 +396,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
 
     this.removedContacts = invalidContacts;
     this.initialQueueSnapshot = [...eligibleContacts];
+    this.batchSentCount = 0;
     this.bulkQueue = [...eligibleContacts];
     this.currentCatalystRunId = '';
     this.currentCatalystRunName = '';
@@ -1147,6 +1169,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
           sentEmail.to + " - " + JSON.stringify( response ),
           "success"
         );
+        this.batchSentCount += 1;
         this.emailSent.emit( sentContact.id );
         this.updateContact( sentContact );
         void this.seedSignalEngineThread( sentContact, sentEmail );

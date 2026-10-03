@@ -1,6 +1,5 @@
 <div class="page" data-cy="signal-engine">
     <app-back-to-top></app-back-to-top>
-    <app-get-the-app-banner></app-get-the-app-banner>
     <header class="page-header">
         <h1>Signal Engine</h1>
         <p class="subtitle">What Maya drafted, what's queued to send, and what's already gone out.</p>
@@ -34,89 +33,12 @@
     </div>
     <p class="hint" *ngIf="loadError" data-cy="signal-engine-load-error">{{ loadError }}</p>
     <app-preloader [isLoading]="(loading && !threads.length) || (activeLane === 'sent' && sentLoading)" [message]="activeLane === 'sent' && sentLoading ? 'Loading sent emails…' : 'Loading Signal Engine…'" [autoHideAfterMs]="null"></app-preloader>
+    <a class="drafts-in-app" routerLink="/ios" data-cy="signal-engine-drafts-in-app">
+        <span class="drafts-in-app__count">{{ draftThreads.length }}</span>
+        <span><strong>Maya's drafts are reviewed in the Outreach app.</strong> Approve, rewrite or discard them one at a time on your iPhone or iPad.</span>
+        <span aria-hidden="true">→</span>
+    </a>
     <app-tab-bar [tabs]="signalTabs" [activeId]="activeLane" ariaLabel="Signal Engine views" dataCy="signal-engine-tabs" (tabChange)="setLane($event)"></app-tab-bar>
-    <!-- DRAFTS: the core loop - approve to send, reject to have Maya rewrite -->
-    <section class="panel" *ngIf="activeLane === 'drafts'" data-cy="signal-engine-drafts">
-        <h2>Drafts</h2>
-        <p class="hint">Everything Maya has drafted and nothing else. Approve to queue for delivery, reject to have Maya try a different angle.</p>
-        <p class="hint" *ngIf="!loading && !draftThreads.length">No drafts waiting on you right now.</p>
-        <p class="hint" *ngIf="queuedForRewriteCount" data-cy="signal-engine-rewrite-queue-status">{{ queuedForRewriteCount }} queued for Maya's rewrite pass - they'll reappear here as she finishes each one.</p>
-        <div class="draft-batch-bar" *ngIf="draftThreads.length">
-            <span class="hint" *ngIf="hasSelectedDrafts">{{ selectedDraftContactIds.size }} selected</span>
-            <button class="btn-todd" type="button" [disabled]="!hasSelectedDrafts || batchApproving" (click)="approveSelectedDrafts()" data-cy="signal-engine-approve-selected">
-                {{ batchApproving ? 'Approving…' : 'Approve Selected (' + selectedDraftContactIds.size + ')' }}
-            </button>
-            <button class="btn-todd-secondary" type="button" [disabled]="!hasSelectedDrafts || batchRejecting || batchApproving || batchDiscarding" (click)="rejectRewriteSelectedDrafts()" data-cy="signal-engine-reject-rewrite-selected">
-                {{ batchRejecting ? 'Queuing…' : 'Reject & Rewrite Selected (' + selectedDraftContactIds.size + ')' }}
-            </button>
-            <button class="btn-todd-secondary draft-batch-reject" type="button" [disabled]="!hasSelectedDrafts || batchRejecting || batchApproving || batchDiscarding" (click)="discardSelectedDrafts()" data-cy="signal-engine-reject-selected">
-                {{ batchDiscarding ? 'Rejecting…' : 'Reject Selected (' + selectedDraftContactIds.size + ')' }}
-            </button>
-            <span class="hint draft-send-timing" *ngIf="hasSelectedReplyDrafts">Includes replies, which send immediately - not through Outbox.</span>
-        </div>
-        <div class="draft-list">
-            <article class="draft-card" [class.selected]="isSelected(thread)" (click)="toggleDraftSelection(thread)" *ngFor="let thread of draftThreads; trackBy: trackByThreadId" [attr.data-cy]="'signal-engine-draft-' + thread.contactId">
-                <div class="draft-card-header">
-                    <strong class="draft-card-contact-link" [routerLink]="['/contact', thread.contactId]" (click)="$event.stopPropagation()" (mouseenter)="showContactHover(thread, $event)" (mouseleave)="hideContactHover()">{{ thread.contactName || 'Unknown contact' }}</strong>
-                    <span class="draft-card-company">
-                        <span *ngIf="thread.companyName" class="draft-card-contact-link" [routerLink]="['/contact', thread.contactId]" (click)="$event.stopPropagation()" (mouseenter)="showContactHover(thread, $event)" (mouseleave)="hideContactHover()">{{ thread.companyName }}</span>
-                        <span class="status-pill" [class.tone-reply]="getDraftKind(thread) === 'reply'" [class.tone-outbound]="getDraftKind(thread) !== 'reply'">
-                            {{ getDraftKind(thread) === 'reply' ? 'Reply draft' : 'Outbound draft' }}
-                        </span>
-                        <span class="status-pill tone-maya">Maya</span>
-                    </span>
-                </div>
-                <p class="hint draft-meta" *ngIf="thread.lastUpdated">Drafted {{ thread.lastUpdated | relativeTime }}</p>
-                <section class="draft-message-panel" aria-label="Message that will be sent">
-                    <div class="draft-panel-kicker">Message that will be sent</div>
-                    <p class="draft-subject-label">Subject</p>
-                    <p class="draft-subject">{{ getDraftSubject(thread) || '(no subject)' }}</p>
-                    <p class="draft-body-label">Body</p>
-                    <div class="draft-body" [innerHTML]="getDraftBody(thread) || '<p>(no draft body)</p>'"></div>
-                </section>
-                <div class="draft-after-message-panel">
-                    <section class="draft-routing-card" [class.draft-routing-card--reply]="getDraftKind(thread) === 'reply'" aria-label="Send routing">
-                        <span class="draft-routing-card__label">What approval does</span>
-                        <strong *ngIf="getDraftKind(thread) === 'reply'">Reply sends immediately on approval</strong>
-                        <strong *ngIf="getDraftKind(thread) !== 'reply'">Approval queues this email in Outbox</strong>
-                        <span *ngIf="getDraftKind(thread) === 'reply'">This reply bypasses Outbox.</span>
-                        <span *ngIf="getDraftKind(thread) !== 'reply'">You can review its delivery status in Outbox.</span>
-                    </section>
-                    <section class="draft-meta-panel" aria-label="Draft metadata">
-                        <div class="draft-meta-panel__label">About this draft</div>
-                        <p class="draft-stop-reason" *ngIf="thread.stopReason as stop">
-                            <span class="status-pill">{{ stop.badge }}</span>
-                            <strong>{{ stop.title }}</strong>
-                            <span *ngIf="stop.detail">{{ stop.detail }}</span>
-                        </p>
-                        <p class="draft-error" *ngIf="getActionError(thread) as err">{{ err }}</p>
-                        <p class="hint draft-test-status" *ngIf="getTestSendStatus(thread) as testStatus">{{ testStatus }}</p>
-                        <p class="draft-rationale" *ngIf="getDraftRationale(thread) as rationale">
-                            <span class="draft-rationale-label">Internal rationale</span>
-                            {{ rationale }}
-                        </p>
-                    </section>
-                </div>
-                <div class="draft-actions">
-                    <button type="button" [disabled]="isPending(thread)" (click)="$event.stopPropagation(); approveDraft(thread)" [attr.data-cy]="'signal-engine-approve-' + thread.contactId" [title]="getDraftKind(thread) === 'reply' ? 'This reply sends immediately - it does not queue in Outbox first.' : 'Queues this draft for delivery in Outbox.'">
-                        {{ isPending(thread) ? 'Working…' : (getDraftKind(thread) === 'reply' ? 'Approve & Send Now' : 'Approve') }}
-                    </button>
-                    <button type="button" class="secondary" [disabled]="isPending(thread)" (click)="$event.stopPropagation(); editInComposer(thread)" [attr.data-cy]="'signal-engine-edit-' + thread.contactId" title="Open this draft in the email editor to tweak it yourself, then send from there.">
-                        {{ isPending(thread) ? 'Working…' : 'Edit' }}
-                    </button>
-                    <button type="button" class="danger" [disabled]="isPending(thread)" (click)="$event.stopPropagation(); rejectDraft(thread)" [attr.data-cy]="'signal-engine-reject-' + thread.contactId">
-                        {{ isPending(thread) ? 'Working…' : 'Reject & Rewrite' }}
-                    </button>
-                    <button type="button" class="danger" [disabled]="isPending(thread)" (click)="$event.stopPropagation(); discardDraft(thread)" [attr.data-cy]="'signal-engine-discard-' + thread.contactId" title="Discard this draft with no rewrite - Maya's normal rotation will pick it back up later.">
-                        {{ isPending(thread) ? 'Working…' : 'Reject' }}
-                    </button>
-                    <button type="button" class="secondary" [disabled]="isSendingTest(thread)" (click)="$event.stopPropagation(); sendDraftTest(thread)" [attr.data-cy]="'signal-engine-test-' + thread.contactId">
-                        {{ isSendingTest(thread) ? 'Sending…' : 'Send Test to Me' }}
-                    </button>
-                </div>
-            </article>
-        </div>
-    </section>
     <!-- OUTBOX: approved, queued or actively sending -->
     <section class="panel" *ngIf="activeLane === 'outbox'" data-cy="signal-engine-outbox">
         <h2>Outbox</h2>
@@ -151,11 +73,7 @@
     <!-- PLAN: what Maya is actively working / needs to rewrite - context only for now -->
     <section class="panel" *ngIf="activeLane === 'plan'" data-cy="signal-engine-plan">
         <h2>Plan</h2>
-        <p class="hint">What Maya is actively working on or needs to rewrite.</p>
-        <div class="plan-filter-toggle">
-            <button type="button" [class.active]="!planNeedsYouOnly" (click)="setPlanNeedsYouOnly(false)" data-cy="signal-engine-plan-filter-all">All</button>
-            <button type="button" [class.active]="planNeedsYouOnly" (click)="setPlanNeedsYouOnly(true)" data-cy="signal-engine-plan-filter-needs-you">Needs You</button>
-        </div>
+        <p class="hint">Everything Maya is still handling herself: waiting, watching, drafting or rewriting. People waiting on you are in <a routerLink="/needs-you">Needs you</a>.</p>
         <table class="signal-table" *ngIf="planThreads.length">
             <thead>
                 <tr>
@@ -195,7 +113,7 @@
                 </tr>
             </tbody>
         </table>
-        <p class="hint" *ngIf="!loading && !planThreads.length">{{ planNeedsYouOnly ? 'Nothing needs you right now.' : 'Nothing in progress right now.' }}</p>
+        <p class="hint" *ngIf="!loading && !planThreads.length">Nothing in progress right now.</p>
     </section>
     <!-- Deliberately outside every .panel section - .panel has backdrop-filter,
          which (like transform/filter) makes an ancestor the containing block

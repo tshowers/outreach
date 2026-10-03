@@ -159,3 +159,29 @@
 :host-context([data-theme='dark']) .warmup-dot.ready {
   background: #4ade80;
 }
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--t-yellow);
+  color: var(--t-yellow-fg);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-pill[data-level="ready"] {
+  background: var(--t-green);
+  color: var(--t-green-fg);
+}
+
+.status-pill__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}

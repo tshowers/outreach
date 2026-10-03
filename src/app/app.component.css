@@ -39,3 +39,33 @@
   font-size: 1.2rem;
   line-height: 1;
 }
+
+/* The laptop shell: sidebar | page. Below 900px the sidebar goes away and
+ * the floating Menu comes back. */
+.app-frame--shell {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.app-frame__main {
+  min-width: 0;
+}
+
+.app-global-actions--shell {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .app-frame--shell {
+    display: block;
+  }
+
+  .app-frame__sidebar {
+    display: none;
+  }
+
+  .app-global-actions--shell {
+    display: inline-flex;
+  }
+}

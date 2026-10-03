@@ -199,3 +199,298 @@
 .insight-title {
   font-weight: 600;
 }
+
+/* ---- Find family (design_handoff_outreach 4l): the Send column. ---- */
+:host {
+  font-family: var(--font);
+}
+
+.emailer-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.send {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.send__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.eyebrow {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.send__state {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--t-cyan);
+  color: var(--t-cyan-fg);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.send__count {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.send__count b {
+  font-size: 56px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.send__count span {
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.send__bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface2);
+  overflow: hidden;
+}
+
+.send__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cyan);
+  transition: width .3s ease;
+}
+
+.send__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.send__start,
+.send__stop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.send__start {
+  background: var(--blue);
+  color: #fff;
+}
+
+.send__stop {
+  background: var(--bg);
+  color: var(--danger);
+}
+
+.send__start:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.send__toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.send__toggle input {
+  appearance: none;
+  position: relative;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--surface2);
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+
+.send__toggle input::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+  transition: transform .15s ease;
+}
+
+.send__toggle input:checked {
+  background: var(--cyan);
+}
+
+.send__toggle input:checked::after {
+  transform: translateX(18px);
+}
+
+.send__links {
+  display: flex;
+  gap: 16px;
+}
+
+.send__links button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--blue-ink);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.send__links button:disabled {
+  color: var(--muted);
+  opacity: .6;
+  cursor: default;
+}
+
+.emailer-body {
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.emailer-empty {
+  padding: 0 4px;
+  text-align: left;
+}
+
+.emailer-empty-note {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* The preview, full width while it's open. */
+.emailer-preview {
+  padding: 20px;
+  border-radius: 24px;
+  background: var(--surface);
+}
+
+.preview-content iframe {
+  border-radius: 16px;
+}
+
+.emailer-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 0 0;
+  background: transparent;
+  border: 0;
+}
+
+.emailer-footer .btn {
+  height: 44px;
+  padding: 0 18px;
+}
+
+.emailer-body .emailer-empty {
+  border: 0;
+  background: transparent;
+  padding: 0 4px;
+}
+
+/* Full width: progress on the left, the controls on the right. */
+.send {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  gap: 20px 32px;
+  align-items: center;
+}
+
+.send__progress,
+.send__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .send {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.template-preview-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.template-preview-toggle {
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.template-preview {
+  width: 100%;
+  min-height: 480px;
+  margin-top: 12px;
+  border: 1px solid var(--surface2);
+  border-radius: 16px;
+  background: #fff;
+}
+
+/* The pasted-template option, on its own surface card. */
+.emailer-empty > .mt-3 {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 18px;
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.emailer-empty .form-control {
+  border: 0;
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+}

@@ -1,0 +1,24 @@
+<aside class="sidebar" aria-label="Outreach">
+  <a class="sidebar__brand" routerLink="/app">
+    <img src="assets/outreach/logo.png" alt="" width="32" height="32">
+    <span>Outreach</span>
+  </a>
+
+  <nav class="sidebar__nav">
+    <a *ngFor="let item of items"
+       class="sidebar__item"
+       [routerLink]="item.link"
+       [queryParams]="item.queryParams || null"
+       routerLinkActive="is-active"
+       [routerLinkActiveOptions]="item.exact ? { exact: true } : { paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
+       [attr.data-tint]="item.tint">
+      <span class="sidebar__icon" [innerHTML]="item.icon"></span>
+      <span class="sidebar__label">{{ item.label }}</span>
+      <span *ngIf="countFor(item) > 0" class="sidebar__badge">{{ countFor(item) }}</span>
+    </a>
+  </nav>
+
+  <div class="sidebar__footer">
+    <app-platform-menu [isAdmin]="isAdmin" [isLoggedIn]="isLoggedIn" (signOut)="signOut.emit()"></app-platform-menu>
+  </div>
+</aside>

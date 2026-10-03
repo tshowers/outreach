@@ -9,14 +9,14 @@ import { environment } from '../environments/environment';
 import { OutreachAuthService } from './services/outreach-auth.service';
 import { CommandPaletteComponent } from './shared/page/command-palette/command-palette.component';
 import { ToastComponent } from './shared/toast/toast.component';
-import { ThemeToggleComponent } from './shared/theme-toggle/theme-toggle.component';
+import { AppSidebarComponent } from './shared/app-sidebar/app-sidebar.component';
 import { PlatformMenuComponent } from './shared/platform-menu/platform-menu.component';
 import { OutreachAssistantLauncherComponent } from './shared/page/assistant-box/outreach-assistant-launcher.component';
 import packageJson from '../../package.json';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastComponent, CommandPaletteComponent, ThemeToggleComponent, PlatformMenuComponent, OutreachAssistantLauncherComponent, AsyncPipe, NgIf],
+  imports: [RouterOutlet, ToastComponent, CommandPaletteComponent, AppSidebarComponent, PlatformMenuComponent, OutreachAssistantLauncherComponent, AsyncPipe, NgIf],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
@@ -36,12 +36,21 @@ export class AppComponent implements OnInit {
 
   title = 'outreach';
 
+  /** The signed-in workspace pages get the laptop shell's sidebar. */
+  private static readonly shellRoutes = ['/app', '/needs-you', '/signal-engine', '/inbox-access', '/compose-email', '/email-processor', '/maya-day', '/engagement', '/profile', '/get-started'];
+  showShell = false;
+
   async signOut (): Promise<void> {
     await this.authService.signOut();
     await this.router.navigateByUrl( '/' );
   }
 
   ngOnInit (): void {
+    this.followSystemTheme();
+    this.updateShell( this.router.url );
+    this.router.events.pipe( filter( event => event instanceof NavigationEnd ) ).subscribe( ( event ) => {
+      this.updateShell( ( event as NavigationEnd ).urlAfterRedirects );
+    } );
     this.showUpdateNoticeAfterReload();
     if ( !environment.production ) return;
 
@@ -187,5 +196,23 @@ export class AppComponent implements OnInit {
   private versionFromEvent ( event: VersionReadyEvent ): string {
     const appData = event.latestVersion.appData as { version?: string } | undefined;
     return String( appData?.version || '' ).trim();
+  }
+
+  private updateShell ( url: string ): void {
+    const path = url.split( /[?#]/ )[0];
+    this.showShell = AppComponent.shellRoutes.some( route => path === route || path.startsWith( `${ route }/` ) );
+  }
+
+  /**
+   * The theme follows the system (design_handoff_outreach drops the
+   * Light/Dark toggle). Components style dark mode off html.dark, so the
+   * class tracks prefers-color-scheme, live.
+   */
+  private followSystemTheme (): void {
+    const query = window.matchMedia( '(prefers-color-scheme: dark)' );
+    const apply = () => document.documentElement.classList.toggle( 'dark', query.matches );
+    apply();
+    query.addEventListener( 'change', apply );
+    localStorage.removeItem( 'outreach-theme' );
   }
 }

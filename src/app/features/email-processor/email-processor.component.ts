@@ -15,8 +15,8 @@ import { OutreachDataService } from '../../services/outreach-data.service';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
 
 import { EmailSendingStatusComponent } from '../../shared/email-sending-status/email-sending-status.component';
-import { ToddTipComponent } from '../../shared/todd-tip/todd-tip.component';
-import { TabBarComponent, TabBarItem } from '../../shared/tab-bar/tab-bar.component';
+import { DESIGN_PREVIEW_CONTACTS, DESIGN_PREVIEW_RUNS, isDesignPreview } from '../../shared/utils/design-preview';
+import { TabBarItem } from '../../shared/tab-bar/tab-bar.component';
 import { CommonModule } from '@angular/common';
 import { OutreachTipService } from '../../services/outreach-tip.service';
 import { FormsModule } from '@angular/forms';
@@ -59,7 +59,7 @@ export type EmailerContactLite = Contact;
  */
 @Component( {
   selector: 'app-email-processor',
-  imports: [CommonModule, FormsModule, LastContactChartComponent, PreloaderComponent, EmailerComponent, BackToTopComponent, EmailSendingStatusComponent, ToddTipComponent, TabBarComponent],
+  imports: [CommonModule, FormsModule, LastContactChartComponent, PreloaderComponent, EmailerComponent, BackToTopComponent, EmailSendingStatusComponent],
   standalone: true,
   templateUrl: './email-processor.component.html',
   styleUrl: './email-processor.component.css'
@@ -92,6 +92,12 @@ export class EmailProcessorComponent extends TopDogComponent {
   @ViewChild( EmailerComponent ) emailerComponent?: EmailerComponent;
 
   processingCount: number = 25;
+  /** The batch chips in "Choose who" (design 4l). */
+  readonly batchSizes = [25, 50, 100, 250, 500, 1000, 2500];
+  /** From the Up next list: who's eligible, how stale, how many urgent. */
+  staleStats = { eligible: 0, staged: 0, oldest: 0, urgent: 0 };
+  /** While an email previews, Send takes the full width. */
+  isPreviewing = false;
   activeTab: 'emailer' | 'graph' | 'history' = 'graph';
   catalystTabs: TabBarItem[] = [
     { id: 'graph', label: 'Stale Contacts', icon: 'user-clock', dataCy: 'catalyst-tab-graph' },
@@ -154,11 +160,20 @@ export class EmailProcessorComponent extends TopDogComponent {
     this.publishPageContext();
     void this.loadEmailCreatorHandoff();
 
+    if ( isDesignPreview() ) {
+      this.liteContacts = DESIGN_PREVIEW_CONTACTS as unknown as Contact[];
+      this.catalystRuns = DESIGN_PREVIEW_RUNS as unknown as CatalystRun[];
+      this.hasLoadedContacts = true;
+      this.isLoading = false;
+    }
+
     this.readySubscription = this.ready$.subscribe( ( isReady ) => {
       if ( isReady ) {
         this.isLoading = true;
         this.emailTipText = this.tipService.getRandomTipText( 'email', 'compose-email' );
         this.loadData();
+        // Recent runs sit on the page now, not behind a History tab.
+        void this.loadCatalystRuns();
         this.assistantBus.emitAssistantActivity( {
           feature: 'outreach',
           page: 'email-processor',
@@ -220,6 +235,7 @@ export class EmailProcessorComponent extends TopDogComponent {
 
   onAssistantContextChange ( context: CatalystAssistantContext ): void {
     this.catalystAssistantContext = context;
+    this.isPreviewing = !!context?.hasPreview;
     this.publishPageContext();
   }
 
@@ -346,6 +362,16 @@ export class EmailProcessorComponent extends TopDogComponent {
         try { this.cdr.detectChanges(); } catch { }
       } );
     }, 0 );
+  }
+
+  onStaleStats ( stats: { eligible: number; staged: number; oldest: number; urgent: number; } ): void {
+    this.staleStats = stats;
+  }
+
+  /** Run bar widths, 0-100. */
+  ratePercent ( rate: number | null | undefined ): number {
+    const value = Number( rate || 0 );
+    return Math.max( 0, Math.min( 100, Math.round( value * 100 ) ) );
   }
 
   onProcessingCountChange ( count: number ): void {

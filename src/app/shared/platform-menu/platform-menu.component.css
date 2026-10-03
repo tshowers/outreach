@@ -411,3 +411,14 @@
     white-space: normal;
   }
 }
+
+/* Find family: Menu is a dark pill. */
+.platform-menu-trigger {
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--text) !important;
+  color: var(--bg) !important;
+  box-shadow: none !important;
+  font-family: var(--font);
+  font-weight: 700;
+}

@@ -1,0 +1,97 @@
+:host {
+  display: block;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  /* Sticky makes its own stacking layer; keep it (and the Menu panel that
+   * opens from it) above the page. */
+  z-index: 10002;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 240px;
+  height: 100vh;
+  padding: 24px 14px;
+  box-sizing: border-box;
+  background: var(--surface);
+  font-family: var(--font);
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px;
+  color: var(--text) !important;
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.sidebar__brand img {
+  border-radius: 8px;
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  color: var(--text) !important;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color .15s ease;
+}
+
+.sidebar__item:hover {
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+}
+
+.sidebar__item.is-active {
+  background: var(--bg);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(15, 17, 21, .08);
+}
+
+.sidebar__icon {
+  display: inline-flex;
+  color: var(--text);
+}
+
+.sidebar__label {
+  flex: 1;
+}
+
+.sidebar__badge {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  background: var(--surface2);
+  color: var(--muted);
+}
+
+.sidebar__item[data-tint="pink"] .sidebar__badge { background: var(--t-pink); color: var(--t-pink-fg); }
+.sidebar__item[data-tint="violet"] .sidebar__badge { background: var(--t-violet); color: var(--t-violet-fg); }
+.sidebar__item[data-tint="blue"] .sidebar__badge { background: var(--t-blue); color: var(--t-blue-fg); }
+.sidebar__item[data-tint="cyan"] .sidebar__badge { background: var(--t-cyan); color: var(--t-cyan-fg); }
+.sidebar__item[data-tint="yellow"] .sidebar__badge { background: var(--t-yellow); color: var(--t-yellow-fg); }
+
+.sidebar__footer {
+  margin-top: auto;
+  padding: 0 4px;
+}

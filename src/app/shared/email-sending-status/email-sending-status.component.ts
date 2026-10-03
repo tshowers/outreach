@@ -22,6 +22,8 @@ import { OutreachApiService } from '../../services/outreach-api.service';
 export class EmailSendingStatusComponent implements OnChanges {
 
   @Input() userId!: string;
+  /** One pill - "Ready to Send · 100 left today" - for a page header. */
+  @Input() compact = false;
   emailState!: any;
 
   constructor (

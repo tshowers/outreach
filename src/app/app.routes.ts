@@ -89,6 +89,12 @@ export const routes: Routes = [
       import( './features/maya-day/maya-day.component' ).then( ( m ) => m.MayaDayComponent ),
   },
   {
+    path: 'needs-you',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import( './features/needs-you/needs-you.component' ).then( ( m ) => m.NeedsYouComponent ),
+  },
+  {
     path: 'signal-engine',
     canActivate: [authGuard],
     loadComponent: () =>

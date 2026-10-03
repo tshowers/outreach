@@ -1,6 +1,5 @@
 import { Component, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { GetTheAppBannerComponent } from '../../shared/get-the-app-banner/get-the-app-banner.component';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
@@ -12,14 +11,14 @@ import { LoggerService } from '../../services/logger.service';
 import { OutreachEntitlementService } from '../../services/outreach-entitlement.service';
 import { OutreachPageActionsService } from '../../services/outreach-page-actions.service';
 import { getModuleInstallConfig } from '../../shared/utils/module-install-config.util';
-import { ArcGaugeComponent, ArcGaugeTone } from '../../shared/arc-gauge/arc-gauge.component';
+import { ArcGaugeTone } from '../../shared/arc-gauge/arc-gauge.component';
 import { BusinessSymptom, ReliefStatus, SeverityLevel } from '../../models/business-symptom.model';
-import { CockpitCommandDeckComponent, CockpitCommandDeckLink } from '../../shared/cockpit-command-deck/cockpit-command-deck.component';
+import { CockpitCommandDeckLink } from '../../shared/cockpit-command-deck/cockpit-command-deck.component';
 import { CockpitBrowseModeBannerComponent } from '../../shared/cockpit-browse-mode-banner/cockpit-browse-mode-banner.component';
 import { PageAction } from '../../models/page-actions.models';
-import { StatusLedComponent } from '../../shared/status-led/status-led.component';
 import { buildCockpitDiagnosisRows, CockpitDiagnosisRowVm } from '../../shared/utils/cockpit-diagnosis-board.util';
 import { MomentumThread } from '../../models/momentum-thread.model';
+import { isNeedsYou } from '../../shared/utils/needs-you.util';
 
 /**
  * Ported from features/email/pages/outreach-home/. Two real trims beyond
@@ -51,7 +50,7 @@ import { MomentumThread } from '../../models/momentum-thread.model';
 @Component( {
   selector: 'app-outreach-home',
   standalone: true,
-  imports: [CommonModule, GetTheAppBannerComponent, RouterModule, BackToTopComponent, ArcGaugeComponent, CockpitCommandDeckComponent, CockpitBrowseModeBannerComponent, StatusLedComponent],
+  imports: [CommonModule, RouterModule, BackToTopComponent, CockpitBrowseModeBannerComponent],
   templateUrl: './outreach-home.component.html',
   styleUrl: './outreach-home.component.css'
 } )
@@ -97,6 +96,17 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
   growthAppStatusVm = 'TODD is standing by. Connect Outreach to light up diagnosis, treatment, relief, and proof.';
   visibleGrowthSymptoms: BusinessSymptom[] = [];
   diagnosisRowsVm: CockpitDiagnosisRowVm[] = [];
+
+  // Home (design 4b).
+  greeting = 'Welcome back';
+  todayLabel = '';
+  userFirstName = '';
+  needsYouRows: Array<{ id: string; initials: string; name: string; reason: string; age: string; }> = [];
+  draftsCount = 0;
+  pipeline = { activeThreads: 0, draftReady: 0, stalledWaiting: 0, hotLeads: 0, warmLeads: 0, queued: 0, sending: 0 };
+  brokenMailboxAddress = '';
+  mayaDayLine = '';
+  activityGroups: Array<{ title: string; rows: Array<{ title: string; body: string; count: number; tint: string; icon: string; }>; }> = [];
 
   private readonly guestGrowthSymptoms: BusinessSymptom[] = [
     {
@@ -198,6 +208,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.authService.getUser().subscribe( user => {
         this.userEmail = user?.email || null;
+        this.userFirstName = String( user?.displayName || '' ).trim().split( /\s+/ )[0] || '';
         this.refreshTemplateState();
         this.publishPageContext();
       } )
@@ -557,11 +568,83 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
       this.hotLeadsCount = summary?.hotLeads || 0;
       this.warmLeadsCount = summary?.warmLeads || 0;
       this.queuedActionsCount = summary?.queuedActions || 0;
+      this.pipeline = {
+        activeThreads: summary?.activeThreads || 0,
+        draftReady: summary?.draftReady || 0,
+        stalledWaiting: summary?.stalledWaiting || 0,
+        hotLeads: summary?.hotLeads || 0,
+        warmLeads: summary?.warmLeads || 0,
+        queued: summary?.queuedActions || 0,
+        sending: summary?.sending || 0
+      };
+      void this.loadHomeExtras( tenantId );
     } catch ( error ) {
       this.logger.warn( '[OutreachHome] loadGrowthPageExtras:failed', error );
     } finally {
       this.refreshTemplateState();
     }
+  }
+
+  /** Maya's day (the Activity feed) and the mailbox status, for Home. */
+  private async loadHomeExtras ( tenantId: string ): Promise<void> {
+    const opts = { tenantId, userId: this.userId || undefined, userEmail: this.userEmail || undefined };
+    const [mayaDay, mailboxes] = await Promise.all( [
+      firstValueFrom( this.outreachApi.getMayaDay( opts ) ).catch( () => null ),
+      firstValueFrom( this.outreachApi.listMailboxes( opts ) ).catch( () => null )
+    ] );
+    const day = mayaDay?.data;
+    if ( day ) {
+      const parts = [
+        day.emailsSent ? `${ day.emailsSent } sent` : '',
+        day.repliesReceived ? `${ day.repliesReceived } ${ day.repliesReceived === 1 ? 'reply' : 'replies' }` : '',
+        day.draftsWaiting ? `${ day.draftsWaiting } drafts waiting` : ''
+      ].filter( Boolean );
+      this.mayaDayLine = parts.join( ' · ' );
+      this.activityGroups = this.groupActivity( day.activity || [] );
+    }
+    const broken = ( mailboxes?.data || [] ).find( box => box.lastSyncStatus === 'failed' && box.status !== 'disconnected' );
+    this.brokenMailboxAddress = broken?.emailAddress || '';
+  }
+
+  /** Day groups, with the same event recorded twice merged into "×2". */
+  private groupActivity ( items: Array<{ category: string; title: string; body: string; createdAt: string; }> ) {
+    const icons: Record<string, { tint: string; icon: string; }> = {
+      replies: { tint: 'blue', icon: '↩' },
+      mailbox: { tint: 'yellow', icon: '!' },
+      catalyst: { tint: 'cyan', icon: '⚡' },
+      maya: { tint: 'green', icon: '✦' },
+      sending_approved: { tint: 'green', icon: '✓' }
+    };
+    const groups: Array<{ title: string; rows: Array<{ title: string; body: string; count: number; tint: string; icon: string; }>; }> = [];
+    const today = new Date().toDateString();
+    const yesterday = new Date( Date.now() - 86400000 ).toDateString();
+    for ( const item of items ) {
+      const date = new Date( item.createdAt );
+      const key = date.toDateString();
+      const title = key === today ? 'Today' : key === yesterday ? 'Yesterday' : date.toLocaleDateString( undefined, { weekday: 'long', month: 'short', day: 'numeric' } );
+      let group = groups[groups.length - 1];
+      if ( !group || group.title !== title ) {
+        group = { title, rows: [] };
+        groups.push( group );
+      }
+      const existing = group.rows.find( row => row.title === item.title && row.body === item.body );
+      if ( existing ) {
+        existing.count += 1;
+      } else {
+        const look = icons[item.category] || { tint: 'neutral', icon: '•' };
+        group.rows.push( { title: item.title, body: item.body, count: 1, ...look } );
+      }
+    }
+    return groups;
+  }
+
+  private shortAge ( iso: string | undefined ): string {
+    const time = iso ? Date.parse( iso ) : NaN;
+    if ( !Number.isFinite( time ) ) return '';
+    const minutes = Math.max( 0, ( Date.now() - time ) / 60000 );
+    if ( minutes < 60 ) return `${ Math.max( 1, Math.round( minutes ) ) }m`;
+    if ( minutes < 1440 ) return `${ Math.round( minutes / 60 ) }h`;
+    return `${ Math.round( minutes / 1440 ) }d`;
   }
 
   private isSameLocalDay ( iso: string | undefined, timezone: string ): boolean {
@@ -590,6 +673,23 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
 
   private refreshTemplateState (): void {
     const threads = this.latestThreads;
+    const hour = new Date().getHours();
+    this.greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    this.todayLabel = new Date().toLocaleDateString( undefined, { weekday: 'short', month: 'short', day: 'numeric' } );
+    this.needsYouRows = threads
+      .filter( isNeedsYou )
+      .sort( ( a, b ) => String( b.latestReplyAt || b.lastSentAt || '' ).localeCompare( String( a.latestReplyAt || a.lastSentAt || '' ) ) )
+      .map( thread => {
+        const name = String( thread.contactName || thread.emailAddress || 'Someone' ).trim();
+        return {
+          id: String( thread.contactId || thread.id ),
+          initials: name.split( /\s+/ ).slice( 0, 2 ).map( part => part[0] || '' ).join( '' ).toUpperCase(),
+          name,
+          reason: String( thread.replySummary || thread.needsYouReason?.label || 'Waiting on your decision' ),
+          age: this.shortAge( thread.latestReplyAt || thread.lastSentAt )
+        };
+      } );
+    this.draftsCount = threads.filter( thread => thread.userLane === 'drafts' && !thread.rewriteQueueState ).length;
     const signalThreads = threads.filter( thread => thread.mode !== 'completed' && thread.mode !== 'unsubscribed' );
     const signalThreadBaseCount = signalThreads.length || 1;
     const noOpenCount = signalThreads.filter( thread => thread.signalState === 'no_open' ).length;

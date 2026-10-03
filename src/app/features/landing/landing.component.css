@@ -27,3 +27,185 @@ footer { display:flex; align-items:center; justify-content:space-between; gap:1r
   .site-nav { padding-right:6.5rem; }
 }
 @media (max-width:800px) { .hero { min-height:100svh; } }
+
+/* ---- Find family (design_handoff_outreach 4g / 4h) ---- */
+.outreach-site {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+}
+
+.site-nav .brand span {
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.site-nav .brand img {
+  border-radius: 8px;
+}
+
+.site-nav nav {
+  gap: 12px;
+}
+
+.site-nav .nav-cta,
+.site-nav .nav-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-nav .nav-cta {
+  background: var(--surface);
+  color: var(--text) !important;
+}
+
+.site-nav .nav-open {
+  background: var(--blue);
+  color: #fff !important;
+}
+
+.hero .eyebrow {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--t-blue);
+  color: var(--t-blue-fg);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+.hero h1 {
+  font-family: var(--font) !important;
+  font-size: clamp(46px, 7vw, 88px);
+  font-weight: 700;
+  line-height: .98;
+  letter-spacing: -0.05em;
+}
+
+.hero h1 em {
+  color: var(--blue);
+  font-style: normal;
+}
+
+.hero-lead {
+  color: var(--muted);
+  font-size: 19px;
+}
+
+.hero-actions {
+  gap: 12px;
+}
+
+.hero .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 56px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.hero .button-primary {
+  background: var(--blue);
+  color: #fff !important;
+}
+
+.hero .button-surface {
+  background: var(--surface);
+  color: var(--text) !important;
+}
+
+.hero-how {
+  display: inline-block;
+  margin-top: 20px;
+  color: var(--blue-ink) !important;
+  font-weight: 700;
+}
+
+.made-by {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 40px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.made-by strong {
+  color: var(--text);
+}
+
+/* The illustration over a soft blue circle. */
+.hero-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.hero-art::before {
+  content: '';
+  position: absolute;
+  width: min(440px, 80%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--t-blue);
+}
+
+.hero-art img {
+  position: relative;
+}
+
+.eyebrow {
+  color: var(--blue-ink);
+}
+
+.section-intro h2,
+.closing h2 {
+  font-family: var(--font) !important;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.metrics article,
+.testimonial-grid article,
+.faq-list details {
+  border: 0;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.closing {
+  border-radius: 24px;
+  background: var(--t-blue);
+  color: var(--t-blue-fg);
+}
+
+@media (max-width: 760px) {
+  .hero .button-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Phones: the logo and the Menu only (4h). */
+  .site-nav .nav-cta,
+  .site-nav .nav-open {
+    display: none;
+  }
+}

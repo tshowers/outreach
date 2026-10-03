@@ -545,3 +545,111 @@ app-tab-bar {
 .refresh-button:disabled {
   opacity: 0.6;
 }
+
+/* ---- Find family (design_handoff_outreach 4d) ---- */
+:host {
+  font-family: var(--font);
+  color: var(--text);
+}
+
+.page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 16px 36px 48px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 34px;
+}
+
+.page-header .subtitle {
+  color: var(--muted);
+}
+
+.summary-strip {
+  border: 0;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pill--big {
+  height: 44px;
+  padding: 0 18px;
+  font-size: 15px;
+}
+
+.pill--primary {
+  background: var(--blue);
+  color: #fff;
+}
+
+.pill--danger {
+  color: var(--danger);
+}
+
+.pill:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.pill kbd {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  color: inherit;
+  font-family: var(--font);
+  font-size: 11px;
+  box-shadow: none;
+}
+
+.draft-error {
+  color: var(--danger);
+  font-size: 14px;
+}
+
+/* Drafts now live in the iOS app: one line pointing there. */
+.drafts-in-app {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 0;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: var(--t-violet);
+  color: var(--t-violet-fg) !important;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.drafts-in-app__count {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.drafts-in-app span:nth-child(2) {
+  flex: 1;
+}
+
+@media (max-width: 1000px) {
+  .page {
+    padding: 8px 16px 32px;
+  }
+}

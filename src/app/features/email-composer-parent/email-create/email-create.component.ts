@@ -138,6 +138,8 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
   private currentReasonSubscription!: import( 'rxjs' ).Subscription;
   private handoffSubscription!: import( 'rxjs' ).Subscription;
   private assistantDraftApplySubscription!: import( 'rxjs' ).Subscription;
+  /** Cc and Bcc stay folded behind "Cc · Bcc" until needed (design 4m). */
+  showCcBcc = false;
   private assistantComposerContactApplySubscription!: import( 'rxjs' ).Subscription;
   showCCBCC = false;
 

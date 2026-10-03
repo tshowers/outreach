@@ -108,41 +108,7 @@
   color: #00bfff;
 }
 
-/* Dark mode styles */
-:host-context(html.dark) {
-  .editor-container {
-    background-color: #2a2a2a;
-  }
-
-  .btn-icon {
-    background-color: #333;
-    color: #f0f0f0;
-  }
-
-  .btn-icon:hover {
-    background-color: #444;
-  }
-
-  .editor {
-    background-color: #1a1a1a;
-    color: #f0f0f0 !important;
-    border: 1px solid #444;
-  }
-
-  .code-editor {
-    background-color: #1a1a1a;
-    color: #f0f0f0;
-    border: 1px solid #444;
-  }
-
-  .progress-bar {
-    background-color: #00bfff;
-  }
-
-  .tone-switch span {
-    color: #f0f0f0;
-  }
-}
+/* Dark mode comes from the global Find tokens (html.dark). */
 
 .grammar-highlight {
   background: #ffeb3b;
@@ -186,4 +152,105 @@
   background-color: #15221c;
   border-color: var(--site-line);
   color: var(--site-ink) !important;
+}
+
+/* ---- Find family (design 4m) ---- */
+.editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-family: var(--font);
+}
+
+.editor-toolbar__main,
+.editor-toolbar__end,
+.editor-toolbar__more,
+.editor-toolbar__drafts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.editor-toolbar__more,
+.editor-toolbar__drafts {
+  flex-basis: 100%;
+}
+
+.tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 40px;
+  height: 34px;
+  margin: 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tool:hover,
+.tool.is-on {
+  background: var(--surface2);
+}
+
+.tool--select {
+  appearance: auto;
+  padding-right: 8px;
+}
+
+.tool--color input {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+}
+
+.maya-avatar-button__image {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.editor-container {
+  background: transparent !important;
+}
+
+.editor-container .editor {
+  min-height: 380px;
+  padding: 20px 22px !important;
+  border: 1px solid var(--surface2) !important;
+  border-radius: 18px;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.editor-container .editor:focus {
+  outline: none;
+  border-color: var(--blue) !important;
+}
+
+.editor-container .code-editor {
+  width: 100%;
+  min-height: 380px;
+  padding: 16px !important;
+  border: 1px solid var(--surface2) !important;
+  border-radius: 18px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 13px;
 }

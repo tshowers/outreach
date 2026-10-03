@@ -386,6 +386,8 @@ export class EmailEditorComponent
   readonly mayaAvatarSrc = 'assets/marketing/marketing-director-avatar.png';
 
   isCodeView: boolean = false;
+  /** The less-used formatting tools, behind More (design 4m). */
+  showMoreTools = false;
 
   isUsingTemplate: boolean = false;
 

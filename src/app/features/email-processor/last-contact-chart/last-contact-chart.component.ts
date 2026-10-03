@@ -17,6 +17,12 @@ export class LastContactChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() userId!: string;
   @Input() processingCount: number = 25;
   @Output() cohortReady = new EventEmitter<EmailerContactLite[]>();
+  /** The figures Catalyst's "Choose who" card shows (design 4l). */
+  @Output() stats = new EventEmitter<{ eligible: number; staged: number; oldest: number; urgent: number; }>();
+  /** Everyone eligible, stalest first - the denominator for the batch. */
+  eligibleCount = 0;
+  /** Who goes first, for the "Up next" list. */
+  upNext: Array<{ name: string; company: string; initials: string; days: number; }> = [];
   isLoading: boolean = false;
 
   @ViewChild( 'suggestion', { static: true } ) suggestionRef!: ElementRef<HTMLDivElement>;
@@ -161,7 +167,14 @@ export class LastContactChartComponent implements OnInit, OnDestroy, OnChanges {
       } )
       .sort( ( a, b ) => b.chartEntry.daysSinceLastContact - a.chartEntry.daysSinceLastContact );
 
+    this.eligibleCount = processed.length;
     const processingSubset = processed.slice( 0, safeProcessingCount );
+    this.upNext = processingSubset.slice( 0, 8 ).map( item => ( {
+      name: item.chartEntry.name,
+      company: this.getCompanyNameForQueue( item.contact ),
+      initials: item.chartEntry.name.split( /\s+/ ).slice( 0, 2 ).map( ( part: string ) => part[0] || '' ).join( '' ).toUpperCase(),
+      days: item.chartEntry.daysSinceLastContact
+    } ) );
     const chartSubset = processed.slice( 0, 25 );
 
     this.contactsToPass = processingSubset.map( item => item.contact );
@@ -190,6 +203,10 @@ export class LastContactChartComponent implements OnInit, OnDestroy, OnChanges {
     this.stalenessSignal = Math.min( 100, Math.round( ( this.oldestDays / 60 ) * 100 ) );
     this.relationshipSignal = Math.min( 100, Math.round( ( this.averageDays / 45 ) * 100 ) );
     this.readinessSignal = Math.min( 100, Math.round( ( this.queueReadyCount / totalRows ) * 100 ) );
+
+    const figures = { eligible: this.eligibleCount, staged: this.queueReadyCount, oldest: this.oldestDays, urgent: this.urgentCount };
+    // After this change-detection pass: the parent shows these too.
+    queueMicrotask( () => this.stats.emit( figures ) );
 
     this.topCohorts = rows.slice( 0, 4 ).map( row => ( {
       label: row.name,

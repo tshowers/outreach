@@ -1,162 +1,113 @@
 <div class="container-fluid tal-app todd-page" *ngIf="!isProcessing">
   <div class="inbox-access-shell">
-    <section class="inbox-access-hero" *ngIf="shouldShowConnectedHero">
-      <div class="inbox-access-hero-copy">
-        <div class="inbox-access-eyebrow">Inbox Access</div>
-        <h1>Keep your mailbox connection and live inbox in one workspace.</h1>
-        <p>Connect a mailbox, sync recent replies, open full message detail, and send short human follow-ups without burying this inside signature settings.</p>
-      </div>
-      <div class="inbox-access-hero-actions">
-        <button type="button" class="btn-todd" (click)="openOutboxDrafts()">Open Outbox Drafts</button>
-      </div>
-    </section>
     <section class="inbox-access-card">
-      <div class="inbox-access-topbar">
-        <div class="inbox-access-tabbar" role="tablist" aria-label="Inbox access sections">
-          <button type="button" class="inbox-access-tab" [class.active]="activeTab === 'inbox'" (click)="selectTab('inbox')"> Inbox </button>
-          <button type="button" class="inbox-access-tab" [class.active]="activeTab === 'settings'" (click)="selectTab('settings')"> Inbox Settings </button>
+      <header class="inbox-head">
+        <div>
+          <h1>{{ activeTab === 'settings' ? 'Inbox settings' : 'Inbox' }}</h1>
+          <p *ngIf="mailboxAccess.connectedMailbox">
+            {{ mailboxAccess.connectedMailbox.emailAddress }}<ng-container *ngIf="mailboxAccess.connectedMailbox.lastSyncAt"> · {{ syncedAgo(mailboxAccess.connectedMailbox.lastSyncAt) }}</ng-container>
+          </p>
         </div>
-        <div class="inbox-access-topbar-actions">
-          <button type="button" class="btn-todd" *ngIf="shouldShowHeaderSendReply" (click)="mailboxAccess.sendMailboxReply()" [disabled]="mailboxAccess.isReplyingMailbox || !mailboxAccess.canSendMailboxReply">
-            {{ mailboxAccess.isReplyingMailbox ? 'Sending...' : 'Send reply' }}
-          </button>
-          <button type="button" class="btn-todd btn-todd-secondary" *ngIf="activeTab === 'inbox' && mailboxAccess.selectedMailboxMessage" (click)="deleteSelectedMessage()" [disabled]="mailboxAccess.isDeletingMailboxMessage">
-            {{ mailboxAccess.isDeletingMailboxMessage ? 'Deleting...' : 'Delete message' }}
-          </button>
-          <button type="button" class="btn-todd" (click)="openOutboxDrafts()">Open Outbox Drafts</button>
+        <div class="inbox-head__actions">
+          <select class="inbox-head__select" *ngIf="activeTab === 'inbox' && mailboxAccess.mailboxConfigs.length > 1" [ngModel]="mailboxAccess.connectedMailbox?.id" (ngModelChange)="selectMailboxById($event)" aria-label="Inbox">
+            <option *ngFor="let mailbox of mailboxAccess.mailboxConfigs" [ngValue]="mailbox.id">{{ mailbox.emailAddress }}{{ mailbox.isPrimary ? ' · Primary' : '' }}</option>
+          </select>
+          <button type="button" class="pill" *ngIf="activeTab === 'inbox' && mailboxAccess.connectedMailbox" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">{{ mailboxAccess.isSyncingMailbox ? 'Syncing…' : 'Sync now' }}</button>
+          <button type="button" class="pill" (click)="selectTab(activeTab === 'inbox' ? 'settings' : 'inbox')">{{ activeTab === 'inbox' ? 'Settings' : 'Back to Inbox' }}</button>
         </div>
-      </div>
-      <div *ngIf="activeTab === 'inbox'" class="mailbox-card">
-        <div class="mailbox-card-header">
-          <div>
-            <h5>Inbox</h5>
-            <div class="field-help">Review the latest synced messages, open the full conversation, and send a direct reply from the connected mailbox.</div>
-          </div>
-          <div class="mailbox-status-badge" [class.mailbox-status-badge--connected]="mailboxAccess.hasMailboxConnection">
-            {{ mailboxAccess.hasMailboxConnection ? 'Connected' : 'Not connected' }}
-          </div>
-        </div>
-        <div class="mailbox-connected-summary" *ngIf="mailboxAccess.mailboxConfigs.length > 1">
-          <div class="mailbox-summary-row">
-            <span>Viewing inbox</span>
-            <select class="form-select" [ngModel]="mailboxAccess.connectedMailbox?.id" (ngModelChange)="selectMailboxById($event)">
-              <option *ngFor="let mailbox of mailboxAccess.mailboxConfigs" [ngValue]="mailbox.id">
-                {{ mailbox.emailAddress }}{{ mailbox.isPrimary ? ' · Primary' : '' }}
-              </option>
-            </select>
-          </div>
-        </div>
-        <div class="mailbox-empty mailbox-empty--panel" *ngIf="mailboxAccess.loadingMailboxes">Loading mailbox connection...</div>
-        <div class="mailbox-empty mailbox-empty--panel" *ngIf="!mailboxAccess.loadingMailboxes && !mailboxAccess.connectedMailbox"> Connect a mailbox in <strong>Inbox Settings</strong> to start syncing messages here. </div>
+      </header>
+      <div *ngIf="activeTab === 'inbox'" class="inbox">
+        <p class="inbox__note" *ngIf="mailboxAccess.loadingMailboxes">Loading your inbox…</p>
+        <p class="inbox__note" *ngIf="!mailboxAccess.loadingMailboxes && !mailboxAccess.connectedMailbox">Connect a mailbox in <button type="button" class="link" (click)="selectTab('settings')">Settings</button> to see replies here.</p>
+        <p class="inbox__note" *ngIf="mailboxAccess.mailboxSyncStatus">{{ mailboxAccess.mailboxSyncStatus }}</p>
         <ng-container *ngIf="mailboxAccess.connectedMailbox">
-          <div class="mailbox-connected-summary">
-            <div class="mailbox-summary-row">
-              <span>{{ mailboxAccess.connectedMailbox.displayName || mailboxAccess.connectedMailbox.emailAddress }}</span>
-              <strong>{{ mailboxAccess.connectedMailbox.emailAddress }}</strong>
-            </div>
-            <div class="mailbox-summary-meta">
-              <span>{{ mailboxAccess.connectedMailbox.providerLabel || mailboxAccess.connectedMailbox.provider }}</span>
-              <span *ngIf="mailboxAccess.connectedMailbox.lastSyncAt">Last sync {{ mailboxAccess.connectedMailbox.lastSyncAt | date:'medium' }}</span>
-              <span *ngIf="mailboxAccess.connectedMailbox.lastConnectionStatus">Connection {{ mailboxAccess.connectedMailbox.lastConnectionStatus }}</span>
-            </div>
-          </div>
-          <div class="mailbox-actions">
-            <button type="button" class="btn-todd" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">
-              {{ mailboxAccess.isSyncingMailbox ? 'Syncing...' : 'Sync now' }}
-            </button>
-            <button type="button" class="btn-todd btn-todd-secondary" (click)="selectTab('settings')"> Open settings </button>
-          </div>
-          <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxSyncStatus">{{ mailboxAccess.mailboxSyncStatus }}</div>
-          <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxReplyStatus">{{ mailboxAccess.mailboxReplyStatus }}</div>
-          <div class="mailbox-inbox-shell">
-            <div class="mailbox-inbox-list">
-              <div class="mailbox-panel-title">Recent Inbox</div>
-              <div class="mailbox-empty" *ngIf="!mailboxAccess.loadingMailboxMessages && mailboxAccess.mailboxMessages.length === 0">No recent inbox messages yet.</div>
-              <button type="button" class="mailbox-message-row" *ngFor="let message of mailboxAccess.mailboxMessages; trackBy: trackMessage" (click)="mailboxAccess.openMailboxMessage(message)" [class.mailbox-message-row--active]="mailboxAccess.selectedMailboxMessage?.id === message.id">
-                <div class="mailbox-message-row-top">
-                  <strong>{{ message.fromName || message.fromEmail }}</strong>
-                  <span>{{ message.receivedAt | date:'short' }}</span>
-                </div>
-                <div class="mailbox-summary-meta" *ngIf="message.classification || getResponderBadgeLabel(message)">
-                  <span *ngIf="message.classification">Intent: {{ message.classification.replace('_', ' ') }}</span>
-                  <span *ngIf="getResponderBadgeLabel(message)">{{ getResponderBadgeLabel(message) }}</span>
-                </div>
-                <div class="mailbox-message-subject">{{ message.subject }}</div>
-                <div class="mailbox-message-preview">{{ message.preview }}</div>
-              </button>
-            </div>
-            <div class="mailbox-inbox-detail">
-              <div class="mailbox-empty" *ngIf="mailboxAccess.loadingMailboxDetail">Loading message...</div>
-              <div class="mailbox-empty" *ngIf="!mailboxAccess.loadingMailboxDetail && !mailboxAccess.selectedMailboxMessage">Choose a message to read it here.</div>
-              <div *ngIf="mailboxAccess.selectedMailboxMessage">
-                <div class="mailbox-panel-title">{{ mailboxAccess.selectedMailboxMessage.subject }}</div>
-                <div class="mailbox-detail-meta">
-                  <div><strong>From:</strong> {{ mailboxAccess.selectedMailboxMessage.fromName || mailboxAccess.selectedMailboxMessage.fromEmail }}</div>
-                  <div><strong>Received:</strong> {{ mailboxAccess.selectedMailboxMessage.receivedAt | date:'medium' }}</div>
-                </div>
-                <div class="mailbox-summary-meta" *ngIf="mailboxAccess.selectedMailboxMessage.classification || mailboxAccess.selectedMailboxMessage.signalSummary || getResponderBadgeLabel(mailboxAccess.selectedMailboxMessage)">
-                  <span *ngIf="mailboxAccess.selectedMailboxMessage.classification">Intent: {{ mailboxAccess.selectedMailboxMessage.classification.replace('_', ' ') }}</span>
-                  <span *ngIf="getResponderBadgeLabel(mailboxAccess.selectedMailboxMessage)">{{ getResponderBadgeLabel(mailboxAccess.selectedMailboxMessage) }}</span>
-                  <span *ngIf="mailboxAccess.selectedMailboxMessage.recommendedAction">Next: {{ mailboxAccess.selectedMailboxMessage.recommendedAction.replace('_', ' ') }}</span>
-                </div>
-                <div class="mailbox-status-copy" *ngIf="mailboxAccess.selectedMailboxMessage.signalSummary">{{ mailboxAccess.selectedMailboxMessage.signalSummary }}</div>
-                <div class="mailbox-status-copy" *ngIf="getResponderReasonLabel(mailboxAccess.selectedMailboxMessage)">Responder note: {{ getResponderReasonLabel(mailboxAccess.selectedMailboxMessage) }}</div>
-                <div class="mailbox-message-body" *ngIf="mailboxAccess.selectedMailboxMessage.text; else mailboxHtmlMessage">
-                  {{ mailboxAccess.selectedMailboxMessage.text }}
-                </div>
-                <ng-template #mailboxHtmlMessage>
-                  <div class="mailbox-message-body" [innerHTML]="mailboxAccess.selectedMailboxMessage.html || ''"></div>
-                </ng-template>
-                <div class="mailbox-reply-composer">
-                  <div class="mailbox-panel-title">Reply</div>
-                  <div class="mailbox-status-copy" *ngIf="mailboxAccess.selectedMailboxMessage.replyDraftBody && mailboxAccess.selectedMailboxMessage.responderDecision === 'draft_only'">
-                    {{ hasLinkedOutboxDraft(mailboxAccess.selectedMailboxMessage)
-                      ? 'TODD already prepared a suggested reply for this message. It is loaded below and linked to Outbox review.'
-                      : 'TODD prepared a suggested reply for this inbox message and loaded it below, but it is not attached to an Outbox thread yet.' }}
-                  </div>
-                  <div class="mailbox-inline-actions" *ngIf="canOpenSelectedMessageDraft(mailboxAccess.selectedMailboxMessage)">
-                    <button type="button" class="btn-todd btn-todd-secondary" (click)="openSelectedMessageDraft()">
-                      Open matching review
-                    </button>
-                  </div>
-                  <div class="mailbox-status-copy" *ngIf="isMailboxOnlyResponderDraft(mailboxAccess.selectedMailboxMessage)">
-                    This one will not show up in Outbox Drafts until it is linked to a Momentum thread.
-                  </div>
-                  <div class="form-group profile-row">
-                    <div class="profile-label">Subject</div>
-                    <input class="form-control" [(ngModel)]="mailboxAccess.mailboxReplyDraft.subject" [ngModelOptions]="{standalone: true}" type="text" />
-                  </div>
-                  <div class="form-group profile-row">
-                    <div class="profile-label">Reply format</div>
-                    <div class="mailbox-reply-mode-toggle" role="tablist" aria-label="Reply format">
-                      <button type="button" class="mailbox-reply-mode-button" [class.active]="mailboxAccess.mailboxReplyDraft.replyMode === 'text'" (click)="mailboxAccess.setReplyMode('text')">
-                        Text only
-                      </button>
-                      <button type="button" class="mailbox-reply-mode-button" [class.active]="mailboxAccess.mailboxReplyDraft.replyMode === 'rich'" (click)="mailboxAccess.setReplyMode('rich')">
-                        Rich HTML
-                      </button>
-                    </div>
-                  </div>
-                  <div class="form-group profile-row" *ngIf="mailboxAccess.mailboxReplyDraft.replyMode === 'text'; else richReplyComposer">
-                    <div class="profile-label">Reply</div>
-                    <textarea class="form-control mailbox-reply-textarea" [(ngModel)]="mailboxAccess.mailboxReplyDraft.textBody" [ngModelOptions]="{standalone: true}" rows="6" placeholder="Keep it short and human."></textarea>
-                  </div>
-                  <ng-template #richReplyComposer>
-                    <div class="form-group profile-row">
-                      <div class="profile-label">Reply</div>
-                      <div class="mailbox-rich-reply-shell">
-                        <app-email-editor
-                          [mode]="'document'"
-                          [htmlContent]="mailboxAccess.mailboxReplyDraft.htmlBody"
-                          (htmlContentChange)="onReplyHtmlChange($event)"
-                          (textContentChange)="onReplyTextFromHtmlChange($event)">
-                        </app-email-editor>
-                      </div>
-                    </div>
-                  </ng-template>
-                </div>
+          <div class="inbox__panes">
+            <aside class="inbox__list" aria-label="Messages">
+              <div class="chips" role="toolbar" aria-label="Filter messages">
+                <button type="button" [class.is-on]="inboxFilter === 'all'" (click)="inboxFilter = 'all'">All</button>
+                <button type="button" [class.is-on]="inboxFilter === 'replies'" (click)="inboxFilter = 'replies'">Replies</button>
+                <button type="button" [class.is-on]="inboxFilter === 'auto'" (click)="inboxFilter = 'auto'">Auto-replies</button>
+                <button type="button" [class.is-on]="inboxFilter === 'bounces'" (click)="inboxFilter = 'bounces'">Bounces</button>
+                <button type="button" class="chips__select" [class.is-on]="selectMode" (click)="toggleSelectMode()" title="Or ⌘-click to pick messages, Shift-click for a range">{{ selectMode ? 'Done' : 'Select' }}</button>
               </div>
-            </div>
+              <div class="selection-bar" *ngIf="selectionActive">
+                <span>{{ selectedMessageIds.size }} selected</span>
+                <button type="button" class="link" (click)="selectAllVisible()">Select all</button>
+                <button type="button" class="link" (click)="clearSelection()" *ngIf="selectedMessageIds.size">Clear</button>
+                <button type="button" class="pill pill--danger" (click)="deleteSelectedMessages()" [disabled]="!selectedMessageIds.size || mailboxAccess.isDeletingMailboxMessage">{{ mailboxAccess.isDeletingMailboxMessage ? 'Deleting…' : 'Delete ' + selectedMessageIds.size }}</button>
+              </div>
+              <p class="inbox__note" *ngIf="!mailboxAccess.loadingMailboxMessages && filteredMessages.length === 0">{{ inboxFilter === 'all' ? 'No recent messages yet.' : 'Nothing here right now.' }}</p>
+              <button type="button" class="message-row" *ngFor="let message of filteredMessages; let i = index; trackBy: trackMessage" (click)="onMessageClick(message, i, $event)" [class.is-current]="!selectionActive && mailboxAccess.selectedMailboxMessage?.id === message.id" [class.is-selected]="selectedMessageIds.has(message.id)" [attr.aria-pressed]="selectionActive ? selectedMessageIds.has(message.id) : null">
+                <span class="message-row__check" *ngIf="selectionActive" aria-hidden="true">{{ selectedMessageIds.has(message.id) ? '✓' : '' }}</span>
+                <span class="message-row__dot" *ngIf="!selectionActive" [class.is-unread]="message.unread" aria-hidden="true"></span>
+                <span class="message-row__main">
+                  <span class="message-row__top">
+                    <strong>{{ message.fromName || message.fromEmail }}</strong>
+                    <span>{{ message.receivedAt | date:'MMM d' }}</span>
+                  </span>
+                  <span class="message-row__subject">{{ message.subject }}</span>
+                  <span class="message-row__summary">
+                    <span class="tag" [attr.data-kind]="kindOf(message)">{{ kindLabel(message) }}</span>
+                    <span>{{ summaryLine(message) }}</span>
+                  </span>
+                </span>
+              </button>
+            </aside>
+
+            <article class="message" *ngIf="mailboxAccess.selectedMailboxMessage as message; else noMessage">
+              <h2 class="message__subject">{{ message.subject }}</h2>
+              <header class="message__from">
+                <span class="badge" aria-hidden="true">{{ initials(message.fromName || message.fromEmail) }}</span>
+                <span class="message__who">
+                  <strong>{{ message.fromName || message.fromEmail }}</strong>
+                  <span>{{ message.fromEmail }} · {{ message.receivedAt | date:'MMM d, y \'at\' h:mm a' }}</span>
+                </span>
+                <span class="tag" [attr.data-kind]="kindOf(message)">{{ kindLabel(message) }}</span>
+                <button type="button" class="pill pill--quiet" (click)="deleteSelectedMessage()" [disabled]="mailboxAccess.isDeletingMailboxMessage">{{ mailboxAccess.isDeletingMailboxMessage ? 'Deleting…' : 'Delete' }}</button>
+              </header>
+
+              <div class="todd-note" *ngIf="message.signalSummary">
+                <div class="todd-note__top">
+                  <span class="todd-note__label">✦ What TODD sees</span>
+                  <span class="todd-note__chip" *ngIf="message.recommendedAction">{{ message.recommendedAction.replace('_', ' ') }}</span>
+                </div>
+                <p>{{ message.signalSummary }}</p>
+                <p class="todd-note__aside" *ngIf="getResponderReasonLabel(message)">{{ getResponderReasonLabel(message) }}</p>
+              </div>
+
+              <div class="message__body" *ngIf="message.text; else mailboxHtmlMessage">{{ readableBody(message) }}</div>
+              <ng-template #mailboxHtmlMessage>
+                <div class="message__body" [innerHTML]="message.html || ''"></div>
+              </ng-template>
+
+              <section class="reply">
+                <h3>Reply</h3>
+                <p class="inbox__note" *ngIf="message.replyDraftBody && message.responderDecision === 'draft_only'">
+                  TODD prepared a suggested reply and loaded it below.
+                  <button type="button" class="link" *ngIf="canOpenSelectedMessageDraft(message)" (click)="openSelectedMessageDraft()">Open the matching draft</button>
+                </p>
+                <div class="reply__box">
+                  <input class="reply__subject" [(ngModel)]="mailboxAccess.mailboxReplyDraft.subject" [ngModelOptions]="{standalone: true}" type="text" aria-label="Subject" />
+                  <div class="reply__modes" role="tablist" aria-label="Reply format">
+                    <button type="button" [class.is-on]="mailboxAccess.mailboxReplyDraft.replyMode === 'text'" (click)="mailboxAccess.setReplyMode('text')">Text</button>
+                    <button type="button" [class.is-on]="mailboxAccess.mailboxReplyDraft.replyMode === 'rich'" (click)="mailboxAccess.setReplyMode('rich')">Rich</button>
+                  </div>
+                  <textarea *ngIf="mailboxAccess.mailboxReplyDraft.replyMode === 'text'; else richReply" class="reply__text" [(ngModel)]="mailboxAccess.mailboxReplyDraft.textBody" [ngModelOptions]="{standalone: true}" rows="5" placeholder="Write a short reply"></textarea>
+                  <ng-template #richReply>
+                    <app-email-editor [mode]="'document'" [htmlContent]="mailboxAccess.mailboxReplyDraft.htmlBody" (htmlContentChange)="onReplyHtmlChange($event)" (textContentChange)="onReplyTextFromHtmlChange($event)"></app-email-editor>
+                  </ng-template>
+                  <div class="reply__foot">
+                    <span class="inbox__note">{{ mailboxAccess.mailboxReplyStatus }}</span>
+                    <button type="button" class="pill pill--primary pill--big" (click)="mailboxAccess.sendMailboxReply()" [disabled]="mailboxAccess.isReplyingMailbox || !mailboxAccess.canSendMailboxReply">{{ mailboxAccess.isReplyingMailbox ? 'Sending…' : 'Send reply' }}</button>
+                  </div>
+                </div>
+              </section>
+            </article>
+            <ng-template #noMessage>
+              <div class="message message--empty">
+                <p class="inbox__note">{{ mailboxAccess.loadingMailboxDetail ? 'Loading message…' : 'Choose a message to read it here.' }}</p>
+              </div>
+            </ng-template>
           </div>
         </ng-container>
       </div>

@@ -65,7 +65,8 @@
     </div>
     <div class="assistant-confirm__actions">
       <button type="button" class="btn-todd" (click)="confirmAction()">Apply</button>
-      <button type="button" class="btn-todd ghost" (click)="cancelAction()">Not now</button>
+      <button type="button" class="btn-todd ghost" *ngIf="!docked" (click)="cancelAction()">Not now</button>
+      <button type="button" class="btn-todd ghost" *ngIf="docked" (click)="retryLast()">Try again</button>
     </div>
   </div>
   <div class="assistant-bar d-flex align-items-center gap-2 w-100">

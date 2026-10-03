@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { take } from 'rxjs';
+import { firstValueFrom, take } from 'rxjs';
 import { LoggerService } from './logger.service';
 import { OutreachNotificationService } from './outreach-notification.service';
 import {
@@ -385,6 +385,40 @@ export class MailboxAccessService {
           );
         }
       });
+  }
+
+  /**
+   * Deletes several messages from the connected mailbox, one request each.
+   * Returns how many went; the rest stay in the list.
+   */
+  async deleteMailboxMessages(messageIds: string[]): Promise<{ deleted: number; failed: number }> {
+    const mailboxId = this.connectedMailbox?.id;
+    if (!mailboxId || !messageIds.length || this.isDeletingMailboxMessage) return { deleted: 0, failed: 0 };
+
+    this.isDeletingMailboxMessage = true;
+    this.mailboxReplyStatus = `Deleting ${messageIds.length} message${messageIds.length === 1 ? '' : 's'}...`;
+    const deletedIds = new Set<string>();
+    for (const messageId of messageIds) {
+      try {
+        await firstValueFrom(this.outreachApi.deleteMailboxMessage(mailboxId, messageId, this.getMailboxRequestOptions()));
+        deletedIds.add(messageId);
+      } catch (error) {
+        this.logger.error('Unable to delete mailbox message:', error);
+      }
+    }
+
+    this.isDeletingMailboxMessage = false;
+    this.mailboxMessages = this.mailboxMessages.filter((message) => !deletedIds.has(message.id));
+    if (this.selectedMailboxMessage && deletedIds.has(this.selectedMailboxMessage.id)) {
+      this.selectedMailboxMessage = null;
+      this.mailboxReplyDraft = this.createMailboxReplyDraft();
+    }
+    const failed = messageIds.length - deletedIds.size;
+    this.mailboxReplyStatus = failed
+      ? `Deleted ${deletedIds.size}. ${failed} couldn't be deleted.`
+      : `Deleted ${deletedIds.size} message${deletedIds.size === 1 ? '' : 's'}.`;
+    this.notificationService.show(failed ? 'Error' : 'Success', this.mailboxReplyStatus, failed ? 'error' : 'success');
+    return { deleted: deletedIds.size, failed };
   }
 
   sendMailboxReply(): void {

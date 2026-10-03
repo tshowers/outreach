@@ -1,0 +1,94 @@
+<div class="needs-you todd-page">
+  <header class="needs-you__head">
+    <div>
+      <h1>Needs you</h1>
+      <p>People waiting on a decision from you: someone replied, or Maya stopped and handed the conversation back. Everything Maya is still handling herself is in <a routerLink="/signal-engine" [queryParams]="{ tab: 'plan' }">Plan</a>.</p>
+    </div>
+    <button type="button" class="pill" (click)="load()" [disabled]="loading">{{ loading ? 'Refreshing…' : 'Refresh' }}</button>
+  </header>
+
+  <p class="note note--error" *ngIf="error">{{ error }}</p>
+  <p class="note" *ngIf="loading && !items.length">Loading…</p>
+
+  <div class="caught-up" *ngIf="!loading && !items.length && !error">
+    <span aria-hidden="true">✓</span>
+    <h2>You're all caught up</h2>
+    <p>When someone replies or Maya needs you, they'll show up here.</p>
+  </div>
+
+  <div class="needs-you__panes" *ngIf="items.length">
+    <aside class="list" aria-label="Waiting on you">
+      <span class="eyebrow">{{ items.length }} waiting</span>
+      <button type="button" class="row" *ngFor="let item of items" [class.is-current]="item.contactId === selectedId" (click)="select(item)">
+        <span class="badge" aria-hidden="true">{{ initials(item.contactName) }}</span>
+        <span class="row__main">
+          <span class="row__top"><strong>{{ item.contactName || item.emailAddress }}</strong><span>{{ age(item.latestReplyAt) }}</span></span>
+          <span class="row__company" *ngIf="item.companyName">{{ item.companyName }}</span>
+          <span class="row__pills">
+            <span class="tag" [attr.data-tint]="tints[kind(item)]">{{ labels[kind(item)] }}</span>
+            <span class="tag" data-tint="green" *ngIf="hasMayaReply(item)">✦ Reply drafted</span>
+          </span>
+          <span class="row__preview">{{ preview(item) }}</span>
+        </span>
+      </button>
+    </aside>
+
+    <article class="person" *ngIf="selected as item">
+      <header class="person__head">
+        <span class="badge badge--big" aria-hidden="true">{{ initials(item.contactName) }}</span>
+        <div>
+          <h2>{{ item.contactName || item.emailAddress }}</h2>
+          <span>{{ item.companyName }}<ng-container *ngIf="item.companyName && item.emailAddress"> · </ng-container>{{ item.emailAddress }}</span>
+        </div>
+        <span class="tag" [attr.data-tint]="tints[kind(item)]">{{ labels[kind(item)] }}</span>
+      </header>
+
+      <section class="why">
+        <span class="eyebrow">Why it needs you</span>
+        <h3>{{ why(item).title }}</h3>
+        <p>{{ why(item).detail }}</p>
+        <p class="why__next">{{ why(item).suggestion }}</p>
+      </section>
+
+      <div class="todd-note" *ngIf="item.replySummary && item.replySummary !== reply(item)">
+        <span class="todd-note__label">✦ Maya's read</span>
+        <p>{{ item.replySummary }}</p>
+      </div>
+
+      <section class="message" *ngIf="reply(item)">
+        <span class="eyebrow">{{ kind(item) === 'automated' ? 'The email' : 'What ' + (item.contactName || 'they').split(' ')[0] + ' said' }}<ng-container *ngIf="item.latestReplyAt"> · {{ age(item.latestReplyAt) }} ago</ng-container></span>
+        <p class="message__subject" *ngIf="item.lastSubject">Re: {{ item.lastSubject }}</p>
+        <p class="message__body">{{ reply(item) }}</p>
+        <details *ngIf="item.latestReplyText && item.latestReplyText.trim() !== reply(item)">
+          <summary>Original email</summary>
+          <pre>{{ item.latestReplyText }}</pre>
+        </details>
+      </section>
+
+      <section class="reply" *ngIf="replyMode">
+        <span class="eyebrow">{{ replyMode === 'maya' ? "Maya's reply - edit anything" : 'Your reply' }}</span>
+        <input type="text" [(ngModel)]="replySubject" aria-label="Subject">
+        <textarea [(ngModel)]="replyBody" rows="8" placeholder="Keep it short and human."></textarea>
+        <div class="reply__foot">
+          <button type="button" class="link" (click)="openInComposer(item)" [disabled]="!!working">Open in Composer</button>
+          <button type="button" class="pill" (click)="replyMode = null">Cancel</button>
+          <button type="button" class="pill pill--primary" (click)="sendReply(item)" [disabled]="!replyBody.trim() || !!working">{{ working === 'send' ? 'Sending…' : 'Send' }}</button>
+        </div>
+      </section>
+
+      <p class="note" *ngIf="notice">{{ notice }}</p>
+
+      <div class="actions" *ngIf="!replyMode">
+        <ng-container *ngIf="noAnswer(item); else answerable">
+          <button type="button" class="pill pill--primary pill--big" (click)="markDone(item)" [disabled]="!!working">{{ working === 'done' ? 'Marking done…' : 'Mark as done' }}</button>
+          <button type="button" class="pill pill--big" (click)="startReply(item, 'own')">Reply anyway</button>
+        </ng-container>
+        <ng-template #answerable>
+          <button type="button" class="pill pill--primary pill--big" *ngIf="hasMayaReply(item)" (click)="startReply(item, 'maya')">✦ Review Maya's reply</button>
+          <button type="button" class="pill pill--big" [class.pill--primary]="!hasMayaReply(item)" (click)="startReply(item, 'own')">Write {{ hasMayaReply(item) ? 'my own' : 'a reply' }}</button>
+          <button type="button" class="pill pill--big" (click)="markDone(item)" [disabled]="!!working">{{ working === 'done' ? 'Marking done…' : 'Mark as done' }}</button>
+        </ng-template>
+      </div>
+    </article>
+  </div>
+</div>

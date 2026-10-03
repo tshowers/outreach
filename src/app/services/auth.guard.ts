@@ -2,6 +2,7 @@ import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { map, take } from 'rxjs/operators';
 
+import { environment } from '../../environments/environment';
 import { OutreachAuthService } from './outreach-auth.service';
 import { LoggerService } from './logger.service';
 
@@ -25,6 +26,9 @@ export const authGuard: CanActivateFn = ( _route, state ) => {
     take( 1 ),
     map( ( user ) => {
       if ( user ) return true;
+      // Local development only: ?designPreview=1 opens a page signed out,
+      // empty, to check its layout. Production builds never get here.
+      if ( !environment.production && state.url.includes( 'designPreview=1' ) ) return true;
 
       logger.log( 'authGuard - no user, redirecting to hosted login', state.url );
       authService.signIn( state.url );

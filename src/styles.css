@@ -10,23 +10,114 @@
  * far, not a port of the full 7000+ line stylesheet.
  */
 :root {
-  --tl-blue: #00bfff;
-  --tl-blue-mid: #0095cc;
+  /*
+   * Outreach in the Find family (design_handoff_outreach): Find's tokens,
+   * Helvetica and pill controls, one colour per area - Needs you pink,
+   * Drafts / Signal Engine violet, Inbox blue, Catalyst cyan, Activity and
+   * warnings yellow, TODD / Maya notes green - and blue for the main action.
+   * Dark values live under html.dark, which follows the system setting
+   * (AppComponent), so the many components keyed on html.dark keep working.
+   */
+  --bg: #ffffff;
+  --surface: #f2f3f6;
+  --surface2: #e4e7ed;
+  --text: #0f1115;
+  --muted: #5a6170;
+  --blue: #2f6bff;
+  --blue-ink: #1f55e0;
+  --danger: #d92d4a;
+  --cyan: #1fc8ec;
+  --violet: #a259ff;
+  --pink: #ff4fa8;
+  --yellow: #ffd92e;
+  --t-blue: #e3ecff;
+  --t-blue-fg: #1d4fd6;
+  --t-cyan: #daf6fc;
+  --t-cyan-fg: #08657d;
+  --t-pink: #ffe3f1;
+  --t-pink-fg: #a8105a;
+  --t-violet: #efe5ff;
+  --t-violet-fg: #6427c9;
+  --t-yellow: #fff4c2;
+  --t-yellow-fg: #6e5700;
+  --t-green: #e0f6e6;
+  --t-green-fg: #17703a;
+  --shadow: 0 20px 50px rgba(15, 17, 21, .12);
+  --font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* The older names every page already uses, pointed at the new palette. */
+  --tl-blue: var(--blue);
+  --tl-blue-mid: var(--blue-ink);
   --tl-amber: #de8b38;
   --tl-amber-rgb: 194, 101, 10;
   --tl-amber-ink: #ffffff;
-  --site-bg: #f6f8f6;
-  --site-ink: #17211d;
-  --site-muted: #63706a;
-  --site-panel: #ffffff;
-  --site-line: #dce5df;
-  --site-accent: #157a59;
-  --site-accent-soft: #dcefe6;
-  --site-display: Georgia, 'Times New Roman', serif;
-  --site-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --site-bg: var(--bg);
+  --site-ink: var(--text);
+  --site-muted: var(--muted);
+  --site-panel: var(--surface);
+  --site-line: var(--surface2);
+  --site-accent: var(--blue-ink);
+  --site-accent-soft: var(--t-blue);
+  --site-display: var(--font);
+  --site-sans: var(--font);
 }
 
-html.dark { color-scheme: dark; --site-bg: #111815; --site-ink: #edf4ef; --site-muted: #a7b5ad; --site-panel: #19231e; --site-line: #304039; --site-accent: #72d6a8; --site-accent-soft: #203a2f; }
+html.dark {
+  color-scheme: dark;
+  --bg: #0c0e13;
+  --surface: #171a22;
+  --surface2: #242936;
+  --text: #f2f4f8;
+  --muted: #9aa2b2;
+  --blue: #3d7bff;
+  --blue-ink: #86aeff;
+  --danger: #ff6b81;
+  --t-blue: #15254a;
+  --t-blue-fg: #a3c1ff;
+  --t-cyan: #0c2d35;
+  --t-cyan-fg: #74e4f8;
+  --t-pink: #3a1029;
+  --t-pink-fg: #ff92c9;
+  --t-violet: #2a1847;
+  --t-violet-fg: #cdaaff;
+  --t-yellow: #2f2906;
+  --t-yellow-fg: #ffe56a;
+  --t-green: #0e2c19;
+  --t-green-fg: #80e2a4;
+  --shadow: 0 20px 50px rgba(0, 0, 0, .55);
+}
+
+/* Bootstrap's primary and outline buttons as Find's pills. */
+.btn {
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--blue);
+  --bs-btn-border-color: var(--blue);
+  --bs-btn-hover-bg: var(--blue-ink);
+  --bs-btn-hover-border-color: var(--blue-ink);
+  --bs-btn-active-bg: var(--blue-ink);
+  --bs-btn-active-border-color: var(--blue-ink);
+  --bs-btn-disabled-bg: var(--blue);
+  --bs-btn-disabled-border-color: var(--blue);
+}
+
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-secondary,
+.btn-light {
+  --bs-btn-color: var(--text);
+  --bs-btn-bg: var(--surface);
+  --bs-btn-border-color: transparent;
+  --bs-btn-hover-color: var(--text);
+  --bs-btn-hover-bg: var(--surface2);
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-color: var(--text);
+  --bs-btn-active-bg: var(--surface2);
+  --bs-btn-active-border-color: transparent;
+}
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -108,7 +199,7 @@ app-outreach-paid-success {
 
 /* Outreach-wide visual language. Controls and buttons are intentionally left
  * out so each workflow keeps its existing interaction styling. */
-app-root > router-outlet + * {
+app-root router-outlet + * {
   min-height: 100vh;
   background: var(--site-bg);
   color: var(--site-ink);
@@ -116,56 +207,57 @@ app-root > router-outlet + * {
 
 /* Keep the landing/iOS typographic hierarchy consistent across workflow
  * routes: editorial serif for headings, sans-serif for body/UI text. */
-app-root > router-outlet + * h1,
-app-root > router-outlet + * h2,
-app-root > router-outlet + * h3,
-app-root > router-outlet + * h4 {
-  font-family: var(--site-display) !important;
-  font-weight: 500;
-  letter-spacing: -0.045em;
+app-root router-outlet + * h1,
+app-root router-outlet + * h2,
+app-root router-outlet + * h3,
+app-root router-outlet + * h4 {
+  font-family: var(--font) !important;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
-app-root > router-outlet + * a:not(.button):not(.btn):not([class*="btn"]):not([role="button"]):not(.nav-open):not(.nav-cta) {
+app-root router-outlet + * a:not(.button):not(.btn):not([class*="btn"]):not([role="button"]):not(.nav-open):not(.nav-cta) {
   color: var(--site-accent);
 }
 
-app-root > router-outlet + * .todd-page,
-app-root > router-outlet + * .tal-app,
-app-root > router-outlet + * .page,
-app-root > router-outlet + * .catalyst-page-shell,
-app-root > router-outlet + * .engagement-shell,
-app-root > router-outlet + * .inbox-access-shell,
-app-root > router-outlet + * .sign-in-shell,
-app-root > router-outlet + * .auth-callback-shell,
-app-root > router-outlet + * .unsubscribe-success-container,
-app-root > router-outlet + * .unsubscribe-failure-container,
-app-root > router-outlet + * .moves-success-page,
-app-root > router-outlet + * .click-stream-container {
+app-root router-outlet + * .todd-page,
+app-root router-outlet + * .tal-app,
+app-root router-outlet + * .page,
+app-root router-outlet + * .catalyst-page-shell,
+app-root router-outlet + * .engagement-shell,
+app-root router-outlet + * .inbox-access-shell,
+app-root router-outlet + * .sign-in-shell,
+app-root router-outlet + * .auth-callback-shell,
+app-root router-outlet + * .unsubscribe-success-container,
+app-root router-outlet + * .unsubscribe-failure-container,
+app-root router-outlet + * .moves-success-page,
+app-root router-outlet + * .click-stream-container {
   background: transparent;
   color: var(--site-ink);
 }
 
-app-root > router-outlet + * .cockpit-panel,
-app-root > router-outlet + * .panel,
-app-root > router-outlet + * .catalyst-hero,
-app-root > router-outlet + * .catalyst-panel,
-app-root > router-outlet + * .engagement-panel,
-app-root > router-outlet + * .inbox-access-hero,
-app-root > router-outlet + * .inbox-access-card,
-app-root > router-outlet + * .sign-in-card,
-app-root > router-outlet + * .moves-pricing-hero,
-app-root > router-outlet + * .moves-pricing-card,
-app-root > router-outlet + * .moves-success-card,
-app-root > router-outlet + * .composer-signal-card,
-app-root > router-outlet + * .email-summary-card,
-app-root > router-outlet + * .email-empty-state-card,
-app-root > router-outlet + * .click-stream-card,
-app-root > router-outlet + * .engagement-summary-card,
-app-root > router-outlet + * .engagement-learning-panel {
+app-root router-outlet + * .cockpit-panel,
+app-root router-outlet + * .panel,
+app-root router-outlet + * .catalyst-hero,
+app-root router-outlet + * .catalyst-panel,
+app-root router-outlet + * .engagement-panel,
+app-root router-outlet + * .inbox-access-hero,
+app-root router-outlet + * .inbox-access-card,
+app-root router-outlet + * .sign-in-card,
+app-root router-outlet + * .moves-pricing-hero,
+app-root router-outlet + * .moves-pricing-card,
+app-root router-outlet + * .moves-success-card,
+app-root router-outlet + * .composer-signal-card,
+app-root router-outlet + * .email-summary-card,
+app-root router-outlet + * .email-empty-state-card,
+app-root router-outlet + * .click-stream-card,
+app-root router-outlet + * .engagement-summary-card,
+app-root router-outlet + * .engagement-learning-panel {
   background: var(--site-panel);
   color: var(--site-ink);
-  border-color: var(--site-line);
-  box-shadow: 0 18px 45px color-mix(in srgb, var(--site-ink) 10%, transparent);
+  border-color: transparent;
+  border-radius: 20px;
+  box-shadow: none;
 }
 
 html:not(.dark) .outreach-home-shell {
@@ -189,12 +281,12 @@ html.dark .outreach-home-shell {
 /* Catalyst's stale-contact chart is a child component with its own
  * light-first cockpit palette. Keep that entire middle section on the
  * explicit app theme when the OS preference changes underneath it. */
-html.dark app-root > router-outlet + * .catalyst-tab-panel__inner {
+html.dark app-root router-outlet + * .catalyst-tab-panel__inner {
   background: rgba(17, 24, 21, 0.68);
   border-color: var(--site-line);
 }
 
-html.dark app-root > router-outlet + * .queue-cockpit {
+html.dark app-root router-outlet + * .queue-cockpit {
   background:
     linear-gradient(180deg, rgba(33, 35, 40, 0.58), rgba(42, 45, 52, 0.5)),
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 132px),
@@ -202,57 +294,39 @@ html.dark app-root > router-outlet + * .queue-cockpit {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-html.dark app-root > router-outlet + * .queue-cockpit__card,
-html.dark app-root > router-outlet + * .queue-cockpit__panel {
+html.dark app-root router-outlet + * .queue-cockpit__card,
+html.dark app-root router-outlet + * .queue-cockpit__panel {
   background: rgba(46, 51, 59, 0.38);
   border-color: rgba(148, 163, 184, 0.14);
 }
 
-html.dark app-root > router-outlet + * .queue-cockpit__cohort {
+html.dark app-root router-outlet + * .queue-cockpit__cohort {
   background: rgba(34, 38, 44, 0.44);
   border-color: rgba(148, 163, 184, 0.12);
 }
 
-html.dark app-root > router-outlet + * .queue-cockpit__title,
-html.dark app-root > router-outlet + * .queue-cockpit__value,
-html.dark app-root > router-outlet + * .queue-cockpit__cohort-name,
-html.dark app-root > router-outlet + * .queue-cockpit__cohort-value {
+html.dark app-root router-outlet + * .queue-cockpit__title,
+html.dark app-root router-outlet + * .queue-cockpit__value,
+html.dark app-root router-outlet + * .queue-cockpit__cohort-name,
+html.dark app-root router-outlet + * .queue-cockpit__cohort-value {
   color: var(--site-ink);
 }
 
-html.dark app-root > router-outlet + * .queue-cockpit__subtitle,
-html.dark app-root > router-outlet + * .queue-cockpit__copy,
-html.dark app-root > router-outlet + * .queue-cockpit__cohort-copy,
-html.dark app-root > router-outlet + * .queue-cockpit__disclaimer,
-html.dark app-root > router-outlet + * .suggestion-container {
+html.dark app-root router-outlet + * .queue-cockpit__subtitle,
+html.dark app-root router-outlet + * .queue-cockpit__copy,
+html.dark app-root router-outlet + * .queue-cockpit__cohort-copy,
+html.dark app-root router-outlet + * .queue-cockpit__disclaimer,
+html.dark app-root router-outlet + * .suggestion-container {
   color: var(--site-muted);
 }
 
-html.dark app-root > router-outlet + * .queue-cockpit__label,
-html.dark app-root > router-outlet + * .queue-cockpit__bar-meta {
+html.dark app-root router-outlet + * .queue-cockpit__label,
+html.dark app-root router-outlet + * .queue-cockpit__bar-meta {
   color: var(--site-ink);
 }
 
-html.dark app-root > router-outlet + * .queue-cockpit__bar-track {
+html.dark app-root router-outlet + * .queue-cockpit__bar-track {
   background: rgba(92, 98, 108, 0.32);
-}
-
-/* The banner owns its own light/dark treatment. Use the app toggle as the
- * source of truth instead of letting the operating-system preference win. */
-html:not(.dark) .browse-mode-banner {
-  --browse-mode-banner-bg: linear-gradient(135deg, rgba(244, 250, 255, 0.96), rgba(228, 242, 255, 0.92)), rgba(255, 255, 255, 0.94);
-  --browse-mode-banner-border: rgba(0, 149, 204, 0.18);
-  --browse-mode-banner-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
-  --browse-mode-banner-title: #0f172a;
-  --browse-mode-banner-copy: rgba(15, 23, 42, 0.78);
-}
-
-html.dark .browse-mode-banner {
-  --browse-mode-banner-bg: linear-gradient(135deg, rgba(25, 35, 30, 0.96), rgba(29, 58, 47, 0.92)), rgba(17, 24, 21, 0.92);
-  --browse-mode-banner-border: color-mix(in srgb, var(--site-accent) 45%, transparent);
-  --browse-mode-banner-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
-  --browse-mode-banner-title: var(--site-ink);
-  --browse-mode-banner-copy: var(--site-muted);
 }
 
 /* Keep zero-value gauges legible against the light Outreach panels. */
@@ -266,7 +340,7 @@ html.dark .arc-gauge {
   --gauge-text: var(--site-ink);
 }
 
-html.dark app-root > router-outlet + * .sign-in-card {
+html.dark app-root router-outlet + * .sign-in-card {
   background: var(--site-panel);
   color: var(--site-ink);
 }
@@ -292,4 +366,124 @@ html.dark .todd-tip {
   background: color-mix(in srgb, var(--site-panel) 88%, transparent);
   border-color: var(--site-line);
   color: var(--site-ink);
+}
+
+/* In the laptop shell the Menu lives in the sidebar, so pages no longer
+ * clear a floating control at the top. */
+@media (min-width: 900px) {
+  .app-frame--shell .app-frame__main > :not(router-outlet) {
+    padding-top: 1.5rem;
+  }
+}
+
+/* On the Composer TODD is docked beside the email; hide the floating one. */
+body.todd-docked app-outreach-assistant-launcher {
+  display: none;
+}
+
+/* TODD docked beside the Composer (design 4m): the conversation fills the
+ * panel, the input pill sits at the bottom. */
+.todd-panel app-assistant-box .assistant-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: transparent;
+}
+
+.todd-panel app-assistant-box .assistant-thread {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 4px !important;
+}
+
+.todd-panel app-assistant-box .assistant-message-bubble {
+  border-radius: 16px;
+  font-size: 14px;
+}
+
+.todd-panel app-assistant-box .assistant-message-bubble-user {
+  background: var(--blue);
+  color: #fff;
+}
+
+.todd-panel app-assistant-box .assistant-message-bubble-assistant {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.todd-panel app-assistant-box .assistant-bar {
+  margin-top: auto;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.todd-panel app-assistant-box .ios-list,
+.todd-panel app-assistant-box .ios-row {
+  padding: 0;
+  border: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.todd-panel app-assistant-box .ios-row {
+  padding: 6px 6px 6px 16px;
+  border-radius: 999px;
+  background: var(--bg) !important;
+}
+
+.todd-panel app-assistant-box .ios-input {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.todd-panel app-assistant-box .ios-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.todd-panel app-assistant-box .btn-todd {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--blue) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.todd-panel app-assistant-box .assistant-btn-delete {
+  background: transparent !important;
+  color: var(--muted) !important;
+  color: var(--muted);
+}
+
+.todd-panel app-assistant-box .assistant-confirm {
+  padding: 12px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--bg);
+}
+
+.todd-panel app-assistant-box .assistant-confirm__actions .btn-todd {
+  width: auto;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.todd-panel app-assistant-box .assistant-confirm__actions .btn-todd.ghost {
+  background: var(--surface);
+  color: var(--text);
 }

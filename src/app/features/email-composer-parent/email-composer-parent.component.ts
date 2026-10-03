@@ -1,5 +1,4 @@
 import { CommonModule } from '@angular/common';
-import { GetTheAppBannerComponent } from '../../shared/get-the-app-banner/get-the-app-banner.component';
 import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom, Subscription } from 'rxjs';
@@ -14,7 +13,7 @@ import { Contact } from '../../models/contact.model';
 import { EmailCreateComponent } from './email-create/email-create.component';
 
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
-import { ToddTipComponent } from '../../shared/todd-tip/todd-tip.component';
+import { AssistantBoxComponent } from '../../shared/page/assistant-box/assistant-box.component';
 import { OutreachTipService } from '../../services/outreach-tip.service';
 import { EmailSendingStatusComponent } from '../../shared/email-sending-status/email-sending-status.component';
 import { OutreachAssistantSignalService } from '../../services/outreach-assistant-signal.service';
@@ -25,10 +24,10 @@ import { buildOutreachPageActions } from '../../shared/utils/page-action-presets
 @Component( {
   selector: 'app-email-composer-parent',
   standalone: true,
-  imports: [CommonModule, GetTheAppBannerComponent, EmailCreateComponent,
+  imports: [CommonModule, EmailCreateComponent,
     PreloaderComponent,
-    ToddTipComponent,
-    EmailSendingStatusComponent
+    EmailSendingStatusComponent,
+    AssistantBoxComponent
   ],
   templateUrl: './email-composer-parent.component.html',
   styleUrl: './email-composer-parent.component.css'
@@ -92,8 +91,44 @@ export class EmailComposerParentComponent extends TopDogComponent implements OnI
     this.updateClasses();
   }
 
+  // TODD, docked beside the email (design 4m).
+  @ViewChild( 'todd' ) toddBox?: AssistantBoxComponent;
+  assistantPageContext: any = null;
+  /** What's highlighted in the editor - TODD's edits stay inside it. */
+  editorSelection = '';
+  readonly toddChips = [
+    { label: 'Draft it for me', prompt: 'Draft this email for me.' },
+    { label: 'Shorten', prompt: 'Shorten this email. Keep the point and the ask.' },
+    { label: 'Soften', prompt: 'Make this email softer and warmer without losing the ask.' },
+    { label: 'Add a clear ask', prompt: 'End this email with one clear, easy question.' }
+  ];
+  private pageContextSubscription?: Subscription;
+  private readonly onSelectionChange = () => this.trackEditorSelection();
+
+  askTodd ( prompt: string ): void {
+    const scoped = this.editorSelection
+      ? `${ prompt } Only change this part of the email and keep the rest as it is: "${ this.editorSelection }"`
+      : prompt;
+    void this.toddBox?.ask( scoped );
+  }
+
+  private trackEditorSelection (): void {
+    const selection = document.getSelection();
+    const anchor = selection?.anchorNode;
+    const editor = anchor && ( anchor instanceof Element ? anchor : anchor.parentElement )?.closest( '.editor' );
+    // Clicking into TODD's panel clears the browser selection; keep the last one.
+    if ( !editor ) return;
+    this.editorSelection = String( selection?.toString() || '' ).trim().slice( 0, 400 );
+  }
+
   override ngOnInit (): void {
     super.ngOnInit();
+    // The floating "Talk to TODD" would be a second TODD on this page.
+    document.body.classList.add( 'todd-docked' );
+    document.addEventListener( 'selectionchange', this.onSelectionChange );
+    this.pageContextSubscription = this.assistantBus.pageContext$.subscribe( ( context ) => {
+      this.assistantPageContext = context;
+    } );
     this.publishPageContext();
     this.bindEngagementActions();
 
@@ -107,6 +142,9 @@ export class EmailComposerParentComponent extends TopDogComponent implements OnI
 
   override ngOnDestroy (): void {
     super.ngOnDestroy();
+    document.body.classList.remove( 'todd-docked' );
+    document.removeEventListener( 'selectionchange', this.onSelectionChange );
+    this.pageContextSubscription?.unsubscribe();
     this.engagementActionSubscription?.unsubscribe();
     this.assistantBus.clearPageContext();
     this.pageActionsService.clearPageActions( 'email-composer-parent' );

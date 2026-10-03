@@ -1,105 +1,107 @@
 <app-back-to-top></app-back-to-top>
-<ng-container>
-    <div class="cockpit-shell outreach-home-shell todd-page" data-demo="outreach-sequences">
-        <app-cockpit-command-deck
-            demoId="growth-command-deck"
-            context="Growth · Outreach"
-            title="Growth"
-            iconSrc="assets/todd-outreach-icon.png"
-            iconAlt="Outreach"
-            [subtitle]="hasAuthenticatedOutreachContext
-                ? 'Diagnose growth pain, watch TODD treat it, and see which conversations are moving back toward momentum.'
-                : 'Preview how TODD diagnoses growth pain, treats it, and proves relief once your outreach engine is connected.'"
-            [scoreLabel]="hasAuthenticatedOutreachContext ? 'Growth health' : 'Preview health'"
-            [scoreValue]="growthMomentumScore + '%'"
-            [links]="growthCommandDeckLinks"
-        ></app-cockpit-command-deck>
+<div class="home todd-page" data-demo="outreach-sequences">
+  <div class="home__main">
+    <header class="home__header">
+      <h1>{{ greeting }}<ng-container *ngIf="userFirstName">, {{ userFirstName }}</ng-container></h1>
+      <span class="home__date">{{ todayLabel }}</span>
+    </header>
 
-        <app-cockpit-browse-mode-banner
-            *ngIf="!hasAuthenticatedOutreachContext"
-            surfaceLabel="Growth"
-        ></app-cockpit-browse-mode-banner>
-        <app-get-the-app-banner *ngIf="hasAuthenticatedOutreachContext"></app-get-the-app-banner>
+    <app-cockpit-browse-mode-banner *ngIf="!hasAuthenticatedOutreachContext" surfaceLabel="Growth"></app-cockpit-browse-mode-banner>
 
-        <section class="cockpit-panel diagnosis-health-panel">
-            <div class="cockpit-panel__kicker">Business Health</div>
-            <div class="diagnosis-health-grid">
-                <article class="diagnosis-health-card" *ngFor="let meter of growthHealthMeters; trackBy: trackByGrowthMeter">
-                    <div class="diagnosis-health-card__instrument">
-                        <app-arc-gauge [value]="meter.value" [max]="meter.max || 100" [tone]="meter.tone"></app-arc-gauge>
-                    </div>
-                    <div class="diagnosis-health-card__body">
-                        <div class="diagnosis-health-card__label">{{ meter.label }}</div>
-                        <div class="diagnosis-health-card__value">{{ meter.displayValue }}</div>
-                        <div class="diagnosis-health-card__detail">{{ meter.detail }}</div>
-                    </div>
-                </article>
-            </div>
-        </section>
-
-        <section class="cockpit-panel diagnosis-board">
-            <div class="diagnosis-board__header">
-                <div>
-                    <div class="cockpit-panel__kicker">Care Cycle</div>
-                    <h2 class="diagnosis-board__title">Symptom, treatment, relief, and proof</h2>
-                    <p class="diagnosis-board__subtitle">
-                        {{ hasAuthenticatedOutreachContext
-                            ? 'Each row shows what is hurting, what TODD is doing about it, and what proof of relief exists so far.'
-                            : 'Guests see the same diagnostic board, but values, active treatment, and proof stay dark until live outreach data is connected.' }}
-                    </p>
-                </div>
-                <div class="diagnosis-board__status">
-                    <span class="diagnosis-board__status-label">App status</span>
-                    <span class="diagnosis-board__status-copy">{{ growthAppStatusVm }}</span>
-                </div>
-            </div>
-
-            <div class="diagnosis-board__table" role="table" aria-label="Growth diagnosis board">
-                <div class="diagnosis-board__column-headers" role="row">
-                    <span role="columnheader">Symptom</span>
-                    <span role="columnheader">Treatment</span>
-                    <span role="columnheader">Relief</span>
-                    <span role="columnheader">Proof</span>
-                </div>
-
-                <article class="diagnosis-row" *ngFor="let row of diagnosisRowsVm; trackBy: trackByDiagnosisRowId" role="row">
-                    <div class="diagnosis-cell diagnosis-cell--symptom" role="cell">
-                        <div class="diagnosis-indicator">
-                            <app-status-led [tone]="row.statusTone" [pulse]="hasAuthenticatedOutreachContext && (row.reliefStatus === 'needs-relief' || row.reliefStatus === 'todd-working')"></app-status-led>
-                            <div>
-                                <div class="diagnosis-title">{{ row.title }}</div>
-                                <div class="diagnosis-badges">
-                                    <span class="diagnosis-badge diagnosis-badge--severity" [attr.data-severity]="row.severity">{{ row.severityLabel }}</span>
-                                    <span class="diagnosis-badge diagnosis-badge--status" [attr.data-status]="row.reliefStatus">{{ row.reliefLabel }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="diagnosis-copy">{{ row.symptom }}</p>
-                        <p class="diagnosis-support">{{ row.evidence }}</p>
-                    </div>
-
-                    <div class="diagnosis-cell" role="cell">
-                        <div class="diagnosis-cell__label">What TODD is doing</div>
-                        <p class="diagnosis-copy">{{ row.treatment }}</p>
-                    </div>
-
-                    <div class="diagnosis-cell" role="cell">
-                        <div class="diagnosis-cell__label">Relief path</div>
-                        <p class="diagnosis-copy">{{ row.relief }}</p>
-                    </div>
-
-                    <div class="diagnosis-cell diagnosis-cell--proof" role="cell">
-                        <div class="diagnosis-proof">
-                            <app-arc-gauge [value]="row.proofValue" [max]="row.proofMax" [tone]="hasAuthenticatedOutreachContext ? 'positive' : 'info'"></app-arc-gauge>
-                            <div class="diagnosis-proof__body">
-                                <div class="diagnosis-cell__label">{{ row.proofLabel }}</div>
-                                <div class="diagnosis-proof__value">{{ row.proofReadout }}</div>
-                                <div class="diagnosis-support">{{ row.proofDetail }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-            </div>
-        </section>
+    <div class="home__warning" *ngIf="brokenMailboxAddress" role="status">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      <span>Outreach can't reach {{ brokenMailboxAddress }}. Reconnect it so Maya can keep sending.</span>
+      <a class="pill pill--dark" routerLink="/inbox-access">Reconnect</a>
     </div>
-</ng-container>
+
+    <section class="needs-you" aria-labelledby="needs-you-title">
+      <div class="needs-you__head">
+        <span class="needs-you__count">{{ needsYouRows.length }}</span>
+        <div class="needs-you__copy">
+          <h2 id="needs-you-title">{{ needsYouRows.length === 1 ? 'Needs you' : 'Need you' }}</h2>
+          <p>{{ needsYouRows.length ? 'People who replied and are waiting on a decision.' : 'Nobody is waiting on you right now.' }}</p>
+        </div>
+        <a *ngIf="needsYouRows.length" class="pill pill--dark" routerLink="/needs-you" [queryParams]="{ contact: needsYouRows[0].id }">
+          Start with {{ needsYouRows[0].name.split(' ')[0] }}
+        </a>
+      </div>
+      <a *ngFor="let row of needsYouRows.slice(0, 5)" class="needs-you__row" routerLink="/needs-you" [queryParams]="{ contact: row.id }">
+        <span class="badge badge--pink">{{ row.initials }}</span>
+        <strong>{{ row.name }}</strong>
+        <span class="needs-you__reason">{{ row.reason }}</span>
+        <span class="needs-you__age">{{ row.age }}</span>
+      </a>
+    </section>
+
+    <div class="tiles">
+      <a class="tile tile--violet" routerLink="/ios">
+        <span class="tile__top">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+          <b>{{ draftsCount }}</b>
+        </span>
+        <strong>Drafts</strong><span>review them in the Outreach app</span>
+      </a>
+      <a class="tile tile--blue" routerLink="/inbox-access">
+        <span class="tile__top">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+        </span>
+        <strong>Inbox</strong><span>replies, sorted by TODD</span>
+      </a>
+      <a class="tile tile--cyan" routerLink="/email-processor">
+        <span class="tile__top">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+        </span>
+        <strong>Catalyst</strong><span>contacts gone quiet</span>
+      </a>
+      <a class="tile tile--yellow" routerLink="/maya-day">
+        <span class="tile__top">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>
+        </span>
+        <strong>Activity</strong><span>{{ mayaDayLine || "Maya's day" }}</span>
+      </a>
+    </div>
+
+    <div class="gauges" aria-label="Business health">
+      <div class="gauge" *ngFor="let meter of growthHealthMeters.slice(0, 4); trackBy: trackByGrowthMeter">
+        <span class="gauge__label">{{ meter.label }}</span>
+        <b>{{ meter.displayValue }}</b>
+        <span class="gauge__detail">{{ meter.detail }}</span>
+      </div>
+    </div>
+  </div>
+
+  <aside class="home__side">
+    <section class="pipeline" aria-label="Pipeline">
+      <div class="pipeline__head">
+        <span class="eyebrow">Pipeline</span>
+        <span class="pipeline__sending">Sending now <b>{{ pipeline.sending }}</b></span>
+      </div>
+      <div class="pipeline__grid">
+        <div><span class="dot dot--blue"></span><b>{{ pipeline.activeThreads }}</b><span>Active threads</span></div>
+        <div><span class="dot dot--violet"></span><b>{{ pipeline.draftReady }}</b><span>Draft ready</span></div>
+        <div><span class="dot dot--yellow"></span><b>{{ pipeline.stalledWaiting }}</b><span>Stalled</span></div>
+        <div><span class="dot dot--pink"></span><b>{{ pipeline.hotLeads }}</b><span>Hot leads</span></div>
+        <div><span class="dot dot--neutral"></span><b>{{ pipeline.warmLeads }}</b><span>Warm leads</span></div>
+        <div><span class="dot dot--cyan"></span><b>{{ pipeline.queued }}</b><span>Queued</span></div>
+      </div>
+    </section>
+
+    <section class="activity" aria-labelledby="activity-title">
+      <div class="activity__head">
+        <h2 id="activity-title">Activity</h2>
+        <a routerLink="/maya-day">See all</a>
+      </div>
+      <p class="activity__empty" *ngIf="!activityGroups.length">Maya's activity shows up here.</p>
+      <ng-container *ngFor="let group of activityGroups">
+        <span class="eyebrow">{{ group.title }}</span>
+        <div class="activity__row" *ngFor="let row of group.rows">
+          <span class="chip" [attr.data-tint]="row.tint" aria-hidden="true">{{ row.icon }}</span>
+          <div>
+            <strong>{{ row.title }}<ng-container *ngIf="row.count > 1"> ×{{ row.count }}</ng-container></strong>
+            <span *ngIf="row.body">{{ row.body }}</span>
+          </div>
+        </div>
+      </ng-container>
+    </section>
+  </aside>
+</div>

@@ -66,6 +66,9 @@ export class AssistantBoxComponent implements OnInit, OnChanges, OnDestroy {
     assistantResponse = '';
     isLoading = false;
     @Input() placeholder = 'Ask about an email, or tell me what you need.';
+    /** Docked beside the Composer (design 4m): Apply / Try again on each suggestion. */
+    @Input() docked = false;
+    private lastPrompt = '';
     PRODUCTION = false;
 
     private pendingComposerContactChoices: { prompt: string; candidates: ComposerContactCandidate[]; } | null = null;
@@ -589,9 +592,23 @@ export class AssistantBoxComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     // Core: delegate to Engine ------------------------------------------------
+    /** Sends a ready-made request, e.g. the Composer's "Shorten" chip. */
+    async ask ( text: string ): Promise<void> {
+        this.assistantPrompt = text;
+        await this.askAssistant();
+    }
+
+    /** "Try again": the last request, asked once more. */
+    async retryLast (): Promise<void> {
+        if ( !this.lastPrompt || this.isLoading ) return;
+        this.cancelAction();
+        await this.ask( this.lastPrompt );
+    }
+
     async askAssistant (): Promise<void> {
         const raw = ( this.assistantPrompt || '' ).trim();
         if ( !raw ) return;
+        this.lastPrompt = raw;
 
         if ( this.pendingComposerRetryPrompt && this.isOnComposerPage() && this.isRetryReply( raw ) ) {
             this.pushUserTurn( raw );

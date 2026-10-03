@@ -1,6 +1,5 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GetTheAppBannerComponent } from '../../shared/get-the-app-banner/get-the-app-banner.component';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 
@@ -9,11 +8,11 @@ import { OutreachApiService } from '../../services/outreach-api.service';
 import { OutreachDataService } from '../../services/outreach-data.service';
 import { OutreachAssistantSignalService } from '../../services/outreach-assistant-signal.service';
 import { MomentumThread } from '../../models/momentum-thread.model';
+import { isNeedsYou } from '../../shared/utils/needs-you.util';
 import { Contact } from '../../models/contact.model';
 import { EmailSentComponent, EmailSentAssistantContext } from './email-sent/email-sent.component';
 import { TabBarComponent, TabBarItem } from '../../shared/tab-bar/tab-bar.component';
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
-import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
 import { ContactPreviewCardComponent } from '../../shared/contact-preview-card/contact-preview-card.component';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
 
@@ -37,7 +36,7 @@ type SignalLane = 'drafts' | 'outbox' | 'sent' | 'plan';
 @Component( {
   selector: 'app-signal-engine',
   standalone: true,
-  imports: [CommonModule, GetTheAppBannerComponent, RouterModule, EmailSentComponent, TabBarComponent, PreloaderComponent, RelativeTimePipe, ContactPreviewCardComponent, BackToTopComponent],
+  imports: [CommonModule, RouterModule, EmailSentComponent, TabBarComponent, PreloaderComponent, ContactPreviewCardComponent, BackToTopComponent],
   templateUrl: './signal-engine.component.html',
   styleUrl: './signal-engine.component.css',
 } )
@@ -49,7 +48,7 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   private readonly router = inject( Router );
   private readonly assistantBus = inject( OutreachAssistantSignalService );
 
-  activeLane: SignalLane = 'drafts';
+  activeLane: SignalLane = 'outbox';
 
   private userSubscription: Subscription | null = null;
   private tenantSubscription: Subscription | null = null;
@@ -138,7 +137,8 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   ngOnInit (): void {
     const params = this.route.snapshot.queryParamMap;
     const restoreTab = String( params.get( 'tab' ) || '' ).trim() as SignalLane;
-    if ( restoreTab === 'drafts' || restoreTab === 'outbox' || restoreTab === 'sent' || restoreTab === 'plan' ) {
+    // Drafts moved to the Outreach iOS app; an old ?tab=drafts link lands on Outbox.
+    if ( restoreTab === 'outbox' || restoreTab === 'sent' || restoreTab === 'plan' ) {
       this.activeLane = restoreTab;
     }
     this.pendingRestoreThreadId = params.get( 'threadId' ) || null;
@@ -218,6 +218,7 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   }
 
   draftThreads: MomentumThread[] = [];
+
   queuedForRewriteCount = 0;
   outboxThreads: MomentumThread[] = [];
   planThreads: MomentumThread[] = [];
@@ -236,8 +237,9 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
     this.draftThreads = this.threads.filter( ( thread ) => thread.userLane === 'drafts' && !thread.rewriteQueueState );
     this.queuedForRewriteCount = this.threads.filter( ( thread ) => !!thread.rewriteQueueState ).length;
     this.outboxThreads = this.threads.filter( ( thread ) => thread.userLane === 'outbox' );
-    const planLane = this.threads.filter( ( thread ) => thread.userLane === 'plan' );
-    this.planThreads = this.planNeedsYouOnly ? planLane.filter( ( thread ) => thread.bucket === 'needs_you' ) : planLane;
+    // Plan is what Maya is still handling herself; anything waiting on the
+    // user has its own Needs You page.
+    this.planThreads = this.threads.filter( ( thread ) => thread.userLane === 'plan' && !isNeedsYou( thread ) );
   }
 
   trackByThreadId ( _index: number, thread: MomentumThread ): string {
@@ -279,10 +281,7 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   }
 
   showNeedsYou (): void {
-    this.activeLane = 'plan';
-    this.planNeedsYouOnly = true;
-    this.recomputeSignalTabs();
-    this.publishPageContext();
+    void this.router.navigate( ['/needs-you'] );
   }
 
   setPlanNeedsYouOnly ( value: boolean ): void {
@@ -293,7 +292,6 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   private recomputeSignalTabs (): void {
     this.recomputeThreadLanes();
     this.signalTabs = [
-      { id: 'drafts', label: 'Drafts', icon: 'pen-to-square', count: this.draftThreads.length, dataCy: 'signal-engine-tab-drafts' },
       { id: 'outbox', label: 'Outbox', icon: 'layer-group', count: this.outboxThreads.length, dataCy: 'signal-engine-tab-outbox', tooltip: 'Approved drafts waiting to send. Sending runs weekdays only, 7am–11pm Pacific — items sit here over the weekend.' },
       { id: 'sent', label: 'Sent', icon: 'paper-plane', count: this.sentCount, dataCy: 'signal-engine-tab-sent' },
       { id: 'plan', label: 'Plan', icon: 'clipboard-list', count: this.planThreads.length, dataCy: 'signal-engine-tab-plan' }
@@ -538,7 +536,7 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
     );
   }
 
-  async rejectDraft ( thread: MomentumThread ): Promise<void> {
+  async rejectDraft ( thread: MomentumThread, note = '' ): Promise<void> {
     if ( !this.tenantId || this.isPending( thread ) ) return;
     this.pendingContactIds.add( thread.contactId );
     this.actionErrorByContactId.delete( thread.contactId );
@@ -549,12 +547,12 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
         this.outreachApi.rejectMomentumDraft(
           thread.contactId,
           isReply
-            ? { draftKind: 'reply' }
+            ? { draftKind: 'reply', ...( note.trim() ? { rejectionReason: note.trim() } : {} ) }
             : {
               draftKind: 'outbound',
               rejectedDraftSubject: thread.draftSubject,
               rejectedDraftBody: thread.draftBody,
-              rejectionReason: 'Rejected in Signal Engine - please try a different angle.',
+              rejectionReason: note.trim() || 'Rejected in Signal Engine - please try a different angle.',
             },
           { tenantId: this.tenantId }
         )
@@ -610,9 +608,13 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
           draftKind
         }, { tenantId: this.tenantId } )
       );
-      const reviewRoute = ( response as any )?.data?.reviewRoute;
+      const reviewRoute = String( ( response as any )?.data?.reviewRoute || '' );
       if ( reviewRoute ) {
-        await this.router.navigateByUrl( reviewRoute );
+        // The server sends a full URL (https://outreach.taliferro.tech/compose-email?...).
+        // As an app route that matched nothing and fell through to Growth -
+        // open its path and query here instead.
+        const url = new URL( reviewRoute, window.location.origin );
+        await this.router.navigateByUrl( `${ url.pathname }${ url.search }` );
       }
     } catch ( error: any ) {
       this.actionErrorByContactId.set(

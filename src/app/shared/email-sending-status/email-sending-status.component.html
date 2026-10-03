@@ -1,4 +1,8 @@
-<div class="warmup-meter" *ngIf="emailState">
+<span class="status-pill" *ngIf="compact && emailState" [attr.data-level]="emailState.level" [title]="statusTitle">
+  <span class="status-pill__dot" aria-hidden="true"></span>
+  {{ statusLabel }} · {{ emailState.capForToday - emailState.usedToday }} left today
+</span>
+<div class="warmup-meter" *ngIf="emailState && !compact">
   <div class="warmup-summary">
     <span class="warmup-dot" [ngClass]="{
       'cold' : emailState.level === 'cold',

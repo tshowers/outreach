@@ -1,134 +1,125 @@
-.todd-page {
-  --composer-signal-border: rgba(15, 15, 15, 0.08);
-  --composer-signal-bg: rgba(255, 255, 255, 0.58);
-  --composer-signal-shadow: 0 18px 45px rgba(15, 15, 15, 0.10);
-  --composer-signal-text: #0f172a;
-  --composer-signal-muted: rgba(15, 15, 15, 0.72);
-  --composer-signal-eyebrow-bg: rgba(15, 15, 15, 0.04);
-  --composer-signal-eyebrow-border: rgba(15, 15, 15, 0.10);
-  --composer-signal-eyebrow-text: rgba(15, 15, 15, 0.78);
-  --composer-signal-state-bg: rgba(255, 255, 255, 0.32);
-  --composer-signal-state-border: rgba(15, 15, 15, 0.08);
-  --composer-signal-state-label: rgba(15, 15, 15, 0.58);
-  --composer-signal-state-text: #0f172a;
-  --composer-signal-state-copy: rgba(15, 15, 15, 0.70);
-}
-
-.alert {
+/* Composer (design_handoff_outreach 4m): the email | TODD, 340px, docked. */
+:host {
   display: block;
-  /* let inner elements stack */
+  font-family: var(--font);
+  color: var(--text);
 }
 
-.alert .btn-close {
-  position: absolute;
-  /* Bootstrap’s default for dismissible alerts */
-  top: 0.75rem;
-  right: 0.75rem;
-}
-
-.composer-signal-card {
-  border-radius: 24px;
-  border: 1px solid var(--composer-signal-border);
-  background: var(--composer-signal-bg);
-  box-shadow: var(--composer-signal-shadow);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 1.4rem;
-  color: var(--composer-signal-text);
-}
-
-.composer-signal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.composer-signal-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.42rem 0.85rem;
-  border-radius: 999px;
-  border: 1px solid var(--composer-signal-eyebrow-border);
-  background: var(--composer-signal-eyebrow-bg);
-  color: var(--composer-signal-eyebrow-text);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  margin-bottom: 0.8rem;
-}
-
-.composer-signal-title {
-  margin: 0 0 0.4rem;
-  font-size: clamp(1.45rem, 2vw, 2rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--composer-signal-text);
-}
-
-.composer-signal-copy {
-  margin: 0;
-  max-width: 72ch;
-  color: var(--composer-signal-muted);
-  line-height: 1.65;
-}
-
-.composer-signal-grid {
+.composer-page {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  min-height: 100vh;
 }
 
-.composer-signal-state {
-  border-radius: 18px;
-  border: 1px solid var(--composer-signal-state-border);
-  background: var(--composer-signal-state-bg);
-  padding: 1rem;
+/* The shell already pads the top of the page; the TODD panel runs full height. */
+:host-context(.app-frame--shell) {
+  margin-top: -1.5rem;
 }
 
-.composer-signal-state-label {
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--composer-signal-state-label);
-  margin-bottom: 0.65rem;
+.composer-page__main {
+  min-width: 0;
+  padding: 36px 36px 48px;
 }
 
-.composer-signal-state-diagnosis {
-  font-size: 1rem;
+.todd-panel {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100vh;
+  padding: 24px 18px;
+  box-sizing: border-box;
+  background: var(--surface);
+}
+
+.todd-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+}
+
+.todd-panel__mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--t-green);
+  color: var(--t-green-fg);
+}
+
+.todd-panel__status {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.todd-panel__tip,
+.todd-panel__selection {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.todd-panel__tip span,
+.todd-panel__selection span {
+  color: var(--muted);
+  font-size: 12px;
   font-weight: 700;
-  color: var(--composer-signal-state-text);
-  margin-bottom: 0.45rem;
 }
 
-.composer-signal-state-action {
-  color: var(--composer-signal-state-copy);
-  line-height: 1.55;
+.todd-panel__tip p,
+.todd-panel__selection p {
+  margin: 4px 0 0;
+  font-size: 14px;
 }
 
-@media (max-width: 992px) {
-  .composer-signal-grid {
-    grid-template-columns: 1fr;
+.todd-panel__selection {
+  background: var(--t-green);
+  color: var(--t-green-fg);
+}
+
+.todd-panel__selection span {
+  color: inherit;
+}
+
+.todd-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.todd-panel__chips button {
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.todd-panel__chat {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+@media (max-width: 1100px) {
+  .composer-page {
+    grid-template-columns: minmax(0, 1fr);
   }
-}
 
-:host-context(html.dark) {
-  .todd-page {
-    --composer-signal-border: rgba(255, 255, 255, 0.12);
-    --composer-signal-bg: rgba(30, 33, 38, 0.54);
-    --composer-signal-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
-    --composer-signal-text: #f3f4f6;
-    --composer-signal-muted: rgba(232, 232, 232, 0.78);
-    --composer-signal-eyebrow-bg: rgba(255, 255, 255, 0.05);
-    --composer-signal-eyebrow-border: rgba(255, 255, 255, 0.14);
-    --composer-signal-eyebrow-text: rgba(255, 255, 255, 0.9);
-    --composer-signal-state-bg: rgba(255, 255, 255, 0.04);
-    --composer-signal-state-border: rgba(255, 255, 255, 0.10);
-    --composer-signal-state-label: rgba(255, 255, 255, 0.66);
-    --composer-signal-state-text: #f8fafc;
-    --composer-signal-state-copy: rgba(232, 232, 232, 0.74);
+  .todd-panel {
+    position: static;
+    height: auto;
+  }
+
+  .composer-page__main {
+    padding: 16px;
   }
 }

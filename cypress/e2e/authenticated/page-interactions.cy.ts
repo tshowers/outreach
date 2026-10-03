@@ -33,9 +33,9 @@ describe('Signal Engine buttons', () => {
     cy.wait('@bootstrap');
   });
 
-  it('has no batch-action bar when there are no drafts to select', () => {
-    cy.get('[data-cy="signal-engine-drafts"]').should('exist');
-    cy.get('.draft-batch-bar').should('not.exist');
+  it('points drafts to the Outreach app instead of a Drafts tab', () => {
+    cy.get('[data-cy="signal-engine-drafts-in-app"]').should('exist');
+    cy.get('[data-cy="signal-engine-tab-drafts"]').should('not.exist');
   });
 
   it('refresh re-fetches the bootstrap data', () => {

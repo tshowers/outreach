@@ -12,6 +12,8 @@ import { EmailEditorComponent } from '../../shared/page/email-editor/email-edito
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { MailboxAccessService } from '../../services/mailbox-access.service';
 import { MailboxConfigSummary, MailboxMessageListItem, MailboxProviderId } from '../../services/outreach-api.service';
+import { DESIGN_PREVIEW_MAILBOX, DESIGN_PREVIEW_MESSAGES, isDesignPreview } from '../../shared/utils/design-preview';
+import { cleanMessageText, MESSAGE_KIND_LABELS, MessageKind, messageKind } from '../../shared/utils/message-kind.util';
 
 /**
  * Ported from features/email/pages/inbox-access/. Swapped AuthService for
@@ -72,6 +74,13 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit (): void {
+    if ( isDesignPreview() ) {
+      this.mailboxAccess.mailboxConfigs = [DESIGN_PREVIEW_MAILBOX] as any;
+      this.mailboxAccess.connectedMailbox = DESIGN_PREVIEW_MAILBOX as any;
+      this.mailboxAccess.mailboxMessages = DESIGN_PREVIEW_MESSAGES as any;
+      this.mailboxAccess.selectedMailboxMessage = { ...DESIGN_PREVIEW_MESSAGES[0] } as any;
+      this.mailboxAccess.mailboxReplyDraft.subject = `Re: ${ DESIGN_PREVIEW_MESSAGES[0].subject }`;
+    }
     this.userSubscription = this.authService.getUser().subscribe( ( user ) => {
       if ( !user ) return;
 
@@ -131,7 +140,7 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
 
   openOutboxDrafts (): void {
     this.router.navigate( ['/signal-engine'], {
-      queryParams: { tab: 'drafts' }
+      queryParams: { tab: 'outbox' }
     } );
   }
 
@@ -165,6 +174,104 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
 
   isMailboxOnlyResponderDraft ( message: MailboxMessageListItem | null | undefined ): boolean {
     return this.hasResponderDraft( message ) && !String( message?.threadId || '' ).trim();
+  }
+
+  // Inbox (design 4f): filters, message-type tags and TODD's one-liner.
+  inboxFilter: 'all' | 'replies' | 'auto' | 'bounces' = 'all';
+
+  // Selecting several messages: the Select chip, ⌘/Ctrl-click to toggle one,
+  // Shift-click for a range.
+  selectMode = false;
+  selectedMessageIds = new Set<string>();
+  private lastClickedIndex: number | null = null;
+
+  get selectionActive (): boolean {
+    return this.selectMode || this.selectedMessageIds.size > 0;
+  }
+
+  onMessageClick ( message: MailboxMessageListItem, index: number, event: MouseEvent ): void {
+    const list = this.filteredMessages;
+    if ( event.shiftKey && this.lastClickedIndex !== null ) {
+      const [from, to] = [Math.min( this.lastClickedIndex, index ), Math.max( this.lastClickedIndex, index )];
+      list.slice( from, to + 1 ).forEach( item => this.selectedMessageIds.add( item.id ) );
+      // A shift-click would otherwise also select the text in between.
+      window.getSelection()?.removeAllRanges();
+    } else if ( this.selectMode || event.metaKey || event.ctrlKey ) {
+      if ( this.selectedMessageIds.has( message.id ) ) this.selectedMessageIds.delete( message.id );
+      else this.selectedMessageIds.add( message.id );
+      this.lastClickedIndex = index;
+    } else {
+      this.selectedMessageIds.clear();
+      this.lastClickedIndex = index;
+      this.mailboxAccess.openMailboxMessage( message );
+    }
+  }
+
+  toggleSelectMode (): void {
+    this.selectMode = !this.selectMode;
+    if ( !this.selectMode ) this.clearSelection();
+  }
+
+  selectAllVisible (): void {
+    const visible = this.filteredMessages;
+    const allSelected = visible.every( message => this.selectedMessageIds.has( message.id ) );
+    visible.forEach( message => allSelected ? this.selectedMessageIds.delete( message.id ) : this.selectedMessageIds.add( message.id ) );
+  }
+
+  clearSelection (): void {
+    this.selectedMessageIds.clear();
+    this.lastClickedIndex = null;
+  }
+
+  async deleteSelectedMessages (): Promise<void> {
+    const ids = [...this.selectedMessageIds];
+    if ( !ids.length ) return;
+    if ( !window.confirm( `Delete ${ ids.length } message${ ids.length === 1 ? '' : 's' } from the connected mailbox?` ) ) return;
+    await this.mailboxAccess.deleteMailboxMessages( ids );
+    this.clearSelection();
+    this.selectMode = false;
+  }
+
+  get filteredMessages (): MailboxMessageListItem[] {
+    const messages = this.mailboxAccess.mailboxMessages || [];
+    switch ( this.inboxFilter ) {
+      case 'replies': return messages.filter( message => ['reply', 'forward'].includes( this.kindOf( message ) ) );
+      case 'auto': return messages.filter( message => this.kindOf( message ) === 'outOfOffice' );
+      case 'bounces': return messages.filter( message => this.kindOf( message ) === 'bounce' );
+      default: return messages;
+    }
+  }
+
+  kindOf ( message: MailboxMessageListItem ): MessageKind {
+    return messageKind( message as any );
+  }
+
+  kindLabel ( message: MailboxMessageListItem ): string {
+    return MESSAGE_KIND_LABELS[this.kindOf( message )];
+  }
+
+  /** TODD's read when there is one, else the message without headers or links. */
+  summaryLine ( message: MailboxMessageListItem ): string {
+    const summary = String( ( message as any ).signalSummary || '' ).trim();
+    return summary || cleanMessageText( message.preview ).replace( /\n/g, ' ' );
+  }
+
+  readableBody ( message: { text?: string | null; } ): string {
+    return cleanMessageText( message.text ) || String( message.text || '' );
+  }
+
+  initials ( name: string | null | undefined ): string {
+    return String( name || '?' ).trim().split( /\s+/ ).slice( 0, 2 ).map( part => part[0] || '' ).join( '' ).toUpperCase();
+  }
+
+  syncedAgo ( iso: string | null | undefined ): string {
+    const time = iso ? Date.parse( iso ) : NaN;
+    if ( !Number.isFinite( time ) ) return '';
+    const minutes = Math.round( ( Date.now() - time ) / 60000 );
+    if ( minutes < 1 ) return 'Synced just now';
+    if ( minutes < 60 ) return `Synced ${ minutes } min ago`;
+    if ( minutes < 1440 ) return `Synced ${ Math.round( minutes / 60 ) } h ago`;
+    return `Synced ${ Math.round( minutes / 1440 ) } d ago`;
   }
 
   trackMessage ( _: number, message: { id: string; } ): string {

@@ -166,3 +166,52 @@
     left: 10%;
   }
 }
+
+/* ---- Find family: a surface track with the active segment raised on --bg. ---- */
+.tab-bar {
+  gap: 4px;
+  padding: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: none;
+  font-family: var(--font);
+}
+
+.tab-bar__tab {
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.tab-bar__tab:hover {
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  color: var(--text);
+}
+
+.tab-bar__tab.active {
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(15, 17, 21, .1);
+}
+
+.tab-bar__count {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tab-bar__tab.active .tab-bar__count {
+  background: var(--t-violet);
+  color: var(--t-violet-fg);
+}
