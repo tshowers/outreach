@@ -70,3 +70,148 @@
 .gta-faq__item { padding: 14px 16px; border: 1px solid var(--gta-line); border-radius: 14px; background: var(--gta-card); margin-bottom: 10px; }
 .gta-faq__item summary { cursor: pointer; font-weight: 700; }
 .gta-faq__item p { margin: 10px 0 0; color: var(--gta-muted); line-height: 1.6; }
+
+/* ---- Outreach in the Find family: the landing page's tokens, Helvetica,
+ * filled surfaces instead of outlines, pills, and blue for the main action. ---- */
+:host,
+:host-context(html.dark) {
+  --gta-bg: var(--bg);
+  --gta-card: var(--surface);
+  --gta-ink: var(--text);
+  --gta-muted: var(--muted);
+  --gta-line: transparent;
+  --gta-accent: var(--blue);
+  --gta-accent-ink: #fff;
+  --gta-ok: var(--t-green-fg);
+}
+
+.gta {
+  font-family: var(--font);
+}
+
+.gta h1 {
+  font-family: var(--font) !important;
+  font-size: clamp(36px, 5.5vw, 60px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.gta h2 {
+  font-family: var(--font) !important;
+}
+
+.gta-eyebrow {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--t-blue);
+  color: var(--t-blue-fg);
+  font-size: 12px;
+  letter-spacing: .06em;
+}
+
+.gta-status {
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.gta-status--ok {
+  background: var(--t-green);
+}
+
+.gta-plan,
+.gta-steps li,
+.gta-faq__item {
+  border: 0;
+  border-radius: 24px;
+}
+
+.gta-plan {
+  padding: 28px;
+}
+
+/* The plan you buy: a soft blue card, like the landing hero's circle. */
+.gta-plan--featured {
+  border: 0;
+  background: var(--t-blue);
+}
+
+.gta-plan--featured h2,
+.gta-plan--featured .gta-note,
+.gta-plan--featured .gta-alt {
+  color: var(--t-blue-fg);
+}
+
+.gta-plan h2 {
+  font-size: 12px;
+  letter-spacing: .06em;
+}
+
+.gta-price {
+  font-size: 40px;
+  letter-spacing: -0.03em;
+}
+
+.gta-store {
+  height: 52px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+}
+
+.gta-steps li {
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.gta-step-number {
+  background: var(--t-blue);
+  color: var(--t-blue-fg);
+}
+
+.gta-faq__item {
+  margin-bottom: 10px;
+  padding: 0;
+  border-radius: 18px;
+}
+
+.gta-faq__item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  list-style: none;
+}
+
+.gta-faq__item summary::-webkit-details-marker {
+  display: none;
+}
+
+/* The same round +/× as the landing FAQ. */
+.gta-faq__item summary::after {
+  content: '+';
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--blue-ink);
+  font-size: 18px;
+  font-weight: 400;
+  transition: transform .2s ease;
+}
+
+.gta-faq__item[open] summary::after {
+  transform: rotate(45deg);
+}
+
+.gta-faq__item p {
+  margin: 0;
+  padding: 0 24px 22px;
+}

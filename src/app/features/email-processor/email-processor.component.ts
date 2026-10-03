@@ -1,3 +1,5 @@
+import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
+import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 import { ChangeDetectorRef, Component, ViewChild, inject } from '@angular/core';
 import { EMAIL_CREATOR_HANDOFF_PARAM, EmailCreatorHandoffService } from '../../services/email-creator-handoff.service';
 import { firstValueFrom } from 'rxjs';
@@ -59,7 +61,7 @@ export type EmailerContactLite = Contact;
  */
 @Component( {
   selector: 'app-email-processor',
-  imports: [CommonModule, FormsModule, LastContactChartComponent, PreloaderComponent, EmailerComponent, BackToTopComponent, EmailSendingStatusComponent],
+  imports: [WriteActionDirective, BrowseNoticeComponent, CommonModule, FormsModule, LastContactChartComponent, PreloaderComponent, EmailerComponent, BackToTopComponent, EmailSendingStatusComponent],
   standalone: true,
   templateUrl: './email-processor.component.html',
   styleUrl: './email-processor.component.css'

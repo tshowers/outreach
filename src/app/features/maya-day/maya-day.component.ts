@@ -6,6 +6,7 @@ import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { MayaDaySummary, OutreachApiService } from '../../services/outreach-api.service';
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
+import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 
 /**
  * Maya's day: what she planned at 6am, what she did, and what's waiting on
@@ -15,7 +16,7 @@ import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
 @Component( {
   selector: 'app-maya-day',
   standalone: true,
-  imports: [CommonModule, RouterModule, PreloaderComponent, RelativeTimePipe],
+  imports: [BrowseNoticeComponent, CommonModule, RouterModule, PreloaderComponent, RelativeTimePipe],
   templateUrl: './maya-day.component.html',
   styleUrls: ['./maya-day.component.css'],
 } )

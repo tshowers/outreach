@@ -1,6 +1,7 @@
 <app-preloader [isLoading]="isLoading"></app-preloader>
 <app-back-to-top></app-back-to-top>
 <div class="catalyst todd-page">
+    <app-browse-notice surfaceLabel="Catalyst"></app-browse-notice>
     <header class="catalyst__header">
         <div>
             <h1>Catalyst</h1>
@@ -50,7 +51,7 @@
                     <strong>Include Lead Vault</strong>
                     <small>{{ leadVaultPreviewLoading ? 'Checking Lead Vault…' : leadVaultStatusMessage }}</small>
                 </span>
-                <input type="checkbox" role="switch" [checked]="includeLeadVaultContacts" [disabled]="leadVaultToggleDisabled" (change)="toggleLeadVaultContacts()">
+                <input type="checkbox" role="switch" appWriteAction="add Lead Vault contacts" [checked]="includeLeadVaultContacts" [disabled]="leadVaultToggleDisabled" (change)="toggleLeadVaultContacts()">
             </label>
         </section>
 

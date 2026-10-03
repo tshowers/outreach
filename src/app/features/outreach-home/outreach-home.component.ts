@@ -14,7 +14,7 @@ import { getModuleInstallConfig } from '../../shared/utils/module-install-config
 import { ArcGaugeTone } from '../../shared/arc-gauge/arc-gauge.component';
 import { BusinessSymptom, ReliefStatus, SeverityLevel } from '../../models/business-symptom.model';
 import { CockpitCommandDeckLink } from '../../shared/cockpit-command-deck/cockpit-command-deck.component';
-import { CockpitBrowseModeBannerComponent } from '../../shared/cockpit-browse-mode-banner/cockpit-browse-mode-banner.component';
+import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 import { PageAction } from '../../models/page-actions.models';
 import { buildCockpitDiagnosisRows, CockpitDiagnosisRowVm } from '../../shared/utils/cockpit-diagnosis-board.util';
 import { MomentumThread } from '../../models/momentum-thread.model';
@@ -51,7 +51,7 @@ import { NeedsYouCountService } from '../../services/needs-you-count.service';
 @Component( {
   selector: 'app-outreach-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, BackToTopComponent, CockpitBrowseModeBannerComponent],
+  imports: [CommonModule, RouterModule, BackToTopComponent, BrowseNoticeComponent],
   templateUrl: './outreach-home.component.html',
   styleUrl: './outreach-home.component.css'
 } )

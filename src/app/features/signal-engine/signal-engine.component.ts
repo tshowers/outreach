@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Subscription, firstValueFrom } from 'rxjs';
+import { Subscription, firstValueFrom, take } from 'rxjs';
 
 import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { OutreachApiService } from '../../services/outreach-api.service';
@@ -9,6 +9,8 @@ import { OutreachDataService } from '../../services/outreach-data.service';
 import { OutreachAssistantSignalService } from '../../services/outreach-assistant-signal.service';
 import { MomentumThread } from '../../models/momentum-thread.model';
 import { isNeedsYou } from '../../shared/utils/needs-you.util';
+import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
+import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { Contact } from '../../models/contact.model';
 import { EmailSentComponent, EmailSentAssistantContext } from './email-sent/email-sent.component';
 import { TabBarComponent, TabBarItem } from '../../shared/tab-bar/tab-bar.component';
@@ -36,7 +38,7 @@ type SignalLane = 'drafts' | 'outbox' | 'sent' | 'plan';
 @Component( {
   selector: 'app-signal-engine',
   standalone: true,
-  imports: [CommonModule, RouterModule, EmailSentComponent, TabBarComponent, PreloaderComponent, ContactPreviewCardComponent, BackToTopComponent],
+  imports: [CommonModule, RouterModule, WriteActionDirective, BrowseNoticeComponent, EmailSentComponent, TabBarComponent, PreloaderComponent, ContactPreviewCardComponent, BackToTopComponent],
   templateUrl: './signal-engine.component.html',
   styleUrl: './signal-engine.component.css',
 } )
@@ -147,6 +149,10 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
     }
     this.recomputeSignalTabs();
     this.publishPageContext();
+    // Browsing signed out: there's nothing to load, so don't sit on the loader.
+    this.authService.isLoggedIn().pipe( take( 1 ) ).subscribe( ( signedIn ) => {
+      if ( !signedIn ) this.loading = false;
+    } );
 
     this.userSubscription = this.authService.getUser().subscribe( ( user ) => {
       this.userId = String( ( user && user.uid ) || '' ).trim();

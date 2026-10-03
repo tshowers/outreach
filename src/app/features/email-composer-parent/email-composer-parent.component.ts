@@ -19,12 +19,13 @@ import { EmailSendingStatusComponent } from '../../shared/email-sending-status/e
 import { OutreachAssistantSignalService } from '../../services/outreach-assistant-signal.service';
 import { OutreachPageActionsService } from '../../services/outreach-page-actions.service';
 import { buildOutreachPageActions } from '../../shared/utils/page-action-presets';
+import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 
 /** Ported near-verbatim from features/email/pages/email-composer-parent/. */
 @Component( {
   selector: 'app-email-composer-parent',
   standalone: true,
-  imports: [CommonModule, EmailCreateComponent,
+  imports: [BrowseNoticeComponent, CommonModule, EmailCreateComponent,
     PreloaderComponent,
     EmailSendingStatusComponent,
     AssistantBoxComponent

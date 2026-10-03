@@ -18,6 +18,7 @@ import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
 import { OutreachPageActionsService } from '../../services/outreach-page-actions.service';
 import { buildOutreachPageActions } from '../../shared/utils/page-action-presets';
+import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 
 /**
  * Ported from features/email/pages/ad-engagement/. The original's
@@ -29,7 +30,7 @@ import { buildOutreachPageActions } from '../../shared/utils/page-action-presets
  */
 @Component( {
   selector: 'app-ad-engagement',
-  imports: [CommonModule, FormsModule,
+  imports: [BrowseNoticeComponent, CommonModule, FormsModule,
     AdEngagementResultsComponent,
     ClickStreamComponent,
     BackToTopComponent,

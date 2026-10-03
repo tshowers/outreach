@@ -626,3 +626,12 @@
     margin-left: 0;
   }
 }
+
+.needs-you__notice {
+  padding: 16px 32px 0;
+}
+
+.needs-you__notice:empty,
+.needs-you__notice:not(:has(section)) {
+  display: none;
+}

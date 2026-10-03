@@ -11,13 +11,14 @@ import { NeedsYouCountService } from './services/needs-you-count.service';
 import { CommandPaletteComponent } from './shared/page/command-palette/command-palette.component';
 import { ToastComponent } from './shared/toast/toast.component';
 import { AppSidebarComponent } from './shared/app-sidebar/app-sidebar.component';
+import { WriteAccessPromptComponent } from './shared/write-access/write-access-prompt.component';
 import { PlatformMenuComponent } from './shared/platform-menu/platform-menu.component';
 import { OutreachAssistantLauncherComponent } from './shared/page/assistant-box/outreach-assistant-launcher.component';
 import packageJson from '../../package.json';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastComponent, CommandPaletteComponent, AppSidebarComponent, PlatformMenuComponent, OutreachAssistantLauncherComponent, AsyncPipe, NgIf],
+  imports: [RouterOutlet, ToastComponent, CommandPaletteComponent, AppSidebarComponent, WriteAccessPromptComponent, PlatformMenuComponent, OutreachAssistantLauncherComponent, AsyncPipe, NgIf],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

@@ -2,10 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Subscription, combineLatest, firstValueFrom } from 'rxjs';
+import { Subscription, combineLatest, firstValueFrom, take } from 'rxjs';
 
 import { MomentumThread } from '../../models/momentum-thread.model';
 import { NeedsYouCountService } from '../../services/needs-you-count.service';
+import { WriteAccessService, WriteAccessState } from '../../services/write-access.service';
+import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
+import { WriteAccessPromptService } from '../../shared/write-access/write-access-prompt.service';
+import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { OutreachApiService } from '../../services/outreach-api.service';
 import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { OutreachDataService } from '../../services/outreach-data.service';
@@ -30,7 +34,7 @@ interface PendingDone {
 @Component( {
   selector: 'app-needs-you',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, WriteActionDirective, BrowseNoticeComponent],
   templateUrl: './needs-you.component.html',
   styleUrl: './needs-you.component.css'
 } )
@@ -42,11 +46,15 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
   private readonly router = inject( Router );
   private readonly count = inject( NeedsYouCountService );
   private subscription?: Subscription;
+  private readonly prompts = inject( WriteAccessPromptService );
+  private writeState: WriteAccessState = 'signedOut';
+  private readonly writeSubscription = inject( WriteAccessService ).state( 'outreach' ).subscribe( state => this.writeState = state );
 
   tenantId = '';
   userId = '';
   userEmail = '';
   loading = true;
+  signedOut = false;
   error = '';
   items: MomentumThread[] = [];
   planCount = 0;
@@ -79,6 +87,11 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
       this.select( this.items.find( item => item.contactId === this.selectedId ) || this.items[0] || null );
       return;
     }
+    // Browsing signed out: nothing to load - show the empty state, not a loader.
+    this.auth.isLoggedIn().pipe( take( 1 ) ).subscribe( ( signedIn ) => {
+      this.signedOut = !signedIn;
+      if ( !signedIn ) this.loading = false;
+    } );
     this.subscription = combineLatest( [this.auth.getTenantId(), this.auth.getUser()] ).subscribe( ( [tenantId, user] ) => {
       this.tenantId = String( tenantId || '' );
       this.userId = String( user?.uid || '' );
@@ -89,6 +102,7 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
 
   ngOnDestroy (): void {
     this.subscription?.unsubscribe();
+    this.writeSubscription.unsubscribe();
     // Leaving with an Undo still showing: it's done.
     this.commitPendingDone();
     clearTimeout( this.toastTimer );
@@ -341,12 +355,18 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
     if ( event.key === 'Enter' && ( event.metaKey || event.ctrlKey ) ) {
       if ( this.draftOpen ) {
         event.preventDefault();
-        void this.send( item );
+        if ( this.writeState !== 'canWrite' ) this.prompts.open( { state: this.writeState, action: 'send this reply' } );
+        else void this.send( item );
       }
       return;
     }
     const target = event.target as HTMLElement | null;
     if ( event.metaKey || event.ctrlKey || event.altKey ) return;
+    if ( event.key.toLowerCase() === 'd' && this.writeState !== 'canWrite' && !( target && /^(input|textarea|select)$/i.test( target.tagName ) ) ) {
+      event.preventDefault();
+      this.prompts.open( { state: this.writeState, action: 'mark this done' } );
+      return;
+    }
     if ( target && ( target.isContentEditable || /^(input|textarea|select)$/i.test( target.tagName ) ) ) return;
     const key = event.key.toLowerCase();
     if ( key === 'w' ) this.writeOwn( item );

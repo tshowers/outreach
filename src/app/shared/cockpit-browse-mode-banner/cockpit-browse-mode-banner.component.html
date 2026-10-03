@@ -10,9 +10,11 @@
   </div>
   <h2 class="browse-mode-banner__title">{{ customTitle || ('You are browsing ' + surfaceLabel) }}</h2>
   <p class="browse-mode-banner__copy">
-    {{ customCopy || ('You are not signed in, so TODD is showing a preview of ' + surfaceLabel + ' with live values turned off. This shows what your cockpit will look like and how TODD works with your information once live data is connected.') }}
+    {{ customCopy || ('You can look around ' + surfaceLabel + ' without an account. Sign in to see your own conversations; creating and sending come with Outreach for iOS.') }}
   </p>
   <div class="browse-mode-banner__actions">
+    <button type="button" class="browse-mode-banner__link browse-mode-banner__link--signin" (click)="signIn()">{{ signInLabel }}</button>
     <a class="browse-mode-banner__link browse-mode-banner__link--home" routerLink="/">Home</a>
+    <a class="browse-mode-banner__link" routerLink="/pricing" data-cy="browse-mode-pricing">Pricing</a>
   </div>
 </section>

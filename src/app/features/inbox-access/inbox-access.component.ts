@@ -14,6 +14,8 @@ import { MailboxAccessService } from '../../services/mailbox-access.service';
 import { MailboxConfigSummary, MailboxMessageListItem, MailboxProviderId } from '../../services/outreach-api.service';
 import { DESIGN_PREVIEW_MAILBOX, DESIGN_PREVIEW_MESSAGES, isDesignPreview } from '../../shared/utils/design-preview';
 import { cleanMessageText, MESSAGE_KIND_LABELS, MessageKind, messageKind } from '../../shared/utils/message-kind.util';
+import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
+import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 
 /**
  * Ported from features/email/pages/inbox-access/. Swapped AuthService for
@@ -27,7 +29,7 @@ import { cleanMessageText, MESSAGE_KIND_LABELS, MessageKind, messageKind } from 
 @Component( {
   selector: 'app-inbox-access',
   standalone: true,
-  imports: [
+  imports: [WriteActionDirective, BrowseNoticeComponent, 
     CommonModule,
     EmailEditorComponent,
     FormsModule,

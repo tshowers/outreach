@@ -14,6 +14,7 @@ import { OutreachAssistantSignalService } from '../../../services/outreach-assis
 import { OutreachApiService } from '../../../services/outreach-api.service';
 import { OutreachMomentumThreadService } from '../../../services/outreach-momentum-thread.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { WriteActionDirective } from '../../../shared/write-access/write-action.directive';
 
 export type EmailerContactLite = Contact;
 
@@ -72,7 +73,7 @@ export interface CatalystRunContext {
 @Component( {
   selector: 'app-emailer',
   standalone: true,
-  imports: [CommonModule, FormsModule,],
+  imports: [WriteActionDirective, CommonModule, FormsModule,],
   templateUrl: './emailer.component.html',
   styleUrl: './emailer.component.css'
 } )

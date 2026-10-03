@@ -1,5 +1,6 @@
 <div class="container-fluid tal-app todd-page" *ngIf="!isProcessing">
   <div class="inbox-access-shell">
+    <app-browse-notice surfaceLabel="Inbox"></app-browse-notice>
     <section class="inbox-access-card">
       <header class="inbox-head">
         <div>
@@ -12,7 +13,7 @@
           <select class="inbox-head__select" *ngIf="activeTab === 'inbox' && mailboxAccess.mailboxConfigs.length > 1" [ngModel]="mailboxAccess.connectedMailbox?.id" (ngModelChange)="selectMailboxById($event)" aria-label="Inbox">
             <option *ngFor="let mailbox of mailboxAccess.mailboxConfigs" [ngValue]="mailbox.id">{{ mailbox.emailAddress }}{{ mailbox.isPrimary ? ' · Primary' : '' }}</option>
           </select>
-          <button type="button" class="pill" *ngIf="activeTab === 'inbox' && mailboxAccess.connectedMailbox" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">{{ mailboxAccess.isSyncingMailbox ? 'Syncing…' : 'Sync now' }}</button>
+          <button type="button" class="pill" *ngIf="activeTab === 'inbox' && mailboxAccess.connectedMailbox" appWriteAction="sync your inbox" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">{{ mailboxAccess.isSyncingMailbox ? 'Syncing…' : 'Sync now' }}</button>
           <button type="button" class="pill" (click)="selectTab(activeTab === 'inbox' ? 'settings' : 'inbox')">{{ activeTab === 'inbox' ? 'Settings' : 'Back to Inbox' }}</button>
         </div>
       </header>
@@ -34,7 +35,7 @@
                 <span>{{ selectedMessageIds.size }} selected</span>
                 <button type="button" class="link" (click)="selectAllVisible()">Select all</button>
                 <button type="button" class="link" (click)="clearSelection()" *ngIf="selectedMessageIds.size">Clear</button>
-                <button type="button" class="pill pill--danger" (click)="deleteSelectedMessages()" [disabled]="!selectedMessageIds.size || mailboxAccess.isDeletingMailboxMessage">{{ mailboxAccess.isDeletingMailboxMessage ? 'Deleting…' : 'Delete ' + selectedMessageIds.size }}</button>
+                <button type="button" class="pill pill--danger" appWriteAction="delete these messages" (click)="deleteSelectedMessages()" [disabled]="!selectedMessageIds.size || mailboxAccess.isDeletingMailboxMessage">{{ mailboxAccess.isDeletingMailboxMessage ? 'Deleting…' : 'Delete ' + selectedMessageIds.size }}</button>
               </div>
               <p class="inbox__note" *ngIf="!mailboxAccess.loadingMailboxMessages && filteredMessages.length === 0">{{ inboxFilter === 'all' ? 'No recent messages yet.' : 'Nothing here right now.' }}</p>
               <button type="button" class="message-row" *ngFor="let message of filteredMessages; let i = index; trackBy: trackMessage" (click)="onMessageClick(message, i, $event)" [class.is-current]="!selectionActive && mailboxAccess.selectedMailboxMessage?.id === message.id" [class.is-selected]="selectedMessageIds.has(message.id)" [attr.aria-pressed]="selectionActive ? selectedMessageIds.has(message.id) : null">
@@ -63,7 +64,7 @@
                   <span>{{ message.fromEmail }} · {{ message.receivedAt | date:'MMM d, y \'at\' h:mm a' }}</span>
                 </span>
                 <span class="tag" [attr.data-kind]="kindOf(message)">{{ kindLabel(message) }}</span>
-                <button type="button" class="pill pill--quiet" (click)="deleteSelectedMessage()" [disabled]="mailboxAccess.isDeletingMailboxMessage">{{ mailboxAccess.isDeletingMailboxMessage ? 'Deleting…' : 'Delete' }}</button>
+                <button type="button" class="pill pill--quiet" appWriteAction="delete this message" (click)="deleteSelectedMessage()" [disabled]="mailboxAccess.isDeletingMailboxMessage">{{ mailboxAccess.isDeletingMailboxMessage ? 'Deleting…' : 'Delete' }}</button>
               </header>
 
               <div class="todd-note" *ngIf="message.signalSummary">
@@ -98,7 +99,7 @@
                   </ng-template>
                   <div class="reply__foot">
                     <span class="inbox__note">{{ mailboxAccess.mailboxReplyStatus }}</span>
-                    <button type="button" class="pill pill--primary pill--big" (click)="mailboxAccess.sendMailboxReply()" [disabled]="mailboxAccess.isReplyingMailbox || !mailboxAccess.canSendMailboxReply">{{ mailboxAccess.isReplyingMailbox ? 'Sending…' : 'Send reply' }}</button>
+                    <button type="button" class="pill pill--primary pill--big" appWriteAction="send this reply" (click)="mailboxAccess.sendMailboxReply()" [disabled]="mailboxAccess.isReplyingMailbox || !mailboxAccess.canSendMailboxReply">{{ mailboxAccess.isReplyingMailbox ? 'Sending…' : 'Send reply' }}</button>
                   </div>
                 </div>
               </section>
@@ -141,12 +142,12 @@
             </span>
             <span class="mailbox-inline-actions">
               <button type="button" class="btn-todd btn-todd-secondary" (click)="selectMailbox(mailbox)">Open</button>
-              <button type="button" class="btn btn-link" *ngIf="!mailbox.isPrimary" (click)="mailboxAccess.setPrimaryMailbox(mailbox)">Make primary</button>
+              <button type="button" class="btn btn-link" *ngIf="!mailbox.isPrimary" appWriteAction="change your primary inbox" (click)="mailboxAccess.setPrimaryMailbox(mailbox)">Make primary</button>
             </span>
           </div>
         </div>
         <div class="mailbox-actions">
-          <button type="button" class="btn-todd btn-todd-secondary" (click)="startAddingMailbox()">+ Add another inbox</button>
+          <button type="button" class="btn-todd btn-todd-secondary" appWriteAction="connect an inbox" (click)="startAddingMailbox()">+ Add another inbox</button>
         </div>
         <div class="mailbox-connected-summary mailbox-google-step" *ngIf="isNewGmail" data-cy="inbox-google-step">
           <div class="mailbox-panel-title">{{ cameFromSignUp ? 'One more step' : 'Google mailbox' }}</div>
@@ -155,7 +156,7 @@
             <strong>{{ mailboxAccess.mailboxForm.emailAddress }}</strong> is a separate permission Google asks you to approve once.
           </div>
           <div class="field-help">Google handles it &mdash; TODD never sees your Google password, and you can remove access any time in your Google account.</div>
-          <button type="button" class="btn-todd" (click)="mailboxAccess.connectGoogleMailbox()" data-cy="inbox-connect-google">
+          <button type="button" class="btn-todd" appWriteAction="connect an inbox" (click)="mailboxAccess.connectGoogleMailbox()" data-cy="inbox-connect-google">
             Connect {{ mailboxAccess.mailboxForm.emailAddress || 'Gmail' }} with Google
           </button>
           <button type="button" class="btn btn-link mailbox-password-toggle" (click)="showPasswordForm = !showPasswordForm" data-cy="inbox-use-password">
@@ -226,16 +227,16 @@
           </div>
         </div>
         <div class="mailbox-actions">
-          <button type="button" class="btn-todd" (click)="mailboxAccess.testMailboxConnection()" [disabled]="mailboxAccess.isTestingMailbox || mailboxAccess.isSavingMailbox">
+          <button type="button" class="btn-todd" appWriteAction="connect an inbox" (click)="mailboxAccess.testMailboxConnection()" [disabled]="mailboxAccess.isTestingMailbox || mailboxAccess.isSavingMailbox">
             {{ mailboxAccess.isTestingMailbox ? 'Testing...' : 'Test connection' }}
           </button>
-          <button type="button" class="btn-todd" (click)="mailboxAccess.saveMailboxConnection()" [disabled]="mailboxAccess.isSavingMailbox || mailboxAccess.isTestingMailbox">
+          <button type="button" class="btn-todd" appWriteAction="connect an inbox" (click)="mailboxAccess.saveMailboxConnection()" [disabled]="mailboxAccess.isSavingMailbox || mailboxAccess.isTestingMailbox">
             {{ mailboxAccess.isSavingMailbox ? 'Saving...' : 'Save' }}
           </button>
-          <button type="button" class="btn-todd" *ngIf="mailboxAccess.connectedMailbox?.id" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">
+          <button type="button" class="btn-todd" *ngIf="mailboxAccess.connectedMailbox?.id" appWriteAction="sync your inbox" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">
             {{ mailboxAccess.isSyncingMailbox ? 'Syncing...' : 'Sync now' }}
           </button>
-          <button type="button" class="btn-todd-danger" *ngIf="mailboxAccess.connectedMailbox?.id" (click)="mailboxAccess.disconnectMailboxConnection()"> Disconnect </button>
+          <button type="button" class="btn-todd-danger" *ngIf="mailboxAccess.connectedMailbox?.id" appWriteAction="disconnect this inbox" (click)="mailboxAccess.disconnectMailboxConnection()"> Disconnect </button>
         </div>
         </ng-container>
         <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxConnectionStatus">{{ mailboxAccess.mailboxConnectionStatus }}</div>

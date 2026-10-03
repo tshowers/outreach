@@ -164,3 +164,17 @@
     width: 100%;
   }
 }
+
+.browse-mode-banner__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.browse-mode-banner__link--signin {
+  border: 0;
+  background: var(--blue) !important;
+  color: #fff !important;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}

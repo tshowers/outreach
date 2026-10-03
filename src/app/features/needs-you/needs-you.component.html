@@ -1,6 +1,12 @@
+<div class="needs-you__notice"><app-browse-notice surfaceLabel="Needs you"></app-browse-notice></div>
 <div class="needs-you todd-page" [class.needs-you--empty]="!loading && !items.length && !error">
   <!-- Cleared to zero (5d) -->
-  <section class="zero" *ngIf="!loading && !items.length && !error">
+  <section class="zero" *ngIf="signedOut && !items.length">
+    <h1>Needs you</h1>
+    <p>When someone replies, or Maya needs a decision from you, they show up here. Sign in to see yours.</p>
+  </section>
+
+  <section class="zero" *ngIf="!signedOut && !loading && !items.length && !error">
     <span class="zero__check" aria-hidden="true">
       <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
     </span>
@@ -33,7 +39,7 @@
       <ng-container *ngIf="clearItems.length">
         <div class="list__group">
           <span class="eyebrow">Nothing to answer</span>
-          <button type="button" class="link" (click)="markDone(clearItems)">Mark {{ clearItems.length === 2 ? 'both' : 'all' }} done</button>
+          <button type="button" class="link" appWriteAction="mark these done" (click)="markDone(clearItems)">Mark {{ clearItems.length === 2 ? 'both' : 'all' }} done</button>
         </div>
         <ng-container *ngFor="let item of clearItems">
           <ng-container *ngTemplateOutlet="row; context: { $implicit: item, answer: false }"></ng-container>
@@ -129,19 +135,19 @@
 
       <div class="actions">
         <ng-container [ngSwitch]="draftOpen ? 'send' : action(item)">
-          <button *ngSwitchCase="'send'" type="button" class="pill pill--primary pill--big" (click)="send(item)" [disabled]="!draftBody.trim() || !!working">
+          <button *ngSwitchCase="'send'" type="button" appWriteAction="send this reply" class="pill pill--primary pill--big" (click)="send(item)" [disabled]="!draftBody.trim() || !!working">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
             {{ working === 'send' ? 'Sending…' : (hasMayaReply(item) ? "Send Maya's reply" : 'Send reply') }} <kbd>⌘↵</kbd>
           </button>
-          <button *ngSwitchCase="'help_write'" type="button" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ {{ working === 'help' ? 'Maya is writing…' : 'Help me write it' }}</button>
+          <button *ngSwitchCase="'help_write'" type="button" appWriteAction="have Maya write a reply" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ {{ working === 'help' ? 'Maya is writing…' : 'Help me write it' }}</button>
           <a *ngSwitchCase="'connect_inbox'" class="pill pill--primary pill--big" routerLink="/inbox-access">Connect inbox</a>
-          <button *ngSwitchCase="'mark_done'" type="button" class="pill pill--primary pill--big" (click)="markDone([item])">✓ Mark as done</button>
-          <button *ngSwitchDefault type="button" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ Help me write it</button>
+          <button *ngSwitchCase="'mark_done'" type="button" appWriteAction="mark this done" class="pill pill--primary pill--big" (click)="markDone([item])">✓ Mark as done</button>
+          <button *ngSwitchDefault type="button" appWriteAction="have Maya write a reply" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ Help me write it</button>
         </ng-container>
         <button type="button" class="pill pill--big" *ngIf="!draftOpen || hasMayaReply(item)" (click)="writeOwn(item)">Write my own <kbd>W</kbd></button>
         <a class="pill pill--big" *ngIf="kind(item) === 'out_of_office' && outOfOffice(item).alternateEmail" [href]="'mailto:' + outOfOffice(item).alternateEmail">Email {{ outOfOffice(item).alternate }}</a>
-        <button type="button" class="pill pill--big" (click)="openInComposer(item)" [disabled]="!!working">Open in Composer</button>
-        <button type="button" class="pill pill--big actions__done" *ngIf="action(item) !== 'mark_done' || draftOpen" (click)="markDone([item])">✓ Mark as done <kbd>D</kbd></button>
+        <button type="button" class="pill pill--big" appWriteAction="open this in the Composer" (click)="openInComposer(item)" [disabled]="!!working">Open in Composer</button>
+        <button type="button" class="pill pill--big actions__done" appWriteAction="mark this done" *ngIf="action(item) !== 'mark_done' || draftOpen" (click)="markDone([item])">✓ Mark as done <kbd>D</kbd></button>
       </div>
     </article>
   </div>

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
 
 @Component( {
   selector: 'app-cockpit-browse-mode-banner',
@@ -16,4 +16,12 @@ export class CockpitBrowseModeBannerComponent {
   @Input() signInLabel = 'Sign in';
   @Input() customTitle: string | null = null;
   @Input() customCopy: string | null = null;
+
+  private readonly router = inject( Router );
+
+  /** The same way in as the Menu's Sign In: the Get Started wizard, which
+   * sends people with an account on to the TODD login. */
+  signIn (): void {
+    void this.router.navigate( ['/get-started'] );
+  }
 }

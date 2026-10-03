@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from './services/auth.guard';
+// Browse free, create with the app: no route needs sign-in. Writes are
+// gated per action (WriteActionDirective) and enforced by the server.
 import { landingRedirectGuard } from './services/landing-redirect.guard';
 
 export const routes: Routes = [
@@ -78,31 +79,26 @@ export const routes: Routes = [
   },
   {
     path: 'inbox-access',
-    canActivate: [authGuard],
     loadComponent: () =>
       import( './features/inbox-access/inbox-access.component' ).then( ( m ) => m.InboxAccessComponent ),
   },
   {
     path: 'maya-day',
-    canActivate: [authGuard],
     loadComponent: () =>
       import( './features/maya-day/maya-day.component' ).then( ( m ) => m.MayaDayComponent ),
   },
   {
     path: 'needs-you',
-    canActivate: [authGuard],
     loadComponent: () =>
       import( './features/needs-you/needs-you.component' ).then( ( m ) => m.NeedsYouComponent ),
   },
   {
     path: 'signal-engine',
-    canActivate: [authGuard],
     loadComponent: () =>
       import( './features/signal-engine/signal-engine.component' ).then( ( m ) => m.SignalEngineComponent ),
   },
   {
     path: 'engagement',
-    canActivate: [authGuard],
     loadComponent: () =>
       import( './features/ad-engagement/ad-engagement.component' ).then( ( m ) => m.AdEngagementComponent ),
   },
@@ -113,13 +109,11 @@ export const routes: Routes = [
   },
   {
     path: 'email-processor',
-    canActivate: [authGuard],
     loadComponent: () =>
       import( './features/email-processor/email-processor.component' ).then( ( m ) => m.EmailProcessorComponent ),
   },
   {
     path: 'compose-email',
-    canActivate: [authGuard],
     loadComponent: () =>
       import( './features/email-composer-parent/email-composer-parent.component' ).then( ( m ) => m.EmailComposerParentComponent ),
   },

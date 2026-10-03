@@ -28,6 +28,7 @@ import { OutreachMomentumThreadService } from '../../../services/outreach-moment
 import { ComposerHandoff, OutreachApiService } from '../../../services/outreach-api.service';
 import { MomentumThread } from '../../../models/momentum-thread.model';
 import { OutreachAssistantSignalService } from '../../../services/outreach-assistant-signal.service';
+import { WriteActionDirective } from '../../../shared/write-access/write-action.directive';
 
 export interface AssistantDraftPayload {
   subject?: string;
@@ -79,7 +80,7 @@ export const Footer: string = `<hr><div style="text-align: center; margin-top: 1
 @Component( {
   selector: 'app-email-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ReactiveFormsModule, EmailEditorComponent, EmailStageProgressComponent, ContactPreviewCardComponent,
+  imports: [WriteActionDirective, CommonModule, FormsModule, RouterModule, ReactiveFormsModule, EmailEditorComponent, EmailStageProgressComponent, ContactPreviewCardComponent,
     BackToTopComponent,
     PreloaderComponent,
   ],

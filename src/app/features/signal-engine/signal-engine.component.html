@@ -1,5 +1,6 @@
 <div class="page" data-cy="signal-engine">
     <app-back-to-top></app-back-to-top>
+    <app-browse-notice surfaceLabel="Signal Engine"></app-browse-notice>
     <header class="page-header">
         <h1>Signal Engine</h1>
         <p class="subtitle">What Maya drafted, what's queued to send, and what's already gone out.</p>
@@ -101,10 +102,10 @@
                     </td>
                     <td>
                         <div class="draft-actions">
-                            <button type="button" [disabled]="isPending(thread)" (click)="editInComposer(thread)" [attr.data-cy]="'signal-engine-plan-edit-' + thread.contactId">
+                            <button type="button" [disabled]="isPending(thread)" appWriteAction="edit this email" (click)="editInComposer(thread)" [attr.data-cy]="'signal-engine-plan-edit-' + thread.contactId">
                                 {{ isPending(thread) ? 'Working…' : 'Edit' }}
                             </button>
-                            <button *ngIf="thread.bucket === 'needs_human_edit'" type="button" class="danger" [disabled]="isPending(thread)" (click)="deleteFromPlan(thread)" [attr.data-cy]="'signal-engine-plan-delete-' + thread.contactId">
+                            <button *ngIf="thread.bucket === 'needs_human_edit'" type="button" class="danger" appWriteAction="remove this from Plan" [disabled]="isPending(thread)" (click)="deleteFromPlan(thread)" [attr.data-cy]="'signal-engine-plan-delete-' + thread.contactId">
                                 {{ isPending(thread) ? 'Working…' : 'Delete' }}
                             </button>
                         </div>
