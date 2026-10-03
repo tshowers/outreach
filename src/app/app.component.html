@@ -1,14 +1,13 @@
 <div class="app-global-actions" [class.app-global-actions--shell]="showShell">
-  <app-platform-menu [isAdmin]="(isAdmin$ | async) ?? false" [isLoggedIn]="(isLoggedIn$ | async) ?? false" (signOut)="signOut()"></app-platform-menu>
+  <app-platform-menu #platformMenu [isAdmin]="(isAdmin$ | async) ?? false" [isLoggedIn]="(isLoggedIn$ | async) ?? false" [userName]="(userName$ | async) ?? ''" [userEmail]="(userEmail$ | async) ?? ''" (signOut)="signOut()"></app-platform-menu>
 </div>
 <div *ngIf="updateNotice" class="outreach-update-notice" role="status" aria-live="polite">
   <span>{{ updateNotice }}</span>
   <button *ngIf="chunkRecoveryNeedsManualRefresh" type="button" (click)="refreshAfterChunkError()">Refresh</button>
   <button *ngIf="!chunkRecoveryNeedsManualRefresh" type="button" aria-label="Dismiss update notification" (click)="dismissUpdateNotice()">×</button>
 </div>
-<app-command-palette></app-command-palette>
 <div class="app-frame" [class.app-frame--shell]="showShell">
-  <app-sidebar *ngIf="showShell" class="app-frame__sidebar" [isAdmin]="(isAdmin$ | async) ?? false" [isLoggedIn]="(isLoggedIn$ | async) ?? false" [counts]="(sidebarCounts$ | async) ?? {}" (signOut)="signOut()"></app-sidebar>
+  <app-sidebar *ngIf="showShell" class="app-frame__sidebar" [isAdmin]="(isAdmin$ | async) ?? false" [isLoggedIn]="(isLoggedIn$ | async) ?? false" [counts]="(sidebarCounts$ | async) ?? {}" (openMenu)="platformMenu.open()"></app-sidebar>
   <main class="app-frame__main">
     <router-outlet></router-outlet>
   </main>

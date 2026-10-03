@@ -95,3 +95,17 @@
   margin-top: auto;
   padding: 0 4px;
 }
+
+.sidebar__menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font: 700 14px var(--font);
+  cursor: pointer;
+}

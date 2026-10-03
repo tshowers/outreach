@@ -3,7 +3,6 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
-import { PlatformMenuComponent } from '../platform-menu/platform-menu.component';
 
 interface SidebarItem {
   label: string;
@@ -26,7 +25,7 @@ interface SidebarItem {
 @Component( {
   selector: 'app-sidebar',
   standalone: true,
-  imports: [NgFor, NgIf, RouterLink, RouterLinkActive, PlatformMenuComponent],
+  imports: [NgFor, NgIf, RouterLink, RouterLinkActive],
   templateUrl: './app-sidebar.component.html',
   styleUrl: './app-sidebar.component.css'
 } )
@@ -35,7 +34,8 @@ export class AppSidebarComponent {
   @Input() isLoggedIn = false;
   /** Count badges by link, e.g. { '/signal-engine': 191 }. */
   @Input() counts: Record<string, number> = {};
-  @Output() signOut = new EventEmitter<void>();
+  /** Opens the universal menu, which lives once in the app shell. */
+  @Output() openMenu = new EventEmitter<void>();
 
   readonly items: SidebarItem[];
 

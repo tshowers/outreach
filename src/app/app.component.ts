@@ -8,7 +8,6 @@ import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import { OutreachAuthService } from './services/outreach-auth.service';
 import { NeedsYouCountService } from './services/needs-you-count.service';
-import { CommandPaletteComponent } from './shared/page/command-palette/command-palette.component';
 import { ToastComponent } from './shared/toast/toast.component';
 import { AppSidebarComponent } from './shared/app-sidebar/app-sidebar.component';
 import { WriteAccessPromptComponent } from './shared/write-access/write-access-prompt.component';
@@ -18,7 +17,7 @@ import packageJson from '../../package.json';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastComponent, CommandPaletteComponent, AppSidebarComponent, WriteAccessPromptComponent, PlatformMenuComponent, OutreachAssistantLauncherComponent, AsyncPipe, NgIf],
+  imports: [RouterOutlet, ToastComponent, AppSidebarComponent, WriteAccessPromptComponent, PlatformMenuComponent, OutreachAssistantLauncherComponent, AsyncPipe, NgIf],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
@@ -35,13 +34,15 @@ export class AppComponent implements OnInit {
   chunkRecoveryNeedsManualRefresh = false;
   readonly isAdmin$ = this.authService.getUser().pipe( map( user => user?.uid === environment.taliferroTenantId ) );
   readonly isLoggedIn$ = this.authService.isLoggedIn();
+  readonly userName$ = this.authService.getUser().pipe( map( user => user?.displayName || '' ) );
+  readonly userEmail$ = this.authService.getUser().pipe( map( user => user?.email || '' ) );
   private readonly needsYouCount = inject( NeedsYouCountService );
   readonly sidebarCounts$ = this.needsYouCount.count$.pipe( map( count => ( { '/needs-you': count } ) ) );
 
   title = 'outreach';
 
   /** The signed-in workspace pages get the laptop shell's sidebar. */
-  private static readonly shellRoutes = ['/app', '/needs-you', '/signal-engine', '/inbox-access', '/compose-email', '/email-processor', '/maya-day', '/engagement', '/profile', '/get-started'];
+  private static readonly shellRoutes = ['/app', '/needs-you', '/signal-engine', '/inbox-access', '/compose-email', '/email-processor', '/maya-day', '/engagement', '/profile', '/help', '/get-started'];
   showShell = false;
 
   async signOut (): Promise<void> {

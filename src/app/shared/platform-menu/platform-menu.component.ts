@@ -1,115 +1,141 @@
+// SYNCED FROM taliferro-ui/menu-component - edit it there, then run
+// taliferro-ui/menu-component/sync.sh. This app's own menu items are in
+// platform-menu.config.ts next to this file.
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Router, RouterModule } from '@angular/router';
 import packageJson from '../../../../package.json';
-import { RouterModule } from '@angular/router';
 
-import { getPlatformMenuItems, PlatformMenuItem } from '@taliferro/ui/platform/account-menu.model';
-
-interface ProductLink {
-  label: string;
-  url: string;
-  icon: string;
-  description: string;
-}
-
-interface OutreachLink {
-  label: string;
-  route: string;
-  signOut?: boolean;
-}
+import {
+  MENU_COMPANY, MENU_TODD_PROFILE_URL, MenuIconName, MenuSection, MenuLink, MenuProduct, menuAccountLinks, menuIconSvg, menuInitials, menuMatches, menuProductsFor, menuSectionFor,
+} from '@taliferro/ui/platform/universal-menu.model';
+import { PLATFORM_MENU_CONFIG } from './platform-menu.config';
 
 /**
- * Top-right hamburger that slides a panel down over the page. Products on
- * the left (the other standalone apps), Account on the right (the TODD
- * routes that never got ported per-app - profile, billing, admin, etc.) -
- * see taliferrotech's TODD-routes-migration doc and the Maya app's version,
- * which this mirrors.
+ * The universal menu (design_handoff_outreach 3, 6a/6b): This app | Products
+ * | Account, with search. Identical in every Taliferro web product - only
+ * platform-menu.config.ts differs. The look is in
+ * @taliferro/ui/styles/universal-menu.css (imported in styles.css).
  */
 @Component( {
   selector: 'app-platform-menu',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './platform-menu.component.html',
-  styleUrl: './platform-menu.component.css',
 } )
-export class PlatformMenuComponent implements OnChanges {
-  @Input() isAdmin = false;
+export class PlatformMenuComponent {
   @Input() isLoggedIn = false;
+  @Input() isAdmin = false;
+  @Input() userName = '';
+  @Input() userEmail = '';
+  /** Hide the Menu pill when the page shows its own trigger and calls open(). */
+  @Input() showTrigger = true;
   @Output() readonly signOut = new EventEmitter<void>();
+  @Output() readonly signIn = new EventEmitter<void>();
+
+  @ViewChild( 'search' ) private searchInput?: ElementRef<HTMLInputElement>;
+  /** The overlay renders inside the trigger's container; lift it to <body> so it always sits on top. */
+  @ViewChild( 'layer' ) set layer ( ref: ElementRef<HTMLElement> | undefined ) {
+    if ( ref && typeof document !== 'undefined' ) document.body.appendChild( ref.nativeElement );
+  }
+
+  readonly config = PLATFORM_MENU_CONFIG;
+  readonly products: MenuProduct[] = menuProductsFor( this.config.app );
+  readonly accountLinks: MenuLink[] = menuAccountLinks( this.config.app );
+  readonly company = MENU_COMPANY;
+  readonly toddProfileUrl = MENU_TODD_PROFILE_URL;
+  readonly version = String( ( packageJson as { version?: string } ).version || '' ).trim();
 
   isOpen = false;
-  readonly appVersion = String(packageJson.version || '').trim();
+  query = '';
 
-  private readonly baseOutreachLinks: OutreachLink[] = [
-    { label: 'Home', route: '/' },
-    { label: 'Growth', route: '/app' },
-    { label: 'Inbox', route: '/inbox-access' },
-    { label: 'Outbox', route: '/signal-engine' },
-    { label: 'Catalyst', route: '/email-processor' },
-      { label: 'Email Composer', route: '/compose-email' },
-      { label: 'Help', route: '/help' },
-  ];
+  private readonly sanitizer = inject( DomSanitizer );
+  private readonly router = inject( Router );
+  private readonly iconCache = new Map<string, SafeHtml>();
 
-  outreachLinks: OutreachLink[] = [];
-  accountItems: PlatformMenuItem[] = [];
+  /** The part of the app you're in, when the app splits its left column by page. */
+  get section (): MenuSection | undefined { return menuSectionFor( this.config.sections, this.router.url ); }
+  get appTitle (): string { return this.section?.title || this.config.name; }
+  get appItems (): MenuLink[] {
+    return ( this.section?.items || this.config.items ).filter( ( item ) => menuMatches( this.query, item.label, item.keywords ) );
+  }
+  get secondaryItems (): MenuLink[] { return ( this.config.secondaryItems || [] ).filter( ( item ) => menuMatches( this.query, item.label, item.keywords ) ); }
+  get visibleProducts (): MenuProduct[] { return this.products.filter( ( product ) => menuMatches( this.query, product.label ) ); }
+  get visibleAccount (): MenuLink[] { return this.accountLinks.filter( ( item ) => menuMatches( this.query, item.label, item.keywords ) ); }
+  get hasAppColumn (): boolean { return ( this.section?.items || this.config.items ).length > 0 || !!this.config.secondaryItems?.length; }
+  get noResults (): boolean {
+    return !!this.query && !this.appItems.length && !this.secondaryItems.length && !this.visibleProducts.length && !this.visibleAccount.length;
+  }
+  get initials (): string { return menuInitials( this.userName || this.userEmail ); }
 
-  constructor () {
-    this.recompute();
+  icon ( name: MenuIconName, size = 20 ): SafeHtml {
+    const key = `${ name }:${ size }`;
+    if ( !this.iconCache.has( key ) ) this.iconCache.set( key, this.sanitizer.bypassSecurityTrustHtml( menuIconSvg( name, size ) ) );
+    return this.iconCache.get( key )!;
   }
 
-  ngOnChanges (): void {
-    this.recompute();
-  }
-
-  private recompute (): void {
-    this.outreachLinks = [
-      ...this.baseOutreachLinks,
-      this.isLoggedIn
-        ? { label: 'Sign Out', route: '/', signOut: true }
-        // New visitors start in the wizard; it links returning users to /login.
-        : { label: 'Sign In', route: '/get-started' },
-      { label: 'iOS App', route: '/ios' },
-    ];
-
-    // Outreach owns its own in-product help page. Hide the shared TODD-level
-    // Help item so Outreach users stay on outreach.taliferro.tech/help.
-    this.accountItems = getPlatformMenuItems().filter( ( item ) =>
-      // Profile is in-app (/profile), linked on its own in the template.
-      item.id !== 'platform-profile' && item.label !== 'Document' && item.label !== 'Billing' && item.label !== 'Help' && ( !item.adminOnly || this.isAdmin )
-    );
-  }
-
-  trackByLabel ( _index: number, item: { label: string } ): string {
-    return item.label;
-  }
-
-  readonly productLinks: ProductLink[] = [
-    { label: 'Ask TODD', url: 'https://ask.taliferro.tech', icon: 'assets/find/entities/todd/logo-bw-icon.png', description: 'Turn uncertainty into the next move.' },
-    { label: 'Network', url: 'https://network.taliferro.tech', icon: 'assets/find/entities/network/logo-bw-icon.png', description: 'Know who matters before the moment passes.' },
-    { label: 'Docs', url: 'https://docs.taliferro.tech', icon: 'assets/find/entities/docs/logo-bw-icon.png', description: 'Give your best thinking somewhere to live.' },
-    { label: 'Moves', url: 'https://moves.taliferro.tech', icon: 'assets/find/entities/moves/logo-bw-icon.png', description: 'Make progress visible and actionable.' },
-    { label: 'Pulse', url: 'https://pulse.taliferro.tech', icon: 'assets/find/entities/pulse/logo-bw-icon.png', description: 'Hear what people are really saying.' },
-    { label: 'Social', url: 'https://social.taliferro.tech', icon: 'assets/find/entities/social/logo-bw-icon.png', description: 'Stay visible without living online.' },
-    { label: 'Lead Vault', url: 'https://lead-vault.taliferro.tech', icon: 'assets/find/entities/lead-vault/logo-bw-icon.png', description: 'Find the people behind the opportunity.' },
-    { label: 'Maya', url: 'https://maya.taliferro.tech', icon: 'assets/find/entities/maya/logo-bw.png', description: 'Think like your marketing director.' },
-    { label: 'SayIt', url: 'https://sayit.taliferro.tech', icon: 'assets/find/entities/sayit/logo-bw-icon.png', description: 'Make your message worth sharing.' },
-    { label: 'Find', url: 'https://find.taliferro.tech', icon: 'assets/find/entities/find/logo-bw-icon.png', description: 'Get to the answer faster.' },
-    { label: 'Email Signature', url: 'https://signature.taliferro.tech', icon: 'assets/find/entities/email-signature-builder/logo-bw-icon.png', description: 'Make every email carry your brand.' },
-    { label: 'Image Creator', url: 'https://images.taliferro.tech', icon: 'assets/find/entities/image-creator/logo-bw-icon.svg', description: 'Turn an idea into an image.' },
-    { label: 'Email Creator', url: 'https://emails.taliferro.tech', icon: 'assets/find/entities/email-creator/logo-bw-icon.svg', description: 'Design an email that looks the part.' },
-    { label: 'Music', url: 'https://music.taliferro.com', icon: 'assets/find/entities/music/logo-bw-icon.png', description: 'Let the soundtrack keep moving.' },
-  ];
-
-  toggle (): void {
-    this.isOpen = !this.isOpen;
+  open (): void {
+    this.isOpen = true;
+    this.query = '';
+    setTimeout( () => this.searchInput?.nativeElement.focus(), 0 );
   }
 
   close (): void {
     this.isOpen = false;
   }
 
-  handleOutreachLink ( link: OutreachLink ): void {
+  toggle (): void {
+    if ( this.isOpen ) this.close(); else this.open();
+  }
+
+  onSignOut (): void {
     this.close();
-    if ( link.signOut ) this.signOut.emit();
+    this.signOut.emit();
+  }
+
+  onSignIn (): void {
+    this.close();
+    if ( this.config.signInRoute ) void this.router.navigateByUrl( this.config.signInRoute );
+    else this.signIn.emit();
+  }
+
+  /** Enter in search opens the first match. */
+  openFirstMatch (): void {
+    const link = [...this.appItems, ...this.secondaryItems][0];
+    if ( link?.route ) {
+      this.close();
+      void this.router.navigateByUrl( link.route );
+      return;
+    }
+    const url = link?.url || this.visibleProducts[0]?.url || this.visibleAccount[0]?.url;
+    if ( url ) {
+      this.close();
+      window.location.href = url;
+    }
+  }
+
+  /** ⌘K opens it; once open, typing goes to search; Escape closes. */
+  @HostListener( 'document:keydown', ['$event'] )
+  onKeydown ( event: KeyboardEvent ): void {
+    if ( ( event.metaKey || event.ctrlKey ) && event.key.toLowerCase() === 'k' ) {
+      event.preventDefault();
+      this.toggle();
+      return;
+    }
+    if ( !this.isOpen ) return;
+    if ( event.key === 'Escape' ) {
+      this.close();
+      return;
+    }
+    const input = this.searchInput?.nativeElement;
+    if ( input && document.activeElement !== input && event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey ) {
+      input.focus();
+    }
+  }
+
+  trackByLabel ( _index: number, item: { label: string } ): string {
+    return item.label;
   }
 }

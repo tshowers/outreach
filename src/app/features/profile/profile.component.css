@@ -1,64 +1,41 @@
-/* Outreach' global stylesheet doesn't define TODD's surface tokens (other
- * pages rely on their fallbacks), so this page scopes its own - the same
- * light/dark values as Pulse's src/styles.css. */
+/* Profile (Find tokens, like the rest of the workspace). The page keeps its
+ * own --todd-* / --pf-* names so the rules below stay readable; they now map
+ * to the global tokens, which already handle dark mode. */
 :host {
   display: block;
-  --tl-blue-deep: #006a99;
-  --todd-bg: #f6f8fa;
-  --todd-text: #222;
-  --todd-subtext: #555;
-  --todd-border: rgba(0, 0, 0, .08);
-  --todd-card-bg: rgba(255, 255, 255, 0.92);
+  --todd-bg: var(--bg);
+  --todd-text: var(--text);
+  --todd-subtext: var(--muted);
+  --todd-border: var(--surface2);
+  --todd-card-bg: var(--bg);
 }
-
-/* Dark mode: follows the site's Light/Dark toggle (data-theme on <html>)
- * where there is one, and the system setting where there isn't. */
-@media (prefers-color-scheme: dark) {
-  :host-context(html:not([data-theme='light'])) {
-    --tl-blue-deep: #4fc3f7;
-    --todd-bg: #0d1117;
-    --todd-text: #f0f6ff;
-    --todd-subtext: #8ba4bd;
-    --todd-border: rgba(0, 191, 255, 0.12);
-    --todd-card-bg: #1a2535;
-  }
-}
-:host-context(html[data-theme='dark']) {
-    --tl-blue-deep: #4fc3f7;
-    --todd-bg: #0d1117;
-    --todd-text: #f0f6ff;
-    --todd-subtext: #8ba4bd;
-    --todd-border: rgba(0, 191, 255, 0.12);
-    --todd-card-bg: #1a2535;
-  }
-
 
 .pf-shell {
-  --pf-accent: var(--tl-blue-deep);
+  --pf-accent: var(--blue);
   --pf-accent-ink: #ffffff;
-  --pf-danger: #b42318;
+  --pf-danger: var(--danger);
   min-height: 100vh;
-  background: var(--todd-bg);
+  background: var(--bg);
   color: var(--todd-text);
-  font-family: 'Manrope', sans-serif;
-  padding: 88px 16px 120px;
+  font-family: var(--font);
+  padding: 40px 36px 120px;
 }
-@media (prefers-color-scheme: dark) {
-  :host-context(html:not([data-theme='light'])) .pf-shell { --pf-accent: var(--tl-blue); --pf-accent-ink: #04121f; --pf-danger: #ff8a80; }
+
+@media (max-width: 899px) {
+  .pf-shell { padding: 88px 16px 120px; }
 }
-:host-context(html[data-theme='dark']) .pf-shell { --pf-accent: var(--tl-blue); --pf-accent-ink: #04121f; --pf-danger: #ff8a80; }
 
 .pf-shell * { box-sizing: border-box; }
 
 .pf-inner { max-width: 760px; margin: 0 auto; }
 .pf-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-.pf-header h1 { margin: 0 0 6px; font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; }
+.pf-header h1 { margin: 0 0 6px; font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 700; letter-spacing: -0.02em; }
 .pf-header p { margin: 0 0 24px; color: var(--todd-subtext); }
 
 .pf-error { padding: 12px 16px; border-radius: 12px; background: color-mix(in srgb, var(--pf-danger) 14%, transparent); color: var(--pf-danger); font-weight: 600; }
 .pf-loading { color: var(--todd-subtext); }
 
-.pf-card { margin-bottom: 16px; padding: 22px clamp(16px, 4vw, 28px); border: 1px solid var(--todd-border); border-radius: 20px; background: var(--todd-card-bg); }
+.pf-card { margin-bottom: 16px; padding: 22px clamp(16px, 4vw, 28px); border: 0; border-radius: 20px; background: var(--surface); }
 .pf-card h2 { margin: 0 0 16px; font-size: 1.1rem; font-weight: 800; }
 .pf-card--danger { border-color: color-mix(in srgb, var(--pf-danger) 35%, var(--todd-border)); }
 

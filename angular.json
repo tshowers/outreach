@@ -98,7 +98,12 @@
               "buildTarget": "outreach:build:e2e"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "prebundle": {
+              "exclude": ["@taliferro/ui"]
+            }
+          }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n"

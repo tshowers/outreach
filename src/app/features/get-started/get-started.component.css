@@ -1,53 +1,32 @@
-/* Outreach's twin of Docs' /get-started page styles. */
+/* Get started (Find tokens, like the rest of the workspace). The page keeps
+ * its own --todd-* / --gs-* names; they map to the global tokens, which
+ * already handle dark mode. */
 :host {
   display: block;
-  --gs-brand: #1f7a54;
-  --todd-bg: #f6f8fa;
-  --todd-text: #0b1220;
-  --todd-subtext: #4a5a70;
-  --todd-border: rgba(11, 18, 32, .1);
-  --todd-card-bg: rgba(255, 255, 255, 0.94);
+  --todd-bg: var(--bg);
+  --todd-text: var(--text);
+  --todd-subtext: var(--muted);
+  --todd-border: var(--surface2);
+  --todd-card-bg: var(--surface);
 }
-
-/* Outreach follows the system light/dark setting. */
-/* Dark mode: follows the site's Light/Dark toggle (data-theme on <html>)
- * where there is one, and the system setting where there isn't. */
-@media (prefers-color-scheme: dark) {
-  :host-context(html:not([data-theme='light'])) {
-  --gs-brand: #5fd3a0;
-  --todd-bg: #0b1220;
-  --todd-text: #f8fafc;
-  --todd-subtext: #aebbd0;
-  --todd-border: rgba(174, 187, 208, 0.16);
-  --todd-card-bg: #111c2c;
-}
-}
-:host-context(html[data-theme='dark']) {
-  --gs-brand: #5fd3a0;
-  --todd-bg: #0b1220;
-  --todd-text: #f8fafc;
-  --todd-subtext: #aebbd0;
-  --todd-border: rgba(174, 187, 208, 0.16);
-  --todd-card-bg: #111c2c;
-}
-
 
 .gs-shell {
-  --gs-accent: var(--gs-brand);
+  --gs-accent: var(--blue);
   --gs-accent-ink: #ffffff;
   min-height: 100vh;
-  padding: 88px 16px 48px;
-  background: var(--todd-bg);
+  padding: 40px 16px 48px;
+  background: var(--bg);
   color: var(--todd-text);
+  font-family: var(--font);
 }
-@media (prefers-color-scheme: dark) {
-  :host-context(html:not([data-theme='light'])) .gs-shell { --gs-accent-ink: #04121f; }
+
+@media (max-width: 899px) {
+  .gs-shell { padding-top: 88px; }
 }
-:host-context(html[data-theme='dark']) .gs-shell { --gs-accent-ink: #04121f; }
 
 .gs-shell * { box-sizing: border-box; }
 
-.gs-card { max-width: 640px; margin: 0 auto; padding: 28px clamp(20px, 5vw, 40px) 32px; border: 1px solid var(--todd-border); border-radius: 24px; background: var(--todd-card-bg); }
+.gs-card { max-width: 640px; margin: 0 auto; padding: 28px clamp(20px, 5vw, 40px) 32px; border: 0; border-radius: 28px; background: var(--todd-card-bg); }
 .gs-card__nav { display: flex; align-items: center; min-height: 32px; margin-bottom: 12px; }
 .gs-back { border: 0; background: none; padding: 4px 0; color: var(--todd-text); font: inherit; font-weight: 700; cursor: pointer; }
 .gs-back span { font-size: 1.3rem; line-height: 1; }
@@ -58,11 +37,11 @@
 .gs-progress__fill { display: block; height: 100%; border-radius: inherit; background: var(--gs-accent); transition: width .35s ease; }
 .gs-progress__label { display: flex; align-items: center; gap: 4px; margin-top: 6px; font-size: .72rem; font-weight: 600; color: var(--todd-subtext); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gs-progress__segment.is-active .gs-progress__label, .gs-progress__segment.is-done .gs-progress__label { color: var(--todd-text); }
-.gs-progress__segment.is-active .gs-progress__label { font-weight: 800; }
+.gs-progress__segment.is-active .gs-progress__label { font-weight: 700; }
 .gs-progress__check { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--gs-accent); color: var(--gs-accent-ink); font-size: .6rem; }
 
 .gs-lede { margin: 0 0 14px; color: var(--todd-subtext); }
-.gs-question { margin: 0 0 8px; font-size: clamp(1.6rem, 4.5vw, 2.1rem); font-weight: 800; line-height: 1.15; }
+.gs-question { margin: 0 0 8px; font-size: clamp(1.6rem, 4.5vw, 2.1rem); font-weight: 700; line-height: 1.15; }
 .gs-hint { margin: 0 0 16px; color: var(--todd-subtext); }
 
 .gs-input { display: block; width: 100%; margin-top: 16px; padding: 14px 16px; border: 1px solid var(--todd-border); border-radius: 12px; background: var(--todd-bg); color: var(--todd-text); font: inherit; font-size: 1.1rem; }
@@ -85,26 +64,26 @@
 .gs-add-question { width: 100%; margin-top: 18px; }
 
 .gs-preview { margin-top: 8px; padding: 18px; border: 1px solid var(--todd-border); border-radius: 16px; background: var(--todd-bg); }
-.gs-preview h2 { margin: 0 0 12px; font-size: 1.2rem; font-weight: 800; }
+.gs-preview h2 { margin: 0 0 12px; font-size: 1.2rem; font-weight: 700; }
 .gs-preview ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
 .gs-preview li { display: flex; flex-direction: column; gap: 2px; }
 .gs-preview__type, .gs-preview__options { color: var(--todd-subtext); font-size: .88rem; }
 
 .gs-actions { display: flex; gap: 12px; margin-top: 24px; }
-.gs-button { flex: 1; min-height: 50px; border: 0; border-radius: 999px; background: var(--gs-accent); color: var(--gs-accent-ink); font: inherit; font-weight: 800; cursor: pointer; }
+.gs-button { flex: 1; min-height: 50px; border: 0; border-radius: 999px; background: var(--gs-accent); color: var(--gs-accent-ink); font: inherit; font-weight: 700; cursor: pointer; }
 .gs-button:disabled { opacity: .4; cursor: not-allowed; }
 .gs-button--ghost { background: transparent; color: var(--todd-text); border: 1px solid var(--todd-border); }
 
-.gs-existing { display: block; margin-top: 18px; text-align: center; font-size: .9rem; font-weight: 700; color: var(--todd-subtext); text-decoration: none; }
-.gs-existing:hover { color: var(--todd-text); }
+.gs-existing { display: block; margin-top: 18px; text-align: center; font-size: .9rem; font-weight: 700; color: var(--blue-ink) !important; text-decoration: none; }
+.gs-existing:hover { text-decoration: underline; }
 
 @media (prefers-reduced-motion: reduce) { .gs-progress__fill { transition: none; } }
 .gs-input--note { font-size: 1rem; resize: vertical; }
 
-.gs-preview__category { display: inline-block; margin-bottom: 10px; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--gs-accent) 14%, transparent); color: var(--gs-accent); font-size: .72rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.gs-preview__category { display: inline-block; margin-bottom: 10px; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--gs-accent) 14%, transparent); color: var(--gs-accent); font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 .gs-preview p { margin: 0; line-height: 1.5; }
 .gs-preview__keywords { margin-top: 10px !important; color: var(--todd-subtext); font-size: .85rem; }
-.gs-asked { margin: 4px 0 0; font-weight: 800; }
+.gs-asked { margin: 4px 0 0; font-weight: 700; }
 
 .gs-preview h2 {
   display: flex;

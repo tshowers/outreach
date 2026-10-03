@@ -52,7 +52,9 @@
   min-width: 0;
 }
 
-.app-global-actions--shell {
+/* On shell pages the sidebar has the Menu button; the menu itself (and its
+ * panel) still lives here. ::ng-deep because the pill is the menu's own markup. */
+.app-global-actions--shell ::ng-deep .um-trigger {
   display: none;
 }
 
@@ -65,7 +67,7 @@
     display: none;
   }
 
-  .app-global-actions--shell {
+  .app-global-actions--shell ::ng-deep .um-trigger {
     display: inline-flex;
   }
 }
