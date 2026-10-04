@@ -23,6 +23,11 @@ export const routes: Routes = [
       import( './features/help/help.component' ).then( ( m ) => m.HelpComponent ),
   },
   {
+    path: 'about',
+    loadComponent: () =>
+      import( './features/about/about.component' ).then( ( m ) => m.AboutComponent ),
+  },
+  {
     // Pre-sign-in wizard: which email they send from, then name, then sign
     // in (ONBOARDING-PROFILE-BILLING-PLAYBOOK.md). /login stays the direct
     // handoff for returning users and deep links.

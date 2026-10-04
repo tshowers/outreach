@@ -1,0 +1,68 @@
+<!-- The shared About template (taliferro-ui); Outreach's own story follows it. -->
+<app-product-pages page="about">
+<div class="outreach-help" data-cy="about-outreach">
+  <section class="help-section" aria-labelledby="about-why-title">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">Is Outreach for me?</p>
+      <h2 id="about-why-title">Who it's for, why it's different, and what you get</h2>
+    </div>
+    <div class="help-card-grid">
+      <article class="help-card" *ngFor="let card of whyCards">
+        <i class="fa-solid {{ card.icon }}" aria-hidden="true"></i>
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.copy }}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="help-section" aria-labelledby="about-loop-title">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">How it works</p>
+      <h2 id="about-loop-title">How the pieces fit together</h2>
+      <p>Each part of Outreach handles one stage of the same cycle. What you learn at the end feeds the next round of follow-ups.</p>
+    </div>
+    <ol class="help-loop">
+      <li *ngFor="let stage of loop">
+        <strong>{{ stage.label }}</strong>
+        <span class="help-loop__where">{{ stage.where }}</span>
+        <p>{{ stage.copy }}</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="help-section" aria-labelledby="about-where-title">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">Where it works</p>
+      <h2 id="about-where-title">In your browser and on your iPhone</h2>
+      <p>Open any page of Outreach in a browser, signed in or not, to see how it works. Creating, sending and deleting come with Outreach for iOS on iPhone and iPad, and one subscription unlocks them on the web too.</p>
+    </div>
+    <div class="help-card-grid">
+      <article class="help-card">
+        <i class="fa-solid fa-globe" aria-hidden="true"></i>
+        <h3>On the web</h3>
+        <p>Growth, Needs you, Inbox, Catalyst and the Email Composer, in any modern browser.</p>
+      </article>
+      <article class="help-card">
+        <i class="fa-solid fa-mobile-screen" aria-hidden="true"></i>
+        <h3>On iPhone and iPad</h3>
+        <p>Review what needs you, approve drafts and answer replies between meetings.</p>
+        <a class="help-try-link" routerLink="/ios">Outreach for iOS <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="help-card">
+        <i class="fa-solid fa-tag" aria-hidden="true"></i>
+        <h3>Pricing</h3>
+        <p>Browsing is free. Creating with Outreach is a subscription in the iOS app.</p>
+        <a class="help-try-link" routerLink="/pricing">See pricing <span aria-hidden="true">→</span></a>
+      </article>
+    </div>
+  </section>
+
+  <section class="help-section" aria-labelledby="about-who-title">
+    <div class="help-section__heading">
+      <p class="help-section-kicker">Who makes it</p>
+      <h2 id="about-who-title">Built by Taliferro Tech, as part of TODD</h2>
+      <p>Outreach is made by Taliferro Tech in Seattle. It is part of TODD, a Momentum System that turns scattered information across relationships, growth, knowledge, execution and feedback into clear next moves. Maya, TODD's marketing advisor, drafts the follow-ups you review in Outreach.</p>
+    </div>
+  </section>
+</div>
+</app-product-pages>

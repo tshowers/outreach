@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ProductPagesComponent } from '../../shared/product-pages/product-pages.component';
 import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { GettingStarted, GettingStartedService, GettingStartedStep } from '../../services/getting-started.service';
 
@@ -13,24 +14,12 @@ interface HelpStep {
   action: string;
 }
 
-interface HelpCard {
-  icon: string;
-  title: string;
-  copy: string;
-}
-
 interface FirstStep {
   title: string;
   copy: string;
   route?: string;
   href?: string;
   action: string;
-}
-
-interface LoopStage {
-  label: string;
-  where: string;
-  copy: string;
 }
 
 interface GlossaryTerm {
@@ -47,7 +36,7 @@ interface HelpFaq {
 @Component({
   selector: 'app-help',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ProductPagesComponent],
   templateUrl: './help.component.html',
   styleUrl: './help.component.css',
 })
@@ -81,24 +70,6 @@ export class HelpComponent implements OnInit {
     return step.id;
   }
 
-  readonly whyCards: HelpCard[] = [
-    {
-      icon: 'fa-user-group',
-      title: 'Who it is for',
-      copy: 'Founders, consultants, small teams, and operators whose business runs on relationships and email, but who do not have time to watch every contact and remember every follow-up.',
-    },
-    {
-      icon: 'fa-compass',
-      title: 'Why it is different',
-      copy: 'Most email tools help you send. Outreach helps you decide who to contact, when, and why. It reads the signals (replies, clicks, silence), drafts the next message for you, and keeps you in charge of what goes out.',
-    },
-    {
-      icon: 'fa-chart-line',
-      title: 'What you get',
-      copy: 'Fewer relationships that quietly go cold, less time digging through your inbox, and a clear list of who needs you today, with a drafted message ready to review.',
-    },
-  ];
-
   readonly firstSteps: FirstStep[] = [
     {
       title: 'Look around first (optional)',
@@ -130,14 +101,6 @@ export class HelpComponent implements OnInit {
       route: '/needs-you',
       action: 'Open Needs you',
     },
-  ];
-
-  readonly loop: LoopStage[] = [
-    { label: 'Notice', where: 'Catalyst', copy: 'Finds contacts you have not talked to in a while.' },
-    { label: 'Draft', where: 'Maya', copy: 'Writes a follow-up that fits the relationship and the signal.' },
-    { label: 'Decide', where: 'Needs you', copy: 'You approve, edit, rewrite, or discard each draft.' },
-    { label: 'Send & reply', where: 'Inbox', copy: 'Messages go out from your own mailbox and replies land back here.' },
-    { label: 'Learn', where: 'Engagement & Growth', copy: 'Clicks, replies, and silence show who is leaning in, which shapes the next move.' },
   ];
 
   readonly glossary: GlossaryTerm[] = [

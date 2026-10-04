@@ -1,5 +1,5 @@
-import { AsyncPipe, NgIf } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { AsyncPipe, NgIf, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { map } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -24,6 +24,8 @@ import packageJson from '../../package.json';
 export class AppComponent implements OnInit {
   private readonly authService = inject( OutreachAuthService );
   private readonly router = inject( Router );
+  /** False while the public pages are prerendered at build time (no window there). */
+  private readonly isBrowser = isPlatformBrowser( inject( PLATFORM_ID ) );
   private readonly updates = inject( SwUpdate );
   private isReloadingForUpdate = false;
   private isRecoveringFromChunkError = false;
@@ -42,7 +44,7 @@ export class AppComponent implements OnInit {
   title = 'outreach';
 
   /** The signed-in workspace pages get the laptop shell's sidebar. */
-  private static readonly shellRoutes = ['/app', '/needs-you', '/signal-engine', '/inbox-access', '/compose-email', '/email-processor', '/maya-day', '/engagement', '/profile', '/help', '/get-started'];
+  private static readonly shellRoutes = ['/app', '/needs-you', '/signal-engine', '/inbox-access', '/compose-email', '/email-processor', '/maya-day', '/engagement', '/profile', '/get-started'];
   showShell = false;
 
   async signOut (): Promise<void> {
@@ -51,12 +53,14 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit (): void {
-    this.followSystemTheme();
-    void this.needsYouCount.refresh();
     this.updateShell( this.router.url );
     this.router.events.pipe( filter( event => event instanceof NavigationEnd ) ).subscribe( ( event ) => {
       this.updateShell( ( event as NavigationEnd ).urlAfterRedirects );
     } );
+    // Everything below needs a browser: theme, counts, update checks.
+    if ( !this.isBrowser ) return;
+    this.followSystemTheme();
+    void this.needsYouCount.refresh();
     this.showUpdateNoticeAfterReload();
     if ( !environment.production ) return;
 

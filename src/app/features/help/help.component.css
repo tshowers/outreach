@@ -7,15 +7,8 @@
   --help-panel: var(--surface);
   --help-panel-soft: var(--bg);
   --help-line: var(--surface2);
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 40px 36px 5rem;
   color: var(--help-ink);
   font-family: var(--font);
-}
-
-@media (max-width: 899px) {
-  .outreach-help { padding: 88px 16px 5rem; }
 }
 
 .help-hero, .help-section, .help-todd-callout { border: 0; background: var(--help-panel); border-radius: 28px; }

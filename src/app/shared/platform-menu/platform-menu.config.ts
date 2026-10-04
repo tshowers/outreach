@@ -4,7 +4,6 @@ import { MenuAppConfig } from '@taliferro/ui/platform/universal-menu.model';
 export const PLATFORM_MENU_CONFIG: MenuAppConfig = {
   app: 'outreach',
   name: 'Outreach',
-  logo: 'assets/outreach/logo.png',
   items: [
     { label: 'Home', icon: 'home', route: '/' },
     { label: 'Growth', icon: 'growth', route: '/app' },
@@ -18,6 +17,7 @@ export const PLATFORM_MENU_CONFIG: MenuAppConfig = {
   secondaryItems: [
     { label: 'Profile', icon: 'user', route: '/profile' },
     { label: 'Help', icon: 'help', route: '/help' },
+    { label: 'About', icon: 'info', route: '/about' },
     { label: 'iOS App', icon: 'phone', route: '/ios', keywords: 'iphone ipad app store' },
   ],
   signInRoute: '/get-started',

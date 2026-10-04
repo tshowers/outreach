@@ -31,5 +31,5 @@ export class LandingComponent implements AfterViewInit {
     { question: 'Who is Outreach for?', answer: 'Outreach is for teams and operators who need consistent, thoughtful follow-up without manually watching every contact and campaign.' }
   ];
 
-  ngAfterViewInit (): void { window.scrollTo( 0, 0 ); }
+  ngAfterViewInit (): void { if ( typeof window !== 'undefined' ) window.scrollTo( 0, 0 ); }
 }

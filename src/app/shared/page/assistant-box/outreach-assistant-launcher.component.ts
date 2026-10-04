@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, NgZone, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -47,6 +47,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
   private readonly assistantBus = inject( OutreachAssistantSignalService );
   private readonly router = inject( Router );
   private readonly zone = inject( NgZone );
+  private readonly isBrowser = isPlatformBrowser( inject( PLATFORM_ID ) );
 
   private readonly launcherHotzoneSize = 180;
   private readonly launcherRevealDurationMs = 2400;
@@ -92,6 +93,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
     // pointer is anywhere near the hotzone. Only re-enter the zone
     // (`this.zone.run`) on the rare occasion the pointer is actually in the
     // hotzone and launcherVisible needs to update.
+    if ( !this.isBrowser ) return;
     this.zone.runOutsideAngular( () => {
       document.addEventListener( 'mousemove', this.onDocumentMouseMove, { passive: true } );
       document.addEventListener( 'touchstart', this.onDocumentTouchStart, { passive: true } );
@@ -101,6 +103,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
   ngOnDestroy (): void {
     if ( this.launcherHideTimer ) clearTimeout( this.launcherHideTimer );
     this.subscriptions.forEach( ( s ) => s.unsubscribe() );
+    if ( !this.isBrowser ) return;
     document.removeEventListener( 'mousemove', this.onDocumentMouseMove );
     document.removeEventListener( 'touchstart', this.onDocumentTouchStart );
   }
