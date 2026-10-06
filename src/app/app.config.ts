@@ -11,6 +11,7 @@ import { environment } from '../environments/environment';
 import { tenantInterceptor } from './core/interceptors/tenant.interceptor';
 import { swBypassInterceptor } from './core/interceptors/sw-bypass.interceptor';
 import { idTokenInterceptor } from './core/interceptors/id-token.interceptor';
+import { provideCanonicalUrl } from './shared/canonical-url';
 
 initializeApp( environment.firebaseConfig );
 
@@ -23,6 +24,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
+    provideCanonicalUrl(),
     provideHttpClient(withInterceptors([idTokenInterceptor, tenantInterceptor, swBypassInterceptor])),
     provideServiceWorker('ngsw-worker.js', {
       enabled: environment.production,

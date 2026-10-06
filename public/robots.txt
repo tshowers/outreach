@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /inbox-access
+Disallow: /maya-day
+Disallow: /needs-you
+Disallow: /signal-engine
+Disallow: /engagement
+Disallow: /email-processor
+Disallow: /compose-email
+Disallow: /profile
+Disallow: /get-started
+Disallow: /login
+Disallow: /auth/
+Disallow: /mobile-handoff
+Disallow: /unsubscribe-
+Disallow: /success
+
+Sitemap: https://outreach.taliferro.tech/sitemap.xml
