@@ -25,12 +25,19 @@
   <link rel="icon" type="image/png" sizes="304x298" href="/assets/outreach/logo.png">
   <link rel="apple-touch-icon" href="/assets/outreach/logo.png">
   <!-- Google Analytics 4 / Outreach web stream -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-57V6BWTDMB"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-57V6BWTDMB');
+    // No GA on localhost: local dev and the Cypress runs in deploy.sh otherwise
+    // show up in GA as thousands of one-second "users".
+    if (!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+      var gaTag = document.createElement('script');
+      gaTag.async = true;
+      gaTag.src = 'https://www.googletagmanager.com/gtag/js?id=G-57V6BWTDMB';
+      document.head.appendChild(gaTag);
+      gtag('js', new Date());
+      gtag('config', 'G-57V6BWTDMB');
+    }
   </script>
 </head>
 <body>
