@@ -15,8 +15,10 @@ describe('Public pages', () => {
     cy.location('pathname').should('eq', '/ios');
   });
 
-  it('redirects unknown routes to /app', () => {
+  it('shows a noindex Not Found page for unknown routes', () => {
     cy.visit('/this-route-does-not-exist');
-    cy.location('pathname').should('eq', '/app');
+    cy.location('pathname').should('eq', '/this-route-does-not-exist');
+    cy.contains("We couldn't find that.");
+    cy.get('meta[name="robots"]').should('have.attr', 'content', 'noindex');
   });
 });
