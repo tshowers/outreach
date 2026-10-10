@@ -1,6 +1,17 @@
-<footer class="legal-footer" role="contentinfo" aria-label="Site footer">
-  <span><a routerLink="/help">Help</a> · <a routerLink="/about">About</a></span>
-  <span>© 2026 TODD.</span>
-  <span>Site design <a href="https://taliferro.com/website-development">Taliferro Group</a>. Taliferro Is Registered In The U.S. Patent And Trademark Office. All rights reserved.</span>
-  <span>| <a href="https://taliferro.tech/careers">Careers</a> | Version: {{ version }}</span>
+<!-- SYNCED FROM taliferro-ui/site-footer-component - edit it there. -->
+<footer class="tt-foot">
+  <div class="tt-foot__row tt-foot__app"><ng-content></ng-content></div>
+  <div class="tt-foot__row">
+    <a class="tt-foot__brand" [href]="company.url">{{ company.name }}</a>
+    <a [href]="'mailto:' + company.email">{{ company.email }}</a>
+    <a [href]="phoneHref">{{ company.phone }}</a>
+    <span>{{ company.address }}</span>
+  </div>
+  <nav class="tt-foot__row" aria-label="Taliferro Tech products">
+    <a *ngFor="let product of products" [href]="product.url">{{ product.label }}</a>
+  </nav>
+  <div class="tt-foot__row">
+    <a *ngFor="let link of company.links" [href]="link.url">{{ link.label }}</a>
+    <span>© {{ year }} {{ company.legalName }}</span>
+  </div>
 </footer>

@@ -1,4 +1,4 @@
-:host { display:block; background:var(--site-bg); color:var(--site-ink); }
+:host {  background:var(--site-bg); color:var(--site-ink); }
 .outreach-site { overflow:hidden; }
 .site-nav, .hero, .section, footer { width:min(1160px, calc(100% - 3rem)); margin-inline:auto; }
 .site-nav { display:flex; justify-content:space-between; align-items:center; padding:1.4rem 9rem 1.4rem 0; }

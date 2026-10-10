@@ -5,6 +5,7 @@ import { SiteFooterComponent } from '../../shared/site-footer/site-footer.compon
 
 @Component( {
   selector: 'app-landing',
+  host: { class: 'tt-page' },
   standalone: true,
   imports: [CommonModule, RouterModule, SiteFooterComponent],
   templateUrl: './landing.component.html',
