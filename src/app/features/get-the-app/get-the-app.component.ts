@@ -13,13 +13,15 @@ import {
   isLiveOnAppStore,
 } from '@taliferro/ui/platform/get-the-app.model';
 import { WriteAccessService, WriteAccessState } from '../../services/write-access.service';
+import { WebCheckoutService } from '../../shared/write-access/web-checkout.service';
+import { WriteAccessPromptService } from '../../shared/write-access/write-access-prompt.service';
 
 /**
- * /pricing - "Browse free, create with the app." Same page on every TODD
+ * /pricing - "Browse free, subscribe to create." Same page on every TODD
  * web app; all wording, prices and App Store ids come from
- * @taliferro/ui/platform/get-the-app.model.ts. The App Store button shows
- * "Coming soon" until Apple's lookup finds the app live, then links to it -
- * no code change on launch day.
+ * @taliferro/ui/platform/get-the-app.model.ts. Subscribe opens the shared
+ * write-access prompt (Stripe in a new tab); the App Store button shows
+ * "Coming soon" until Apple's lookup finds the app live.
  */
 @Component( {
   selector: 'app-get-the-app',
@@ -35,6 +37,9 @@ export class GetTheAppComponent implements OnInit {
   private readonly route = inject( ActivatedRoute );
   private readonly title = inject( Title );
   private readonly writeAccess = inject( WriteAccessService );
+  private readonly prompts = inject( WriteAccessPromptService );
+  private readonly checkout = inject( WebCheckoutService );
+  manageMessage = '';
 
   product!: GetTheAppProduct;
   readonly steps = GET_THE_APP_STEPS;
@@ -51,5 +56,19 @@ export class GetTheAppComponent implements OnInit {
     this.title.setTitle( `Pricing — ${this.product.shortName} | Taliferro Tech` );
     this.isLive = await isLiveOnAppStore( this.product );
     this.appStoreLink = this.isLive ? appStoreUrl( this.product ) : '';
+  }
+
+  subscribe (): void {
+    this.prompts.open( { state: 'browsing', action: 'create and edit' } );
+  }
+
+  /** Stripe's billing page for web subscribers; App Store subscribers manage it on their iPhone. */
+  async manage (): Promise<void> {
+    this.manageMessage = '';
+    try {
+      await this.checkout.openPortal();
+    } catch {
+      this.manageMessage = `Your subscription is through the App Store: on your iPhone or iPad, Settings → your name → Subscriptions → ${this.product.appName}.`;
+    }
   }
 }
