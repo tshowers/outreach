@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { MailboxProviderId } from '../../services/outreach-api.service';
 import {
@@ -31,6 +31,7 @@ interface Step { key: StepKey; section: number; }
   styleUrl: './get-started.component.css',
 } )
 export class GetStartedComponent implements OnInit {
+  private readonly route = inject( ActivatedRoute );
   @ViewChild( 'textInput' ) textInput?: ElementRef<HTMLInputElement>;
 
   readonly sections = ['Start', 'Your inbox', 'About you', 'Sign up'];
@@ -114,7 +115,9 @@ export class GetStartedComponent implements OnInit {
   signIn (): void {
     this.isSigningIn = true;
     this.persist();
-    this.authService.signIn( '/app' );
+    // Back to the page you were on when you chose Sign in (?returnUrl=), else the app.
+    const returnUrl = String( this.route.snapshot.queryParamMap.get( 'returnUrl' ) || '' ).trim();
+    this.authService.signIn( returnUrl.startsWith( '/' ) && !returnUrl.startsWith( '//' ) ? returnUrl : '/app' );
   }
 
   private focus (): void {
