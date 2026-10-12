@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { Title } from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Observable } from 'rxjs';
 import {
@@ -36,6 +36,7 @@ export class GetTheAppComponent implements OnInit {
 
   private readonly route = inject( ActivatedRoute );
   private readonly title = inject( Title );
+  private readonly meta = inject( Meta );
   private readonly writeAccess = inject( WriteAccessService );
   private readonly prompts = inject( WriteAccessPromptService );
   private readonly checkout = inject( WebCheckoutService );
@@ -53,7 +54,12 @@ export class GetTheAppComponent implements OnInit {
     this.product = GET_THE_APP_PRODUCTS[key];
     this.faqs = getTheAppFaqs( this.product );
     this.state$ = this.writeAccess.state( key );
-    this.title.setTitle( `Pricing — ${this.product.shortName} | Taliferro Tech` );
+    const title = `Pricing — ${this.product.shortName} | Taliferro Tech`;
+    const description = `Browse ${this.product.shortName} free on the web. Subscribe to create and edit, on the web or in the iOS app.`;
+    this.title.setTitle( title );
+    this.meta.updateTag( { name: 'description', content: description } );
+    this.meta.updateTag( { property: 'og:title', content: title } );
+    this.meta.updateTag( { property: 'og:description', content: description } );
     this.isLive = await isLiveOnAppStore( this.product );
     this.appStoreLink = this.isLive ? appStoreUrl( this.product ) : '';
   }

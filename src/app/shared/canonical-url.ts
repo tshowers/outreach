@@ -4,7 +4,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 /**
- * Keeps <link rel="canonical"> pointing at the page being shown.
+ * Keeps <link rel="canonical"> and og:url pointing at the page being shown.
  *
  * index.html ships the site's home URL as the canonical, so without this
  * every page tells Google it's a duplicate of the home page ("Alternate page
@@ -19,6 +19,7 @@ export function provideCanonicalUrl (): EnvironmentProviders {
     const router = inject( Router );
 
     const link = document.querySelector<HTMLLinkElement>( 'link[rel="canonical"]' );
+    const ogUrl = document.querySelector<HTMLMetaElement>( 'meta[property="og:url"]' );
     const href = link?.getAttribute( 'href' ) || '';
     let origin = '';
     try {
@@ -32,6 +33,7 @@ export function provideCanonicalUrl (): EnvironmentProviders {
       .subscribe( ( event ) => {
         const path = event.urlAfterRedirects.split( /[?#]/ )[0] || '/';
         link!.setAttribute( 'href', `${ origin }${ path }` );
+        ogUrl?.setAttribute( 'content', `${ origin }${ path }` );
       } );
   } );
 }
