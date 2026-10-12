@@ -2,12 +2,13 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { SiteFooterComponent } from '../../shared/site-footer/site-footer.component';
+import { AlsoFromUsComponent } from '../../shared/also-from-us/also-from-us.component';
 
 @Component( {
   selector: 'app-landing',
   host: { class: 'tt-page' },
   standalone: true,
-  imports: [CommonModule, RouterModule, SiteFooterComponent],
+  imports: [ AlsoFromUsComponent, CommonModule, RouterModule, SiteFooterComponent],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.css'
 } )

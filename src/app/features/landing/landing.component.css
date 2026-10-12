@@ -147,7 +147,8 @@ footer { display:flex; align-items:center; justify-content:space-between; gap:1r
   font-size: 13px;
 }
 
-.made-by strong {
+/* ::ng-deep: "Also from us" renders its name and logo in its own component. */
+.made-by ::ng-deep strong {
   color: var(--text);
 }
 
@@ -159,8 +160,14 @@ footer { display:flex; align-items:center; justify-content:space-between; gap:1r
   text-decoration: none;
 }
 
-.made-by a:hover strong {
+.made-by a:hover ::ng-deep strong {
   text-decoration: underline;
+}
+
+.made-by ::ng-deep .um-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
 }
 
 /* TODD's mark sits in a small white circle (design 4g). */

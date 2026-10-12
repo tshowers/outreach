@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { SoundService } from './sound.service';
 
 export type NotifyType = 'success' | 'error' | 'warning' | 'info';
 
@@ -19,6 +20,7 @@ export interface Toast {
  */
 @Injectable( { providedIn: 'root' } )
 export class OutreachNotificationService {
+  private readonly sound = inject( SoundService );
   private nextId = 1;
   private readonly toastsSubject = new BehaviorSubject<Toast[]>( [] );
   readonly toasts$ = this.toastsSubject.asObservable();
@@ -26,6 +28,7 @@ export class OutreachNotificationService {
   show ( header: string, description: string, type: NotifyType = 'info' ): void {
     const toast: Toast = { id: this.nextId++, header, description, type };
     this.toastsSubject.next( [...this.toastsSubject.value, toast] );
+    this.sound.playSound( 'notification' );
     setTimeout( () => this.dismiss( toast.id ), 5000 );
   }
 
