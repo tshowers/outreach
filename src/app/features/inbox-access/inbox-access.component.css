@@ -551,6 +551,12 @@
   overflow-y: auto;
 }
 
+/* The list scrolls; without this its rows and the selection bar get squashed
+   to fit, overlapping each other (and a row could sit over the Delete button). */
+.inbox__list > * {
+  flex-shrink: 0;
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -672,6 +678,12 @@
 .tag[data-kind="bounce"] { background: var(--t-pink); color: var(--t-pink-fg); }
 .tag[data-kind="forward"] { background: var(--t-blue); color: var(--t-blue-fg); }
 .tag[data-kind="newsletter"] { background: var(--surface2); color: var(--muted); }
+.tag[data-kind="replied"] { background: var(--surface2); color: var(--text); }
+
+.message-row__top .message-row__replied {
+  color: var(--blue);
+  font-weight: 700;
+}
 
 /* Message pane */
 .message {
@@ -775,6 +787,44 @@
   font-size: 16px;
   line-height: 1.6;
   white-space: pre-line;
+}
+
+/* The sender's own HTML (injected, so ::ng-deep to reach it). */
+.message__body--html {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+:host ::ng-deep .message__body--html p {
+  margin: 0 0 1em;
+}
+
+/* Outlook writes every line as its own zero-margin paragraph and marks real
+   gaps with an empty one, so honor that instead of spacing every line. */
+:host ::ng-deep .message__body--html p.MsoNormal,
+:host ::ng-deep .message__body--html p.MsoPlainText,
+:host ::ng-deep .message__body--html div > p:only-child {
+  margin: 0;
+}
+
+:host ::ng-deep .message__body--html a {
+  color: var(--blue);
+}
+
+:host ::ng-deep .message__body--html img {
+  max-width: 100%;
+  height: auto;
+}
+
+:host ::ng-deep .message__body--html table {
+  max-width: 100%;
+}
+
+:host ::ng-deep .message__body--html blockquote {
+  margin: 0 0 1em;
+  padding-left: 12px;
+  border-left: 3px solid var(--surface2);
+  color: var(--muted);
 }
 
 .reply h3 {

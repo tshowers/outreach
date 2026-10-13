@@ -29,7 +29,7 @@
                 <button type="button" [class.is-on]="inboxFilter === 'all'" (click)="inboxFilter = 'all'">All</button>
                 <button type="button" [class.is-on]="inboxFilter === 'replies'" (click)="inboxFilter = 'replies'">Replies</button>
                 <button type="button" [class.is-on]="inboxFilter === 'auto'" (click)="inboxFilter = 'auto'">Auto-replies</button>
-                <button type="button" [class.is-on]="inboxFilter === 'bounces'" (click)="inboxFilter = 'bounces'">Bounces</button>
+                <button type="button" [class.is-on]="inboxFilter === 'unreplied'" (click)="inboxFilter = 'unreplied'">Not replied</button>
                 <button type="button" class="chips__select" [class.is-on]="selectMode" (click)="toggleSelectMode()" title="Or ⌘-click to pick messages, Shift-click for a range">{{ selectMode ? 'Done' : 'Select' }}</button>
               </div>
               <div class="selection-bar" *ngIf="selectionActive">
@@ -45,7 +45,7 @@
                 <span class="message-row__main">
                   <span class="message-row__top">
                     <strong>{{ message.fromName || message.fromEmail }}</strong>
-                    <span>{{ message.receivedAt | date:'MMM d' }}</span>
+                    <span><span class="message-row__replied" *ngIf="message.replied" title="Replied" aria-label="Replied">↩</span> {{ message.receivedAt | date:'MMM d' }}</span>
                   </span>
                   <span class="message-row__subject">{{ message.subject }}</span>
                   <span class="message-row__summary">
@@ -65,6 +65,7 @@
                   <span>{{ message.fromEmail }} · {{ message.receivedAt | date:'MMM d, y \'at\' h:mm a' }}</span>
                 </span>
                 <span class="tag" [attr.data-kind]="kindOf(message)">{{ kindLabel(message) }}</span>
+                <span class="tag" data-kind="replied" *ngIf="message.replied">↩ Replied</span>
                 <button type="button" class="pill pill--quiet" appWriteAction="delete this message" (click)="deleteSelectedMessage()" [disabled]="mailboxAccess.isDeletingMailboxMessage">{{ mailboxAccess.isDeletingMailboxMessage ? 'Deleting…' : 'Delete' }}</button>
               </header>
 
@@ -77,9 +78,9 @@
                 <p class="todd-note__aside" *ngIf="getResponderReasonLabel(message)">{{ getResponderReasonLabel(message) }}</p>
               </div>
 
-              <div class="message__body" *ngIf="message.text; else mailboxHtmlMessage">{{ readableBody(message) }}</div>
-              <ng-template #mailboxHtmlMessage>
-                <div class="message__body" [innerHTML]="message.html || ''"></div>
+              <div class="message__body message__body--html" *ngIf="emailHtml(message) as html; else mailboxTextMessage" [innerHTML]="html"></div>
+              <ng-template #mailboxTextMessage>
+                <div class="message__body">{{ readableBody(message) }}</div>
               </ng-template>
 
               <section class="reply">

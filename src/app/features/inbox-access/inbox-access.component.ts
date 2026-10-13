@@ -13,7 +13,8 @@ import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { MailboxAccessService } from '../../services/mailbox-access.service';
 import { MailboxConfigSummary, MailboxMessageListItem, MailboxProviderId } from '../../services/outreach-api.service';
 import { DESIGN_PREVIEW_MAILBOX, DESIGN_PREVIEW_MESSAGES, isDesignPreview } from '../../shared/utils/design-preview';
-import { cleanMessageText, MESSAGE_KIND_LABELS, MessageKind, messageKind, undoubleSpace } from '../../shared/utils/message-kind.util';
+import { cleanMessageText, MESSAGE_KIND_LABELS, MessageKind, messageKind } from '../../shared/utils/message-kind.util';
+import { cleanEmailHtml } from '../../shared/utils/email-html.util';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 
@@ -178,12 +179,13 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
   }
 
   // Inbox (design 4f): filters, message-type tags and TODD's one-liner.
-  inboxFilter: 'all' | 'replies' | 'auto' | 'bounces' = 'all';
+  inboxFilter: 'all' | 'replies' | 'auto' | 'unreplied' = 'all';
 
   // Selecting several messages: the Select chip, ⌘/Ctrl-click to toggle one,
   // Shift-click for a range.
   selectMode = false;
   selectedMessageIds = new Set<string>();
+  private emailHtmlCache = { key: '', html: '' };
   private lastClickedIndex: number | null = null;
 
   get selectionActive (): boolean {
@@ -238,7 +240,7 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
     switch ( this.inboxFilter ) {
       case 'replies': return messages.filter( message => ['reply', 'forward'].includes( this.kindOf( message ) ) );
       case 'auto': return messages.filter( message => this.kindOf( message ) === 'outOfOffice' );
-      case 'bounces': return messages.filter( message => this.kindOf( message ) === 'bounce' );
+      case 'unreplied': return messages.filter( message => !message.replied && ['reply', 'forward'].includes( this.kindOf( message ) ) );
       default: return messages;
     }
   }
@@ -258,8 +260,16 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
   }
 
   readableBody ( message: { text?: string | null; } ): string {
-    const text = undoubleSpace( message.text );
-    return cleanMessageText( text ) || text;
+    return cleanMessageText( message.text ) || String( message.text || '' );
+  }
+
+  /** The sender's HTML when there is any - plain text can't tell a line break from a paragraph. Cached per message. */
+  emailHtml ( message: { id?: string; html?: string | null; } ): string {
+    const raw = String( message.html || '' );
+    if ( !raw.trim() ) return '';
+    const key = `${ message.id }:${ raw.length }`;
+    if ( this.emailHtmlCache.key !== key ) this.emailHtmlCache = { key, html: cleanEmailHtml( raw ) };
+    return this.emailHtmlCache.html;
   }
 
   initials ( name: string | null | undefined ): string {

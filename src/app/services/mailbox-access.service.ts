@@ -429,6 +429,7 @@ export class MailboxAccessService {
       ? this.normalizeRichReplyHtml(this.mailboxReplyDraft.htmlBody)
       : '';
 
+    const repliedMessageId = this.selectedMailboxMessage.id;
     this.isReplyingMailbox = true;
     this.mailboxReplyStatus = 'Sending reply...';
     this.outreachApi.replyToMailboxMessage(
@@ -448,6 +449,10 @@ export class MailboxAccessService {
           this.isReplyingMailbox = false;
           this.mailboxReplyStatus = 'Reply sent.';
           this.clearReplyBodies();
+          // Show it as answered now; the reload below confirms it from the server.
+          if (this.selectedMailboxMessage?.id === repliedMessageId) this.selectedMailboxMessage.replied = true;
+          const listed = this.mailboxMessages.find(item => item.id === repliedMessageId);
+          if (listed) listed.replied = true;
           this.notificationService.show(
             'Success',
             'Reply sent.',

@@ -47,46 +47,6 @@ export function messageKind ( message: MessageLike ): MessageKind {
   return 'reply';
 }
 
-/**
- * Outlook's text part puts a blank line after every line (one <p> each) and
- * two or more where the sender left a real gap, so every line - signature
- * included - reads double-spaced once runs collapse. When the sender's own
- * text has no two adjacent lines and at least one longer gap, turn single
- * blanks back into line breaks and longer runs into one paragraph break.
- */
-export function undoubleSpace ( raw: string | null | undefined ): string {
-  const lines = String( raw || '' ).replace( /\r\n?/g, '\n' ).split( '\n' );
-  const isBlank = ( line: string ) => !line.replace( /[\s ]/g, '' );
-  const quoteStart = lines.findIndex( line => /^\s*(>|from:\s|on .{3,200}wrote:?\s*$|-{2,}\s*original message)/i.test( line ) );
-  const own = quoteStart < 0 ? lines : lines.slice( 0, quoteStart );
-  let adjacent = false;
-  let longGap = false;
-  let run = 0;
-  own.forEach( ( line, i ) => {
-    if ( isBlank( line ) ) {
-      run++;
-      return;
-    }
-    if ( run >= 2 ) longGap = true;
-    if ( i > 0 && run === 0 ) adjacent = true;
-    run = 0;
-  } );
-  if ( adjacent || !longGap ) return lines.join( '\n' );
-
-  const out: string[] = [];
-  run = 0;
-  for ( const line of lines ) {
-    if ( isBlank( line ) ) {
-      run++;
-      continue;
-    }
-    if ( out.length && run >= 2 ) out.push( '' );
-    out.push( line );
-    run = 0;
-  }
-  return out.join( '\n' );
-}
-
 /** Readable email text: no tracking links, header blocks or quoted thread. */
 export function cleanMessageText ( raw: string | null | undefined ): string {
   const withoutLinks = String( raw || '' )
