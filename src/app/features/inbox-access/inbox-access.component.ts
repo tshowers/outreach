@@ -13,7 +13,7 @@ import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { MailboxAccessService } from '../../services/mailbox-access.service';
 import { MailboxConfigSummary, MailboxMessageListItem, MailboxProviderId } from '../../services/outreach-api.service';
 import { DESIGN_PREVIEW_MAILBOX, DESIGN_PREVIEW_MESSAGES, isDesignPreview } from '../../shared/utils/design-preview';
-import { cleanMessageText, MESSAGE_KIND_LABELS, MessageKind, messageKind } from '../../shared/utils/message-kind.util';
+import { cleanMessageText, MESSAGE_KIND_LABELS, MessageKind, messageKind, undoubleSpace } from '../../shared/utils/message-kind.util';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 
@@ -136,8 +136,7 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
 
   get shouldShowHeaderSendReply (): boolean {
     return this.activeTab === 'inbox'
-      && !!this.mailboxAccess.selectedMailboxMessage
-      && this.mailboxAccess.canSendMailboxReply;
+      && !!this.mailboxAccess.selectedMailboxMessage;
   }
 
   openOutboxDrafts (): void {
@@ -259,7 +258,8 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
   }
 
   readableBody ( message: { text?: string | null; } ): string {
-    return cleanMessageText( message.text ) || String( message.text || '' );
+    const text = undoubleSpace( message.text );
+    return cleanMessageText( text ) || text;
   }
 
   initials ( name: string | null | undefined ): string {

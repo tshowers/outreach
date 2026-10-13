@@ -13,6 +13,7 @@
           <select class="inbox-head__select" *ngIf="activeTab === 'inbox' && mailboxAccess.mailboxConfigs.length > 1" [ngModel]="mailboxAccess.connectedMailbox?.id" (ngModelChange)="selectMailboxById($event)" aria-label="Inbox">
             <option *ngFor="let mailbox of mailboxAccess.mailboxConfigs" [ngValue]="mailbox.id">{{ mailbox.emailAddress }}{{ mailbox.isPrimary ? ' · Primary' : '' }}</option>
           </select>
+          <button type="button" class="pill pill--primary" *ngIf="shouldShowHeaderSendReply" appWriteAction="send this reply" (click)="mailboxAccess.sendMailboxReply()" [disabled]="mailboxAccess.isReplyingMailbox || !mailboxAccess.canSendMailboxReply">{{ mailboxAccess.isReplyingMailbox ? 'Sending…' : 'Send reply' }}</button>
           <button type="button" class="pill" *ngIf="activeTab === 'inbox' && mailboxAccess.connectedMailbox" appWriteAction="sync your inbox" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">{{ mailboxAccess.isSyncingMailbox ? 'Syncing…' : 'Sync now' }}</button>
           <button type="button" class="pill" (click)="selectTab(activeTab === 'inbox' ? 'settings' : 'inbox')">{{ activeTab === 'inbox' ? 'Settings' : 'Back to Inbox' }}</button>
         </div>
@@ -99,7 +100,6 @@
                   </ng-template>
                   <div class="reply__foot">
                     <span class="inbox__note">{{ mailboxAccess.mailboxReplyStatus }}</span>
-                    <button type="button" class="pill pill--primary pill--big" appWriteAction="send this reply" (click)="mailboxAccess.sendMailboxReply()" [disabled]="mailboxAccess.isReplyingMailbox || !mailboxAccess.canSendMailboxReply">{{ mailboxAccess.isReplyingMailbox ? 'Sending…' : 'Send reply' }}</button>
                   </div>
                 </div>
               </section>

@@ -39,6 +39,9 @@
   height: 180px;
   z-index: 998;
   background: transparent;
+  /* Visual marker only - the reveal is detected from pointer coordinates.
+     Catching clicks here swallowed page buttons in the corner (Send reply). */
+  pointer-events: none;
 }
 
 /* Floating launcher pill */
