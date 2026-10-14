@@ -18,12 +18,12 @@ export class OutreachInsightService {
   constructor ( private http: HttpClient ) { }
 
   contactInsight ( contact: Contact ): Observable<any> {
-    const headers = new HttpHeaders().set( 'Authorization', `Bearer ${environment.apiKey}` );
+    const headers = new HttpHeaders();
     return this.http.post<any>( `${environment.backendURL}/contact-insight`, { profile: contact }, { headers } );
   }
 
   getTemplateTokenAssistance ( prompt: string, _user: string, contact?: Contact ): Observable<any> {
-    const headers = new HttpHeaders().set( 'Authorization', `Bearer ${environment.apiKey}` );
+    const headers = new HttpHeaders();
     const body: any = { prompt };
     if ( contact ) {
       body.contact = contact;

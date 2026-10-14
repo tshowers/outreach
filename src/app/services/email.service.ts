@@ -290,7 +290,7 @@ export class EmailService {
       rejectedDraftBody: String( args.rejectedDraftBody || '' ).trim() || null,
     };
 
-    const headers = new HttpHeaders().set( 'Authorization', `Bearer ${environment.apiKey}` );
+    const headers = new HttpHeaders();
 
     return this.http.post<{ success: boolean; data: StructuredEmailDraftResponse; }>(
       `${environment.backendURL}/email-drafting/draft`,
@@ -313,7 +313,7 @@ export class EmailService {
   }
 
   public getEmailDraftingMetadata (): Observable<EmailDraftingMetadata> {
-    const headers = new HttpHeaders().set( 'Authorization', `Bearer ${environment.apiKey}` );
+    const headers = new HttpHeaders();
     return this.http.get<{ success: boolean; data: EmailDraftingMetadata; }>(
       `${environment.backendURL}/email-drafting/metadata`,
       { headers }
@@ -335,7 +335,7 @@ export class EmailService {
   ${plainText}
   `;
 
-    const headers = new HttpHeaders().set( 'Authorization', `Bearer ${environment.apiKey}` );
+    const headers = new HttpHeaders();
     return this.http.post<any>( `${environment.backendURL}/grammar-check`, { prompt }, { headers } ).pipe(
       catchError( ( error ) => {
         this.logger.error( error );
