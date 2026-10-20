@@ -12,6 +12,7 @@ import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { MailboxAccessService } from '../../services/mailbox-access.service';
 import { MailboxConfigSummary, MailboxProviderId } from '../../services/outreach-api.service';
 import { DESIGN_PREVIEW_MAILBOX, isDesignPreview } from '../../shared/utils/design-preview';
+import { mailboxConnectionLabel } from '../../shared/utils/mailbox-label';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 
@@ -81,8 +82,14 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
     this.mailboxAccess.messageLimit = 1;
     this.mailboxAccess.openFirstMessage = false;
     if ( isDesignPreview() ) {
-      this.mailboxAccess.mailboxConfigs = [DESIGN_PREVIEW_MAILBOX] as any;
-      this.mailboxAccess.connectedMailbox = DESIGN_PREVIEW_MAILBOX as any;
+      // Two connections to one address, as duplicates look in production.
+      const tech = { ...DESIGN_PREVIEW_MAILBOX, provider: 'other_imap', providerLabel: 'Other IMAP', auth: { mode: 'app_password' } };
+      this.mailboxAccess.mailboxConfigs = [
+        { ...tech, id: 'primary', createdAt: '2026-06-02T15:00:00Z' },
+        { ...tech, id: 'ty-showers-1a2b3c', isPrimary: false, createdAt: '2026-09-14T15:00:00Z' },
+        { ...tech, id: 'ty-showers-com', emailAddress: 'ty.showers@taliferro.com', isPrimary: false, auth: { mode: 'oauth' }, provider: 'gmail', providerLabel: 'Gmail' },
+      ] as any;
+      this.mailboxAccess.selectMailbox( this.mailboxAccess.mailboxConfigs[0] );
     }
     this.userSubscription = this.authService.getUser().subscribe( ( user ) => {
       if ( !user ) return;
@@ -112,8 +119,34 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
     this.tenantSubscription?.unsubscribe();
   }
 
+  /** Adding a new inbox: nothing selected, the connect form open in the Add card. */
+  get adding (): boolean {
+    return !this.mailboxAccess.connectedMailbox;
+  }
+
+  isSelected ( mailbox: MailboxConfigSummary ): boolean {
+    return this.mailboxAccess.connectedMailbox?.id === mailbox.id;
+  }
+
+  /** Connected with Google sign-in: there's no password form to show. */
+  get selectedIsGoogle (): boolean {
+    return this.mailboxAccess.connectedMailbox?.auth?.mode === 'oauth';
+  }
+
+  connectionLabel ( mailbox: MailboxConfigSummary ): string {
+    return mailboxConnectionLabel( mailbox, this.mailboxAccess.mailboxConfigs );
+  }
+
   selectMailbox ( mailbox: MailboxConfigSummary ): void {
     this.mailboxAccess.selectMailbox( mailbox );
+  }
+
+  /** Names the inbox and how it's connected, so the wrong one isn't removed. */
+  disconnect ( mailbox: MailboxConfigSummary ): void {
+    const others = this.mailboxAccess.mailboxConfigs.filter( item => item.id !== mailbox.id && item.emailAddress === mailbox.emailAddress ).length;
+    const which = others ? ` (${ mailboxConnectionLabel( mailbox, this.mailboxAccess.mailboxConfigs ) })` : '';
+    if ( !window.confirm( `Disconnect ${ mailbox.emailAddress }${ which }? Outreach will stop reading its replies.` ) ) return;
+    this.mailboxAccess.disconnectMailboxConnection();
   }
 
   startAddingMailbox (): void {

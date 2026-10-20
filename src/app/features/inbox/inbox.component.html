@@ -24,7 +24,7 @@
       @if (mailbox.mailboxConfigs.length > 1) {
         <select class="head__select" [ngModel]="mailbox.connectedMailbox?.id" (ngModelChange)="selectMailboxById($event)" aria-label="Inbox">
           @for (box of mailbox.mailboxConfigs; track box.id) {
-            <option [ngValue]="box.id">{{ box.emailAddress }}</option>
+            <option [ngValue]="box.id">{{ boxLabel(box) }}</option>
           }
         </select>
       }
@@ -96,16 +96,15 @@
       }
     </nav>
 
-  @if (selecting) {
-      <div class="selection" role="toolbar" aria-label="Selected letters">
-        <span class="selection__count">{{ selectedIds.size }} selected</span>
-        <button type="button" class="selection__link" (click)="selectAllVisible()">{{ allVisibleSelected ? 'Select none' : 'Select all' }}</button>
-        <span class="selection__fill"></span>
-        <button type="button" class="selection__delete" appWriteAction="delete these messages" (click)="deleteSelected()" [disabled]="!selectedIds.size || mailbox.isDeletingMailboxMessage">
-          {{ mailbox.isDeletingMailboxMessage ? 'Deleting…' : 'Delete ' + selectedIds.size }}
+    <nav class="topics" aria-label="Categories">
+      <span class="topics__label">Categories</span>
+      @for (category of categories; track category.id) {
+        <button type="button" class="chip" [class.is-on]="topicId === category.id" [attr.aria-pressed]="topicId === category.id" (click)="pickTopic(category)">
+          <span class="chip__dot" [attr.data-color]="category.color"></span>{{ category.name }}<span class="chip__count">{{ categoryCount(category) }}</span>
         </button>
-      </div>
-    }
+      }
+      <button type="button" class="chip chip--new" appWriteAction="add a category" (click)="openCategoryMenu('filter', $event)"><app-inbox-icon name="plus" [size]="14"></app-inbox-icon>New</button>
+    </nav>
 
     @if (searching) {
       <section class="sheet" aria-label="Ask TODD">
@@ -116,56 +115,49 @@
             <button type="button" class="answer__source" (click)="openLetterView(source)">{{ sourceLine(source) }}<app-inbox-icon name="chevR" [size]="18"></app-inbox-icon></button>
           }
         </div>
-        <div class="group"><span class="group__title">Matching letters</span><span class="group__sub">{{ ask.hits.length }} across the last two weeks</span>
-          @if (ask.hits.length) { <button type="button" class="select-toggle" (click)="toggleSelectMode()">{{ selecting ? 'Done' : 'Select' }}</button> }
-        </div>
+        <div class="group"><span class="group__title">Matching letters</span><span class="group__sub">{{ ask.hits.length }} across the last two weeks</span></div>
         @for (letter of ask.hits; track letter.id) {
-          <app-inbox-row [letter]="letter" [when]="hitWhen(letter)" [search]="true" [selecting]="selecting" [selected]="selectedIds.has(letter.id)" (open)="openLetterView($event)" (quickAction)="quickAction($event)" (select)="tick($event)"></app-inbox-row>
+          <app-inbox-row [letter]="letter" [when]="hitWhen(letter)" [search]="true" [selectable]="false" [category]="categoryOf(letter)" (open)="openLetterView($event)" (quickAction)="quickAction($event)"></app-inbox-row>
         }
         <div class="foot">Searches names, subjects and what people wrote, across every day. Clear the box to go back to your days.</div>
       </section>
-    } @else if (day) {
-      <section class="sheet" [attr.aria-label]="day.long">
+    } @else if (day || topic) {
+      <section class="sheet" [attr.aria-label]="headTitle">
         <div class="sheet__head">
-          <span class="arrows">
-            <button type="button" class="arrow" (click)="shiftDay(true)" [disabled]="!olderDay" title="Older day" aria-label="Older day"><app-inbox-icon name="chevL" [size]="18"></app-inbox-icon></button>
-            <button type="button" class="arrow" (click)="shiftDay(false)" [disabled]="!newerDay" title="Newer day" aria-label="Newer day"><app-inbox-icon name="chevR" [size]="18"></app-inbox-icon></button>
-          </span>
-          <h2 class="sheet__title">{{ day.label }}</h2>
-          <span class="sheet__sub">{{ daySub }}</span>
-          <button type="button" class="select-toggle" (click)="toggleSelectMode()" title="Or ⌘-click rows, Shift-click for a range">{{ selecting ? 'Done' : 'Select' }}</button>
+          @if (topic; as current) {
+            <span class="topic-dot" [attr.data-color]="current.color"></span>
+          } @else {
+            <span class="arrows">
+              <button type="button" class="arrow" (click)="shiftDay(true)" [disabled]="!olderDay" title="Older day" aria-label="Older day"><app-inbox-icon name="chevL" [size]="18"></app-inbox-icon></button>
+              <button type="button" class="arrow" (click)="shiftDay(false)" [disabled]="!newerDay" title="Newer day" aria-label="Newer day"><app-inbox-icon name="chevR" [size]="18"></app-inbox-icon></button>
+            </span>
+          }
+          <h2 class="sheet__title">{{ headTitle }}</h2>
+          <span class="sheet__sub">{{ headSub }}</span>
+          @if (topic) {
+            <span class="sheet__fill"></span>
+            <button type="button" class="back-day" (click)="clearTopic()"><app-inbox-icon name="x"></app-inbox-icon>Back to {{ day?.label || 'your days' }}</button>
+          }
         </div>
 
-        @if (!day.waiting) {
-          <div class="clear"><app-inbox-icon name="check"></app-inbox-icon>Nobody from {{ day.label }} is waiting on you.</div>
+        @if (nobodyWaiting) {
+          <div class="clear"><app-inbox-icon name="check"></app-inbox-icon>{{ clearLine }}</div>
         }
 
-        @if (groupRows('waiting'); as rows) {
-          @if (rows.length) {
-            <div class="group"><span class="dot dot--pink"></span><span class="group__title">Waiting on you</span><span class="group__sub">{{ rows.length }} {{ rows.length === 1 ? 'person' : 'people' }}</span></div>
-            @for (letter of rows; track letter.id) {
-              <app-inbox-row [letter]="letter" [when]="time(letter)" [selecting]="selecting" [selected]="selectedIds.has(letter.id)" (open)="openLetterView($event)" (quickAction)="quickAction($event)" (select)="tick($event)"></app-inbox-row>
-            }
-          }
-        }
-        @if (groupRows('handled'); as rows) {
-          @if (rows.length) {
-            <div class="group"><span class="dot dot--muted"></span><span class="group__title">TODD handled</span><span class="group__sub">{{ rows.length }} without you</span></div>
-            @for (letter of rows; track letter.id) {
-              <app-inbox-row [letter]="letter" [when]="time(letter)" [selecting]="selecting" [selected]="selectedIds.has(letter.id)" (open)="openLetterView($event)" (quickAction)="quickAction($event)" (select)="tick($event)"></app-inbox-row>
-            }
-          }
-        }
-        @if (groupRows('answered'); as rows) {
-          @if (rows.length) {
-            <div class="group"><span class="dot dot--green"></span><span class="group__title">Answered</span><span class="group__sub">{{ rows.length }}</span></div>
-            @for (letter of rows; track letter.id) {
-              <app-inbox-row [letter]="letter" [when]="time(letter)" [selecting]="selecting" [selected]="selectedIds.has(letter.id)" (open)="openLetterView($event)" (quickAction)="quickAction($event)" (select)="tick($event)"></app-inbox-row>
-            }
+        @for (section of sections; track section.group) {
+          <div class="group">
+            <span class="dot" [class.dot--pink]="section.group === 'waiting'" [class.dot--muted]="section.group === 'handled'" [class.dot--green]="section.group === 'answered'"></span>
+            <span class="group__title">{{ section.title }}</span><span class="group__sub">{{ section.sub }}</span>
+            <span class="group__fill"></span>
+            <button type="button" class="group__select" (click)="toggleSection(section.rows)">{{ allSelected(section.rows) ? 'Clear' : 'Select all' }}</button>
+          </div>
+          @for (letter of section.rows; track letter.id) {
+            <app-inbox-row [letter]="letter" [when]="time(letter)" [selected]="selectedIds.has(letter.id)" [category]="categoryOf(letter)"
+                           (open)="openLetterView($event)" (quickAction)="quickAction($event)" (select)="tick($event)"></app-inbox-row>
           }
         }
 
-        @if (olderDay; as older) {
+        @if (!topic && olderDay; as older) {
           <button type="button" class="keep-going" (click)="shiftDay(true)">
             <span class="keep-going__label">Keep going</span>
             <span class="keep-going__line">{{ olderLine }}</span>
@@ -177,7 +169,9 @@
         <div class="foot foot--keys">
           <span><b>Send</b> uses TODD's draft without opening</span>
           <span><b>Start answering</b> walks every waiting letter in order</span>
+          <span><b>Select</b> several to categorize or delete together</span>
           <span><b>← →</b> change day, or next letter when one is open</span>
+          <span><b>Delete</b> removes selected</span>
           <span><b>Esc</b> back</span>
         </div>
       </section>
@@ -185,13 +179,32 @@
   }
 </div>
 
+@if (showBulkBar) {
+  <div class="bulk" role="toolbar" aria-label="Selected letters">
+    <button type="button" class="bulk__clear" (click)="clearSelection()" title="Clear selection" aria-label="Clear selection"><app-inbox-icon name="x"></app-inbox-icon></button>
+    <span class="bulk__count">{{ selectedLetters.length }} selected</span>
+    <span class="bulk__fill"></span>
+    <button type="button" class="bulk__btn" appWriteAction="file these letters" (click)="openCategoryMenu('bulk', $event)" title="Categorize"><app-inbox-icon name="tag"></app-inbox-icon><span class="bulk__label">Categorize</span></button>
+    @if (selectionHasWaiting) {
+      <button type="button" class="bulk__btn" appWriteAction="mark these letters done" (click)="bulkDone()" title="Mark as done"><app-inbox-icon name="check"></app-inbox-icon><span class="bulk__label">Mark done</span></button>
+    }
+    <button type="button" class="bulk__btn bulk__btn--delete" appWriteAction="delete these letters" (click)="deleteSelected()" title="Delete"><app-inbox-icon name="trash"></app-inbox-icon><span class="bulk__label">Delete</span></button>
+  </div>
+}
+
 @if (openLetter; as letter) {
   <div class="overlay" role="dialog" aria-modal="true" [attr.aria-label]="letter.subject">
-    <app-inbox-letter [letter]="letter" [detail]="detail" [backLabel]="backLabel" [position]="position" [rewriting]="rewriting" [deleting]="mailbox.isDeletingMailboxMessage"
-                      (back)="closeLetter()" (prev)="step(-1)" (next)="step(1)" (send)="sendFromLetter($event)" (done)="markDone()" (rewrite)="rewrite()" (delete)="deleteOpenLetter()"></app-inbox-letter>
+    <app-inbox-letter [letter]="letter" [detail]="detail" [backLabel]="backLabel" [position]="position" [rewriting]="rewriting" [category]="categoryOf(letter)"
+                      (back)="closeLetter()" (prev)="step(-1)" (next)="step(1)" (send)="sendFromLetter($event)" (done)="markDone()" (rewrite)="rewrite()"
+                      (delete)="deleteOpenLetter()" (openCategory)="openCategoryMenu('letter', $event)"></app-inbox-letter>
   </div>
 } @else if (openId && loading) {
   <div class="overlay overlay--loading"><p>Opening the letter…</p></div>
+}
+
+@if (categoryMenu; as menu) {
+  <app-inbox-category-menu [mode]="menu.mode" [count]="menuCount" [options]="menuOptions" [canRemove]="menuCanRemove" [anchor]="menu.anchor"
+                           (pick)="assignCategory($event)" (remove)="assignCategory(null)" (add)="addCategory($event)" (close)="categoryMenu = null"></app-inbox-category-menu>
 }
 
 @if (toast; as current) {

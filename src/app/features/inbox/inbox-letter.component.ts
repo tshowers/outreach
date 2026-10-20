@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { MailboxMessageDetail } from '../../services/outreach-api.service';
+import { InboxCategory, MailboxMessageDetail } from '../../services/outreach-api.service';
 import { cleanMessageText } from '../../shared/utils/message-kind.util';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { InboxIconComponent } from './inbox-icon.component';
@@ -49,7 +49,7 @@ export class InboxLetterComponent {
   @Input() position = '';
   @Input() sending = false;
   @Input() rewriting = false;
-  @Input() deleting = false;
+  @Input() category: InboxCategory | null = null;
 
   @Output() back = new EventEmitter<void>();
   @Output() prev = new EventEmitter<void>();
@@ -58,6 +58,8 @@ export class InboxLetterComponent {
   @Output() done = new EventEmitter<void>();
   @Output() rewrite = new EventEmitter<void>();
   @Output() delete = new EventEmitter<void>();
+  /** The category button: the page opens the menu beside it. */
+  @Output() openCategory = new EventEmitter<MouseEvent>();
 
   get first (): string {
     return firstName( this.letter.name ) || this.letter.name;

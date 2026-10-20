@@ -5,147 +5,166 @@
       <header class="inbox-head">
         <div>
           <h1>Inbox settings</h1>
-          <p *ngIf="mailboxAccess.connectedMailbox">
-            {{ mailboxAccess.connectedMailbox.emailAddress }}<ng-container *ngIf="mailboxAccess.connectedMailbox.lastSyncAt"> · {{ syncedAgo(mailboxAccess.connectedMailbox.lastSyncAt) }}</ng-container>
-          </p>
+          <p>Connect the mailboxes you send outreach from. TODD watches their replies, sorts them and drafts your answers.</p>
         </div>
         <div class="inbox-head__actions">
-          <a class="pill pill--primary" routerLink="/inbox" *ngIf="mailboxAccess.connectedMailbox">Open Inbox</a>
+          <a class="pill pill--primary" routerLink="/inbox" *ngIf="mailboxAccess.mailboxConfigs.length">Open Inbox</a>
         </div>
       </header>
-      <div class="mailbox-card">
-        <div class="mailbox-card-header">
-          <div>
-            <h5>Inbox Settings</h5>
-            <div class="field-help">Connect one mailbox so TODD can monitor real replies, surface recent inbox messages, and prepare short reply drafts without storing full emails in TODD.</div>
-          </div>
-          <div class="mailbox-status-badge" [class.mailbox-status-badge--connected]="mailboxAccess.hasMailboxConnection">
-            {{ mailboxAccess.hasMailboxConnection ? 'Connected' : 'Not connected' }}
-          </div>
-        </div>
-        <div class="mailbox-connected-summary" *ngIf="mailboxAccess.connectedMailbox">
-          <div class="mailbox-summary-row">
-            <span>{{ mailboxAccess.connectedMailbox.displayName || mailboxAccess.connectedMailbox.emailAddress }}</span>
-            <strong>{{ mailboxAccess.connectedMailbox.emailAddress }}</strong>
-          </div>
-          <div class="mailbox-summary-meta">
-            <span>{{ mailboxAccess.connectedMailbox.providerLabel || mailboxAccess.connectedMailbox.provider }}</span>
-            <span *ngIf="mailboxAccess.connectedMailbox.lastSyncAt">Last sync {{ mailboxAccess.connectedMailbox.lastSyncAt | date:'medium' }}</span>
-            <span *ngIf="mailboxAccess.connectedMailbox.lastConnectionStatus">Connection {{ mailboxAccess.connectedMailbox.lastConnectionStatus }}</span>
-          </div>
-        </div>
-        <div class="mailbox-connected-summary" *ngIf="mailboxAccess.mailboxConfigs.length">
-          <div class="mailbox-panel-title">Connected inboxes</div>
-          <div class="mailbox-summary-row" *ngFor="let mailbox of mailboxAccess.mailboxConfigs">
-            <span>
+
+      <!-- Connected inboxes: pick one and its settings open right under it. -->
+      <div class="boxes" role="radiogroup" aria-label="Connected inboxes" *ngIf="mailboxAccess.mailboxConfigs.length">
+        <div class="eyebrow">Connected inboxes</div>
+        <div class="box" *ngFor="let mailbox of mailboxAccess.mailboxConfigs" [class.is-selected]="isSelected(mailbox)">
+          <button type="button" class="box__head" role="radio" [attr.aria-checked]="isSelected(mailbox)" (click)="selectMailbox(mailbox)">
+            <span class="box__radio" aria-hidden="true"></span>
+            <span class="box__who">
               <strong>{{ mailbox.emailAddress }}</strong>
-              <small class="mailbox-summary-meta">{{ mailbox.providerLabel || mailbox.provider }} · {{ mailbox.isPrimary ? 'Primary' : 'Connected' }}</small>
+              <small>{{ connectionLabel(mailbox) }}<ng-container *ngIf="mailbox.lastSyncAt"> · {{ syncedAgo(mailbox.lastSyncAt) }}</ng-container></small>
             </span>
-            <span class="mailbox-inline-actions">
-              <button type="button" class="btn-todd btn-todd-secondary" (click)="selectMailbox(mailbox)">Open</button>
-              <button type="button" class="btn btn-link" *ngIf="!mailbox.isPrimary" appWriteAction="change your primary inbox" (click)="mailboxAccess.setPrimaryMailbox(mailbox)">Make primary</button>
-            </span>
-          </div>
-        </div>
-        <div class="mailbox-actions">
-          <button type="button" class="btn-todd btn-todd-secondary" appWriteAction="connect an inbox" (click)="startAddingMailbox()">+ Add another inbox</button>
-        </div>
-        <div class="mailbox-connected-summary mailbox-google-step" *ngIf="isNewGmail" data-cy="inbox-google-step">
-          <div class="mailbox-panel-title">{{ cameFromSignUp ? 'One more step' : 'Google mailbox' }}</div>
-          <div class="field-help" *ngIf="cameFromSignUp">
-            Signing in with Google told TODD who you are. Letting Outreach see replies and send from
-            <strong>{{ mailboxAccess.mailboxForm.emailAddress }}</strong> is a separate permission Google asks you to approve once.
-          </div>
-          <div class="field-help">Google handles it &mdash; TODD never sees your Google password, and you can remove access any time in your Google account.</div>
-          <button type="button" class="btn-todd" appWriteAction="connect an inbox" (click)="mailboxAccess.connectGoogleMailbox()" data-cy="inbox-connect-google">
-            Connect {{ mailboxAccess.mailboxForm.emailAddress || 'Gmail' }} with Google
+            <span class="tag tag--primary" *ngIf="mailbox.isPrimary">Primary</span>
+            <span class="box__state">{{ isSelected(mailbox) ? 'Selected' : 'Select' }}</span>
           </button>
-          <button type="button" class="btn btn-link mailbox-password-toggle" (click)="showPasswordForm = !showPasswordForm" data-cy="inbox-use-password">
-            {{ showPasswordForm ? 'Hide the app password option' : 'Use an app password instead' }}
-          </button>
-        </div>
-        <ng-container *ngIf="!isNewGmail || showPasswordForm">
-        <div class="profile-list mailbox-form-list">
-          <div class="form-group profile-row">
-            <div class="profile-label">Mailbox Email</div>
-            <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.emailAddress" [ngModelOptions]="{standalone: true}" type="email" autocomplete="off" placeholder="you@yourdomain.com" />
-          </div>
-          <div class="form-group profile-row">
-            <div class="profile-label">App Password</div>
-            <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.secret" [ngModelOptions]="{standalone: true}" type="password" autocomplete="new-password" placeholder="App password or mailbox password" />
-            <small class="instructions">Use an app password when your provider supports it. TODD stores the secret encrypted.</small>
-          </div>
-          <div class="form-group profile-row">
-            <div class="profile-label">Provider</div>
-            <select class="form-select" [(ngModel)]="mailboxAccess.mailboxForm.provider" [ngModelOptions]="{standalone: true}" (ngModelChange)="mailboxAccess.onMailboxProviderChange()">
-              <option *ngFor="let provider of mailboxAccess.mailboxProviders" [ngValue]="provider.id">{{ provider.label }}</option>
-            </select>
-          </div>
-          <div class="form-group profile-row">
-            <div class="profile-label">Display Name</div>
-            <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.displayName" [ngModelOptions]="{standalone: true}" type="text" autocomplete="off" placeholder="Taliferro Tech" />
-          </div>
-          <div class="form-group profile-row">
-            <button type="button" class="btn btn-link mailbox-advanced-toggle" (click)="mailboxAccess.mailboxForm.showAdvanced = !mailboxAccess.mailboxForm.showAdvanced">
-              {{ mailboxAccess.mailboxNeedsAdvancedSettings ? 'Hide advanced settings' : 'Show advanced settings' }}
-            </button>
+          <div class="box__body" *ngIf="isSelected(mailbox)">
+            <ng-container *ngTemplateOutlet="settingsPanel"></ng-container>
           </div>
         </div>
-        <div class="mailbox-advanced-grid" *ngIf="mailboxAccess.mailboxNeedsAdvancedSettings">
-          <div class="mailbox-advanced-panel">
-            <h6>Receiving (IMAP)</h6>
-            <div class="profile-list">
-              <div class="form-group profile-row">
-                <div class="profile-label">Host</div>
-                <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.imap.host" [ngModelOptions]="{standalone: true}" type="text" />
-              </div>
-              <div class="form-group profile-row">
-                <div class="profile-label">Port</div>
-                <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.imap.port" [ngModelOptions]="{standalone: true}" type="number" />
-              </div>
-              <label class="product-toggle-item">
-                <input type="checkbox" [(ngModel)]="mailboxAccess.mailboxForm.imap.secure" [ngModelOptions]="{standalone: true}" />
-                <span>Use secure IMAP</span>
-              </label>
-            </div>
-          </div>
-          <div class="mailbox-advanced-panel">
-            <h6>Sending (SMTP)</h6>
-            <div class="profile-list">
-              <div class="form-group profile-row">
-                <div class="profile-label">Host</div>
-                <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.smtp.host" [ngModelOptions]="{standalone: true}" type="text" />
-              </div>
-              <div class="form-group profile-row">
-                <div class="profile-label">Port</div>
-                <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.smtp.port" [ngModelOptions]="{standalone: true}" type="number" />
-              </div>
-              <label class="product-toggle-item">
-                <input type="checkbox" [(ngModel)]="mailboxAccess.mailboxForm.smtp.secure" [ngModelOptions]="{standalone: true}" />
-                <span>Use secure SMTP</span>
-              </label>
-            </div>
+
+        <div class="box box--add" [class.is-selected]="adding">
+          <button type="button" class="box__head" role="radio" [attr.aria-checked]="adding" appWriteAction="connect an inbox" (click)="startAddingMailbox()">
+            <span class="box__plus" aria-hidden="true">+</span>
+            <span class="box__who"><strong>Add another inbox</strong><small>Gmail, Outlook, iCloud, Yahoo or any IMAP mailbox</small></span>
+          </button>
+          <div class="box__body" *ngIf="adding">
+            <ng-container *ngTemplateOutlet="settingsPanel"></ng-container>
           </div>
         </div>
-        <div class="mailbox-actions">
-          <button type="button" class="btn-todd" appWriteAction="connect an inbox" (click)="mailboxAccess.testMailboxConnection()" [disabled]="mailboxAccess.isTestingMailbox || mailboxAccess.isSavingMailbox">
-            {{ mailboxAccess.isTestingMailbox ? 'Testing...' : 'Test connection' }}
-          </button>
-          <button type="button" class="btn-todd" appWriteAction="connect an inbox" (click)="mailboxAccess.saveMailboxConnection()" [disabled]="mailboxAccess.isSavingMailbox || mailboxAccess.isTestingMailbox">
-            {{ mailboxAccess.isSavingMailbox ? 'Saving...' : 'Save' }}
-          </button>
-          <button type="button" class="btn-todd" *ngIf="mailboxAccess.connectedMailbox?.id" appWriteAction="sync your inbox" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">
-            {{ mailboxAccess.isSyncingMailbox ? 'Syncing...' : 'Sync now' }}
-          </button>
-          <button type="button" class="btn-todd-danger" *ngIf="mailboxAccess.connectedMailbox?.id" appWriteAction="disconnect this inbox" (click)="mailboxAccess.disconnectMailboxConnection()"> Disconnect </button>
-        </div>
-        </ng-container>
-        <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxConnectionStatus">{{ mailboxAccess.mailboxConnectionStatus }}</div>
-        <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxSyncStatus">{{ mailboxAccess.mailboxSyncStatus }}</div>
-        <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxReplyStatus">{{ mailboxAccess.mailboxReplyStatus }}</div>
+      </div>
+
+      <!-- Nothing connected yet: the connect form on its own. -->
+      <div class="boxes" *ngIf="!mailboxAccess.mailboxConfigs.length && !mailboxAccess.loadingMailboxes">
+        <div class="eyebrow">Connect your inbox</div>
+        <div class="box is-selected"><div class="box__body box__body--solo"><ng-container *ngTemplateOutlet="settingsPanel"></ng-container></div></div>
       </div>
     </section>
   </div>
 </div>
+
+<ng-template #settingsPanel>
+  <!-- A mailbox connected with Google: no password, so no password form. -->
+  <ng-container *ngIf="selectedIsGoogle; else connectForm">
+    <p class="panel-note">Connected with Google. TODD never sees your Google password; you can remove access any time in your Google account.</p>
+    <div class="mailbox-actions">
+      <button type="button" class="btn-todd" appWriteAction="sync your inbox" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">{{ mailboxAccess.isSyncingMailbox ? 'Syncing...' : 'Sync now' }}</button>
+      <button type="button" class="btn-todd btn-todd-secondary" appWriteAction="connect an inbox" (click)="mailboxAccess.connectGoogleMailbox()">Reconnect with Google</button>
+      <ng-container *ngTemplateOutlet="selectedActions"></ng-container>
+    </div>
+  </ng-container>
+
+  <ng-template #connectForm>
+    <div class="mailbox-connected-summary mailbox-google-step" *ngIf="isNewGmail" data-cy="inbox-google-step">
+      <div class="mailbox-panel-title">{{ cameFromSignUp ? 'One more step' : 'Google mailbox' }}</div>
+      <div class="field-help" *ngIf="cameFromSignUp">
+        Signing in with Google told TODD who you are. Letting Outreach see replies and send from
+        <strong>{{ mailboxAccess.mailboxForm.emailAddress }}</strong> is a separate permission Google asks you to approve once.
+      </div>
+      <div class="field-help">Google handles it &mdash; TODD never sees your Google password, and you can remove access any time in your Google account.</div>
+      <button type="button" class="btn-todd" appWriteAction="connect an inbox" (click)="mailboxAccess.connectGoogleMailbox()" data-cy="inbox-connect-google">
+        Connect {{ mailboxAccess.mailboxForm.emailAddress || 'Gmail' }} with Google
+      </button>
+      <button type="button" class="btn btn-link mailbox-password-toggle" (click)="showPasswordForm = !showPasswordForm" data-cy="inbox-use-password">
+        {{ showPasswordForm ? 'Hide the app password option' : 'Use an app password instead' }}
+      </button>
+    </div>
+    <ng-container *ngIf="!isNewGmail || showPasswordForm">
+      <div class="profile-list mailbox-form-list">
+        <div class="form-group profile-row">
+          <div class="profile-label">Mailbox Email</div>
+          <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.emailAddress" [ngModelOptions]="{standalone: true}" type="email" autocomplete="off" placeholder="you@yourdomain.com" />
+        </div>
+        <div class="form-group profile-row">
+          <div class="profile-label">App Password</div>
+          <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.secret" [ngModelOptions]="{standalone: true}" type="password" autocomplete="new-password" [placeholder]="mailboxAccess.mailboxForm.id ? 'Saved. Type a new one to change it' : 'App password or mailbox password'" />
+          <small class="instructions">Use an app password when your provider supports it. TODD stores the secret encrypted.</small>
+        </div>
+        <div class="form-group profile-row">
+          <div class="profile-label">Provider</div>
+          <select class="form-select" [(ngModel)]="mailboxAccess.mailboxForm.provider" [ngModelOptions]="{standalone: true}" (ngModelChange)="mailboxAccess.onMailboxProviderChange()">
+            <option *ngFor="let provider of mailboxAccess.mailboxProviders" [ngValue]="provider.id">{{ provider.label }}</option>
+          </select>
+        </div>
+        <div class="form-group profile-row">
+          <div class="profile-label">Display Name</div>
+          <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.displayName" [ngModelOptions]="{standalone: true}" type="text" autocomplete="off" placeholder="Taliferro Tech" />
+        </div>
+        <div class="form-group profile-row">
+          <button type="button" class="btn btn-link mailbox-advanced-toggle" (click)="mailboxAccess.mailboxForm.showAdvanced = !mailboxAccess.mailboxForm.showAdvanced">
+            {{ mailboxAccess.mailboxNeedsAdvancedSettings ? 'Hide advanced settings' : 'Show advanced settings' }}
+          </button>
+        </div>
+      </div>
+      <div class="mailbox-advanced-grid" *ngIf="mailboxAccess.mailboxNeedsAdvancedSettings">
+        <div class="mailbox-advanced-panel">
+          <h6>Receiving (IMAP)</h6>
+          <div class="profile-list">
+            <div class="form-group profile-row">
+              <div class="profile-label">Host</div>
+              <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.imap.host" [ngModelOptions]="{standalone: true}" type="text" />
+            </div>
+            <div class="form-group profile-row">
+              <div class="profile-label">Port</div>
+              <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.imap.port" [ngModelOptions]="{standalone: true}" type="number" />
+            </div>
+            <label class="product-toggle-item">
+              <input type="checkbox" [(ngModel)]="mailboxAccess.mailboxForm.imap.secure" [ngModelOptions]="{standalone: true}" />
+              <span>Use secure IMAP</span>
+            </label>
+          </div>
+        </div>
+        <div class="mailbox-advanced-panel">
+          <h6>Sending (SMTP)</h6>
+          <div class="profile-list">
+            <div class="form-group profile-row">
+              <div class="profile-label">Host</div>
+              <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.smtp.host" [ngModelOptions]="{standalone: true}" type="text" />
+            </div>
+            <div class="form-group profile-row">
+              <div class="profile-label">Port</div>
+              <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.smtp.port" [ngModelOptions]="{standalone: true}" type="number" />
+            </div>
+            <label class="product-toggle-item">
+              <input type="checkbox" [(ngModel)]="mailboxAccess.mailboxForm.smtp.secure" [ngModelOptions]="{standalone: true}" />
+              <span>Use secure SMTP</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="mailbox-actions">
+        <button type="button" class="btn-todd btn-todd-secondary" appWriteAction="connect an inbox" (click)="mailboxAccess.testMailboxConnection()" [disabled]="mailboxAccess.isTestingMailbox || mailboxAccess.isSavingMailbox">
+          {{ mailboxAccess.isTestingMailbox ? 'Testing...' : 'Test connection' }}
+        </button>
+        <button type="button" class="btn-todd" appWriteAction="connect an inbox" (click)="mailboxAccess.saveMailboxConnection()" [disabled]="mailboxAccess.isSavingMailbox || mailboxAccess.isTestingMailbox">
+          {{ mailboxAccess.isSavingMailbox ? 'Saving...' : (mailboxAccess.mailboxForm.id ? 'Save changes' : 'Connect') }}
+        </button>
+        <button type="button" class="btn-todd btn-todd-secondary" *ngIf="mailboxAccess.connectedMailbox?.id" appWriteAction="sync your inbox" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">
+          {{ mailboxAccess.isSyncingMailbox ? 'Syncing...' : 'Sync now' }}
+        </button>
+        <ng-container *ngTemplateOutlet="selectedActions"></ng-container>
+      </div>
+    </ng-container>
+  </ng-template>
+
+  <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxConnectionStatus">{{ mailboxAccess.mailboxConnectionStatus }}</div>
+  <div class="mailbox-status-copy" *ngIf="mailboxAccess.mailboxSyncStatus">{{ mailboxAccess.mailboxSyncStatus }}</div>
+</ng-template>
+
+<!-- Make primary and Disconnect name the inbox they act on. -->
+<ng-template #selectedActions>
+  <ng-container *ngIf="mailboxAccess.connectedMailbox as box">
+    <button type="button" class="btn-todd btn-todd-secondary" *ngIf="!box.isPrimary" appWriteAction="change your primary inbox" (click)="mailboxAccess.setPrimaryMailbox(box)">Make primary</button>
+    <button type="button" class="btn-todd-danger" appWriteAction="disconnect this inbox" (click)="disconnect(box)">Disconnect {{ box.emailAddress }}</button>
+  </ng-container>
+</ng-template>
+
 <app-preloader [isLoading]="isProcessing || mailboxAccess.loadingMailboxes"></app-preloader>
 <app-back-to-top></app-back-to-top>

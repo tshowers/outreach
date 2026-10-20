@@ -38,6 +38,12 @@ button {
   white-space: nowrap;
 }
 
+.bar__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .bar__pos {
   flex: 1;
   min-width: 0;
@@ -274,33 +280,43 @@ button {
   cursor: default;
 }
 
-.paper__foot {
+/* Under the subject: the category, or "Add category". */
+.category {
   display: flex;
-  justify-content: flex-end;
-  margin-top: -8px;
+  margin-top: -10px;
 }
 
-.delete {
+.category__btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 40px;
-  padding: 0 16px;
+  height: 36px;
+  padding: 0 12px 0 14px;
   border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.delete:hover:not(:disabled) {
   background: var(--surface);
-  color: var(--danger);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
-.delete:disabled {
-  opacity: .55;
-  cursor: default;
+.category__btn[data-color="blue"] { background: var(--t-blue); color: var(--t-blue-fg); }
+.category__btn[data-color="violet"] { background: var(--t-violet); color: var(--t-violet-fg); }
+.category__btn[data-color="green"] { background: var(--t-green); color: var(--t-green-fg); }
+.category__btn[data-color="yellow"] { background: var(--t-yellow); color: var(--t-yellow-fg); }
+.category__btn[data-color="pink"] { background: var(--t-pink); color: var(--t-pink-fg); }
+
+.category__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.bar__trash:hover {
+  background: var(--t-pink);
+  color: var(--t-pink-fg);
 }
 
 .todd {
@@ -412,9 +428,15 @@ button {
  * of it, and put the position on its own line. */
 @media (max-width: 899px) {
   .bar {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
     gap: 6px 8px;
     padding-right: 112px;
+  }
+
+  .bar__back {
+    justify-self: start;
+    max-width: 100%;
   }
 
   .bar__back {
@@ -429,8 +451,8 @@ button {
   }
 
   .bar__pos {
-    order: 3;
-    flex-basis: 100%;
+    grid-row: 2;
+    grid-column: 1 / -1;
     text-align: left;
     padding-left: 4px;
     font-size: 13px;

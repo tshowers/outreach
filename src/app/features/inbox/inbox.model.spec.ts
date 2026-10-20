@@ -1,5 +1,5 @@
 import { MailboxMessageListItem } from '../../services/outreach-api.service';
-import { askTodd, buildDays, dayKeyOf, dayLabel, groupOf, prepOf, quickActionOf, toLetter } from './inbox.model';
+import { askTodd, buildDays, dayKeyOf, dayLabel, groupOf, prepOf, quickActionOf, shortDayLabel, toLetter } from './inbox.model';
 
 const NOW = new Date( 2026, 9, 20, 12, 0 ); // Tuesday, October 20, 2026, local time
 
@@ -23,6 +23,13 @@ describe( 'inbox.model', () => {
       expect( dayLabel( '2026-10-19', NOW ) ).toBe( 'Yesterday' );
       expect( dayLabel( '2026-10-16', NOW ) ).toBe( 'Friday' );
       expect( dayLabel( '2026-10-13', NOW ) ).toBe( 'Tue, Oct 13' );
+    } );
+
+    it( 'shortens days for the category view', () => {
+      expect( shortDayLabel( '2026-10-20', NOW ) ).toBe( 'Today' );
+      expect( shortDayLabel( '2026-10-19', NOW ) ).toBe( 'Yest.' );
+      expect( shortDayLabel( '2026-10-16', NOW ) ).toBe( 'Fri' );
+      expect( shortDayLabel( '2026-10-13', NOW ) ).toBe( 'Oct 13' );
     } );
 
     it( 'keys days in local time', () => {
@@ -66,6 +73,11 @@ describe( 'inbox.model', () => {
       expect( letter.kind ).toBe( 'bounce' );
       expect( quickActionOf( waiting ) ).toEqual( { label: 'Call', icon: 'phone' } );
       expect( waiting.nextAction?.value ).toBe( '760.929.9787' );
+    } );
+
+    it( 'carries the category it is filed under', () => {
+      expect( toLetter( message( {} ), { categories: { m1: 'c1' } } ).categoryId ).toBe( 'c1' );
+      expect( toLetter( message( {} ) ).categoryId ).toBeNull();
     } );
 
     it( 'prefers the server fields when they are there', () => {

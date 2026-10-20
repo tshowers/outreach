@@ -132,7 +132,7 @@ button:disabled {
 
 .head__select {
   height: 44px;
-  max-width: 220px;
+  max-width: 300px;
   padding: 0 14px;
   border-radius: 999px;
   border: 0;
@@ -375,7 +375,6 @@ button:disabled {
   background: var(--bg);
   border-radius: 24px;
   box-shadow: var(--shadow-sm);
-  /* clip, not hidden: hidden would stop the selection bar sticking. */
   overflow: clip;
 }
 
@@ -575,12 +574,100 @@ button:disabled {
   color: var(--muted);
 }
 
-/* ---- Select and delete ---- */
+/* ---- Categories ---- */
 
-.select-toggle {
-  margin-left: auto;
+.topics {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.topics__label {
+  margin-right: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   height: 36px;
-  padding: 0 16px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.chip.is-on {
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: none;
+}
+
+.chip__count {
+  font-size: 12px;
+  opacity: .65;
+}
+
+.chip__dot,
+.topic-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.chip__dot[data-color="blue"], .topic-dot[data-color="blue"] { background: var(--t-blue-fg); }
+.chip__dot[data-color="violet"], .topic-dot[data-color="violet"] { background: var(--t-violet-fg); }
+.chip__dot[data-color="green"], .topic-dot[data-color="green"] { background: var(--t-green-fg); }
+.chip__dot[data-color="yellow"], .topic-dot[data-color="yellow"] { background: var(--t-yellow-fg); }
+.chip__dot[data-color="pink"], .topic-dot[data-color="pink"] { background: var(--t-pink-fg); }
+
+/* The active chip's dot switches to the light tint. */
+.chip.is-on .chip__dot[data-color="blue"] { background: var(--t-blue); }
+.chip.is-on .chip__dot[data-color="violet"] { background: var(--t-violet); }
+.chip.is-on .chip__dot[data-color="green"] { background: var(--t-green); }
+.chip.is-on .chip__dot[data-color="yellow"] { background: var(--t-yellow); }
+.chip.is-on .chip__dot[data-color="pink"] { background: var(--t-pink); }
+
+.chip--new {
+  gap: 6px;
+  border: 2px dashed var(--surface2);
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+}
+
+.chip--new:hover {
+  border-color: var(--muted);
+  color: var(--text);
+}
+
+.topic-dot {
+  width: 14px;
+  height: 14px;
+}
+
+.sheet__fill,
+.group__fill {
+  flex: 1;
+}
+
+.back-day {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
   border-radius: 999px;
   background: var(--surface);
   color: var(--text);
@@ -588,50 +675,103 @@ button:disabled {
   font-weight: 700;
 }
 
-.selection {
-  position: sticky;
-  top: 12px;
-  z-index: 4;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: var(--shadow-sm);
-  padding: 8px 8px 8px 18px;
-  border-radius: 999px;
-  background: var(--t-blue);
-  color: var(--t-blue-fg);
-  font-size: 14px;
+.back-day:hover {
+  background: var(--surface2);
 }
 
-.selection__count {
+.group__select {
+  padding: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
   font-weight: 700;
 }
 
-.selection__link {
-  padding: 0;
-  background: none;
-  color: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: underline;
+.group__select:hover {
+  color: var(--text);
 }
 
-.selection__fill {
+/* ---- The bulk bar ---- */
+
+.bulk {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 40;
+  transform: translateX(-50%);
+  min-width: 520px;
+  height: 60px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.bulk__clear {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--bg);
+}
+
+.bulk__clear:hover {
+  background: color-mix(in srgb, var(--bg) 16%, transparent);
+}
+
+.bulk__count {
+  padding-right: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.bulk__fill {
   flex: 1;
 }
 
-.selection__delete {
-  height: 36px;
+.bulk__btn {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
   padding: 0 16px;
   border-radius: 999px;
-  background: var(--danger);
-  color: #fff;
+  background: color-mix(in srgb, var(--bg) 16%, transparent);
+  color: var(--bg);
   font-size: 14px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
-.selection__delete:disabled {
-  opacity: .5;
+.bulk__btn:hover {
+  background: color-mix(in srgb, var(--bg) 26%, transparent);
+}
+
+.bulk__btn--delete,
+.bulk__btn--delete:hover {
+  background: var(--pink);
+  color: #fff;
+}
+
+.bulk__btn--delete:hover {
+  filter: brightness(.92);
+}
+
+/* So the bar never covers the last row. */
+:host:has(.bulk) .page {
+  padding-bottom: 110px;
 }
 
 /* ---- the letter and the toast ---- */
@@ -698,29 +838,35 @@ button:disabled {
     left: 240px;
   }
 
-  :host-context(.app-frame--shell) .toast {
+  :host-context(.app-frame--shell) .toast,
+  :host-context(.app-frame--shell) .bulk {
     left: calc(50% + 120px);
   }
 }
 
-/* Below 900px the sidebar goes and the floating Menu button returns:
- * the selection bar moves to the bottom, out of its way. */
+/* Below 900px the sidebar goes and the floating Menu button returns. */
 @media (max-width: 899px) {
   .page {
     padding-top: 72px;
   }
+}
 
-  .page:has(.selection) {
-    padding-bottom: 96px;
+/* Phones: the bulk bar spans the width and its buttons are icons. */
+@media (max-width: 819px) {
+  .bulk {
+    left: 12px;
+    right: 12px;
+    bottom: 16px;
+    transform: none;
+    min-width: 0;
   }
 
-  .selection {
-    position: fixed;
-    top: auto;
-    left: 16px;
-    right: 16px;
-    bottom: 16px;
-    box-shadow: var(--shadow);
+  .bulk__btn {
+    padding: 0 14px;
+  }
+
+  .bulk__label {
+    display: none;
   }
 }
 
@@ -737,6 +883,10 @@ button:disabled {
   .ask-field {
     flex: 1 1 100%;
     order: 3;
+  }
+
+  :host:has(.bulk) .page {
+    padding-bottom: 96px;
   }
 
   /* Narrow: the day pills scroll sideways; Start answering gets its own row. */

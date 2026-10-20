@@ -32,6 +32,8 @@ export interface InboxLetter {
   nextAction: NextAction | null;
   filed: boolean;
   contactId: string;
+  /** The one category it's filed under, or null. */
+  categoryId: string | null;
   source: MailboxMessageListItem;
 }
 
@@ -80,6 +82,16 @@ export function dayLabel ( key: string, now = new Date() ): string {
   if ( age === 1 ) return 'Yesterday';
   if ( age > 1 && age < 7 ) return DOW[date.getDay()];
   return `${ DOW[date.getDay()].slice( 0, 3 ) }, ${ MONTHS[date.getMonth()].slice( 0, 3 ) } ${ date.getDate() }`;
+}
+
+/** The filtered view's time column: "Today", "Yest.", "Fri", then "Oct 13". */
+export function shortDayLabel ( key: string, now = new Date() ): string {
+  const age = dayAge( key, now );
+  const date = dateOfKey( key );
+  if ( age === 0 ) return 'Today';
+  if ( age === 1 ) return 'Yest.';
+  if ( age > 1 && age < 7 ) return DOW[date.getDay()].slice( 0, 3 );
+  return `${ MONTHS[date.getMonth()].slice( 0, 3 ) } ${ date.getDate() }`;
 }
 
 export function dayLong ( key: string ): string {
@@ -167,7 +179,7 @@ function fallbackDid ( kind: LetterKind, message: MailboxMessageListItem ): stri
   }
 }
 
-export function toLetter ( message: MailboxMessageListItem, opts: { ownEmail?: string; done?: Set<string>; } = {} ): InboxLetter {
+export function toLetter ( message: MailboxMessageListItem, opts: { ownEmail?: string; done?: Set<string>; categories?: Record<string, string>; } = {} ): InboxLetter {
   const ownEmail = String( opts.ownEmail || '' ).toLowerCase();
   const kind = kindOf( message, ownEmail );
   const responded = String( message.responderDecision || '' ).toLowerCase() === 'responded';
@@ -207,6 +219,7 @@ export function toLetter ( message: MailboxMessageListItem, opts: { ownEmail?: s
     nextAction,
     filed,
     contactId: String( message.contactId || '' ),
+    categoryId: opts.categories?.[message.id] || null,
     source: message,
   };
 }

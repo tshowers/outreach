@@ -1,4 +1,4 @@
-import { MailboxMessageDetail } from '../../services/outreach-api.service';
+import { InboxCategory, MailboxMessageDetail } from '../../services/outreach-api.service';
 
 /**
  * `?designPreview=1` letters: the Outreach Inbox 2026 prototype's mail,
@@ -103,3 +103,14 @@ export const INBOX_PREVIEW_LETTERS: MailboxMessageDetail[] = [
     nextAction: { type: 'calendar', label: 'Open the invite' }, quotedFrom: { date: at( 8, 10, 0 ) },
   } ),
 ];
+
+/** The prototype's seed categories and who's filed where. */
+export const INBOX_PREVIEW_CATEGORIES: { categories: InboxCategory[]; assignments: Record<string, string>; } = {
+  categories: [
+    { id: 'c1', name: 'Prospects', color: 'blue' },
+    { id: 'c2', name: 'Partners', color: 'violet' },
+    { id: 'c3', name: 'Clients', color: 'green' },
+    { id: 'c4', name: 'Admin', color: 'yellow' },
+  ],
+  assignments: { gd: 'c1', cm: 'c1', gt: 'c1', tr: 'c2', bp: 'c3', md: 'c4', li: 'c4', ts: 'c4' },
+};

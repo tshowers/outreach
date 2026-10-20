@@ -4,8 +4,8 @@
 
 .row {
   display: grid;
-  grid-template-columns: 40px minmax(110px, 180px) minmax(0, 1.4fr) minmax(0, 1fr) 64px 96px;
-  grid-template-areas: "av who ask prep when quick";
+  grid-template-columns: 22px 40px minmax(110px, 180px) minmax(0, 1.4fr) minmax(0, 1fr) 96px 96px;
+  grid-template-areas: "box av who ask prep when quick";
   align-items: center;
   gap: 16px;
   padding: 12px 20px;
@@ -19,12 +19,46 @@
   background: var(--surface);
 }
 
+.row.is-selected,
+.row.is-selected:hover {
+  background: var(--t-blue);
+}
+
 .row:focus-visible {
   box-shadow: inset 0 0 0 2px var(--blue);
 }
 
 .row--answered {
   opacity: .55;
+}
+
+/* Ask TODD results: no checkbox or quick action, a wider time. */
+.row--search {
+  grid-template-columns: 40px minmax(110px, 180px) minmax(0, 1.4fr) minmax(0, 1fr) 140px;
+  grid-template-areas: "av who ask prep when";
+}
+
+.row--search .quick {
+  display: none;
+}
+
+.box {
+  grid-area: box;
+  width: 22px;
+  height: 22px;
+  box-sizing: border-box;
+  border-radius: 7px;
+  border: 2px solid color-mix(in srgb, var(--muted) 45%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+}
+
+.row.is-selected .box {
+  border: 0;
+  background: var(--blue);
 }
 
 .avatar {
@@ -41,33 +75,15 @@
   color: var(--muted);
 }
 
+/* The check only shows on narrow rows, where the avatar is the toggle. */
+.avatar__check {
+  display: none;
+}
+
 .avatar[data-tint="blue"] { background: var(--t-blue); color: var(--t-blue-fg); }
 .avatar[data-tint="yellow"] { background: var(--t-yellow); color: var(--t-yellow-fg); }
 .avatar[data-tint="pink"] { background: var(--t-pink); color: var(--t-pink-fg); }
 .avatar[data-tint="violet"] { background: var(--t-violet); color: var(--t-violet-fg); }
-
-.check {
-  grid-area: av;
-  box-sizing: border-box;
-  width: 28px;
-  height: 28px;
-  margin: 6px;
-  border-radius: 50%;
-  border: 2px solid var(--surface2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-}
-
-.row.is-selected {
-  background: var(--t-blue);
-}
-
-.row.is-selected .check {
-  border-color: var(--blue);
-  background: var(--blue);
-}
 
 .who,
 .ask {
@@ -78,6 +94,14 @@
 
 .who { grid-area: who; }
 .ask { grid-area: ask; gap: 2px; }
+
+.who__line,
+.ask__sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
 
 .who__name,
 .who__co,
@@ -90,6 +114,8 @@
 }
 
 .who__name {
+  flex: 1;
+  min-width: 0;
   font-size: 15px;
   font-weight: 700;
 }
@@ -103,6 +129,26 @@
 .ask__line {
   font-size: 15px;
   font-weight: 600;
+}
+
+/* The category tag: before the subject on wide rows, beside the name on narrow ones. */
+.tag {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tag[data-color="blue"] { background: var(--t-blue); color: var(--t-blue-fg); }
+.tag[data-color="violet"] { background: var(--t-violet); color: var(--t-violet-fg); }
+.tag[data-color="green"] { background: var(--t-green); color: var(--t-green-fg); }
+.tag[data-color="yellow"] { background: var(--t-yellow); color: var(--t-yellow-fg); }
+.tag[data-color="pink"] { background: var(--t-pink); color: var(--t-pink-fg); }
+
+.tag--narrow {
+  display: none;
 }
 
 .prep {
@@ -130,15 +176,6 @@
 /* Wide: the prep pill and quick action are grid cells of their own. */
 .act {
   display: contents;
-}
-
-.row--search {
-  grid-template-columns: 40px minmax(110px, 180px) minmax(0, 1.4fr) minmax(0, 1fr) 140px;
-  grid-template-areas: "av who ask prep when";
-}
-
-.row--search .quick {
-  display: none;
 }
 
 .when {
@@ -177,11 +214,12 @@
   background: var(--blue-ink);
 }
 
-/* Compact rows below 820px of page: avatar | name and time, the ask
- * (wraps), then the prep pill and the quick action. */
+/* Compact rows below 820px of page: avatar (tap to select) | name, tag and
+ * time, the ask (wraps), then the prep pill and the quick action. */
 @container inbox (max-width: 819px) {
-  .row {
-    grid-template-columns: 40px minmax(0, 1fr) auto;
+  .row,
+  .row--search {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
     grid-template-areas:
       "av who when"
       "av ask ask"
@@ -191,13 +229,40 @@
     padding: 14px 16px;
   }
 
-  .row:hover {
+  .row:not(.is-selected):hover {
     background: transparent;
   }
 
-  .who__co,
-  .ask__subject {
+  .box {
     display: none;
+  }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+  }
+
+  .avatar.is-selected {
+    background: var(--blue);
+    color: #fff;
+  }
+
+  .avatar.is-selected .avatar__ini {
+    display: none;
+  }
+
+  .avatar.is-selected .avatar__check {
+    display: inline-flex;
+  }
+
+  .who__co,
+  .ask__sub {
+    display: none;
+  }
+
+  .tag--narrow {
+    display: inline;
   }
 
   .when {

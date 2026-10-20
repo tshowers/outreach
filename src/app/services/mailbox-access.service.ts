@@ -3,6 +3,7 @@ import { firstValueFrom, take } from 'rxjs';
 import { LoggerService } from './logger.service';
 import { OutreachNotificationService } from './outreach-notification.service';
 import {
+  InboxCategory,
   MailboxConfigSummary,
   MailboxMessageDetail,
   MailboxMessageListItem,
@@ -346,6 +347,25 @@ export class MailboxAccessService {
       });
   }
 
+  /** Categories and, for the connected mailbox, which message has which. */
+  async loadInboxCategories(): Promise<{ categories: InboxCategory[]; assignments: Record<string, string>; }> {
+    const mailboxId = this.connectedMailbox?.id;
+    if (!mailboxId) return { categories: [], assignments: {} };
+    const response = await firstValueFrom(this.outreachApi.listInboxCategories(mailboxId, this.getMailboxRequestOptions()));
+    return { categories: response?.data?.categories || [], assignments: response?.data?.assignments || {} };
+  }
+
+  async createInboxCategory(name: string): Promise<InboxCategory> {
+    const response = await firstValueFrom(this.outreachApi.createInboxCategory(name, this.getMailboxRequestOptions()));
+    return response.data;
+  }
+
+  async categorizeMessages(ids: string[], categoryId: string | null): Promise<void> {
+    const mailboxId = this.connectedMailbox?.id;
+    if (!mailboxId || !ids.length) return;
+    await firstValueFrom(this.outreachApi.categorizeInboxMessages(mailboxId, ids, categoryId, this.getMailboxRequestOptions()));
+  }
+
   /** One message's full text, without making it the selected message. */
   async fetchMessageDetail(messageId: string): Promise<MailboxMessageDetail | null> {
     const mailboxId = this.connectedMailbox?.id;
@@ -450,7 +470,7 @@ export class MailboxAccessService {
    * Deletes several messages from the connected mailbox, one request each.
    * Returns how many went; the rest stay in the list.
    */
-  async deleteMailboxMessages(messageIds: string[]): Promise<{ deleted: number; failed: number }> {
+  async deleteMailboxMessages(messageIds: string[], options: { notify?: boolean } = {}): Promise<{ deleted: number; failed: number }> {
     const mailboxId = this.connectedMailbox?.id;
     if (!mailboxId || !messageIds.length || this.isDeletingMailboxMessage) return { deleted: 0, failed: 0 };
 
@@ -476,7 +496,8 @@ export class MailboxAccessService {
     this.mailboxReplyStatus = failed
       ? `Deleted ${deletedIds.size}. ${failed} couldn't be deleted.`
       : `Deleted ${deletedIds.size} message${deletedIds.size === 1 ? '' : 's'}.`;
-    this.notificationService.show(failed ? 'Error' : 'Success', this.mailboxReplyStatus, failed ? 'error' : 'success');
+    // The inbox says it itself, with Undo; other callers get the notification.
+    if (options.notify !== false) this.notificationService.show(failed ? 'Error' : 'Success', this.mailboxReplyStatus, failed ? 'error' : 'success');
     return { deleted: deletedIds.size, failed };
   }
 

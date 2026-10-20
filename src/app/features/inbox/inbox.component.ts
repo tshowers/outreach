@@ -5,18 +5,21 @@ import { Subscription, filter } from 'rxjs';
 
 import { LoggerService } from '../../services/logger.service';
 import { MailboxAccessService } from '../../services/mailbox-access.service';
-import { MailboxMessageDetail, MailboxMessageListItem } from '../../services/outreach-api.service';
+import { InboxCategory, InboxCategoryColor, MailboxConfigSummary, MailboxMessageDetail, MailboxMessageListItem } from '../../services/outreach-api.service';
 import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { OutreachDataService } from '../../services/outreach-data.service';
 import { isDesignPreview } from '../../shared/utils/design-preview';
+import { mailboxConnectionLabel } from '../../shared/utils/mailbox-label';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
+import { CategoryMenuMode, CategoryOption, InboxCategoryMenuComponent } from './inbox-category-menu.component';
 import { InboxIconComponent } from './inbox-icon.component';
 import { InboxLetterComponent } from './inbox-letter.component';
 import { InboxRowComponent } from './inbox-row.component';
-import { INBOX_PREVIEW_LETTERS } from './inbox.preview';
+import { INBOX_PREVIEW_CATEGORIES, INBOX_PREVIEW_LETTERS } from './inbox.preview';
 import {
-  AskResult, InboxDay, InboxLetter, askTodd, buildDays, dayAge, dayKeyOf, dayLabel, dayLong, groupOf, isWaiting, monthName, timeOfDay, toLetter,
+  AskResult, InboxDay, InboxLetter, LetterGroup, askTodd, buildDays, dayAge, dayKeyOf, dayLabel, dayLong, groupOf, isWaiting, monthName,
+  orderDay, shortDayLabel, timeOfDay, toLetter,
 } from './inbox.model';
 
 interface CalendarCell {
@@ -39,20 +42,32 @@ interface PendingSend {
   name: string;
 }
 
-/** How long Undo stays on screen; a send waits this long before it goes. */
+interface Section {
+  group: LetterGroup;
+  title: string;
+  sub: string;
+  rows: InboxLetter[];
+}
+
+/** How long Undo stays on screen; a send or delete waits this long before it goes. */
 const UNDO_MS = 5000;
+const COLORS: InboxCategoryColor[] = ['blue', 'violet', 'green', 'yellow', 'pink'];
+
+const letters = ( count: number ) => count === 1 ? '1 letter' : `${ count } letters`;
 
 /**
- * Outreach Inbox 2026 (design_handoff_outreach_inbox_2026): replaces the
- * three-pane inbox. One day at a time, grouped Waiting on you / TODD
- * handled / Answered; the letter fills the screen at /inbox/:id; Start
- * answering walks every waiting letter; Ask TODD searches every day.
- * Mailbox settings stay at /inbox-access.
+ * Outreach Inbox 2026 (design_handoff_outreach_inbox_2026, v2 in
+ * design_handoff_outreach_inbox_2026-b): replaces the three-pane inbox.
+ * One day at a time, grouped Waiting on you / TODD handled / Answered; the
+ * letter fills the screen at /inbox/:id; Start answering walks every
+ * waiting letter; Ask TODD searches every day. Categories file letters
+ * across days; select rows to categorize, mark done or delete them
+ * together. Mailbox settings stay at /inbox-access.
  */
 @Component( {
   selector: 'app-inbox',
   standalone: true,
-  imports: [FormsModule, RouterLink, WriteActionDirective, BrowseNoticeComponent, InboxIconComponent, InboxRowComponent, InboxLetterComponent],
+  imports: [FormsModule, RouterLink, WriteActionDirective, BrowseNoticeComponent, InboxIconComponent, InboxRowComponent, InboxLetterComponent, InboxCategoryMenuComponent],
   providers: [MailboxAccessService],
   templateUrl: './inbox.component.html',
   styleUrl: './inbox.component.css',
@@ -82,16 +97,29 @@ export class InboxComponent implements OnInit, OnDestroy {
   rewriting = false;
   toast: Toast | null = null;
   narrow = typeof window !== 'undefined' && window.innerWidth < 820;
-  /** Select mode (the Select button, or ⌘/Ctrl-click a row): ticked rows can be deleted together. */
-  selectMode = false;
+
+  /** Ticked rows, for the bulk bar. */
   selectedIds = new Set<string>();
   private lastTicked: string | null = null;
+
+  /** Categories: the chip bar, the filter and the menu. */
+  categories: InboxCategory[] = [];
+  private assignments: Record<string, string> = {};
+  /** The category filter: letters from every day in that category. */
+  topicId: string | null = null;
+  categoryMenu: { mode: CategoryMenuMode; anchor: { left: number; top: number; bottom: number; }; } | null = null;
 
   /** Marked done here; kept per mailbox until the server has POST /inbox/{id}/done. */
   private done = new Set<string>();
   /** Sent (or waiting out Undo) this session, so they read Answered at once. */
   private answeredNow = new Set<string>();
   private pending = new Map<string, PendingSend>();
+  /** Deleted but still inside the Undo window: hidden now, removed from the mailbox after it. */
+  private deleting = new Map<number, { ids: string[]; timer: ReturnType<typeof setTimeout>; }>();
+  private hidden = new Set<string>();
+  private deleteBatch = 0;
+  /** The mailbox takes one delete at a time, so batches go in turn. */
+  private deleteChain: Promise<void> = Promise.resolve();
   private toastTimer?: ReturnType<typeof setTimeout>;
   private subscriptions: Subscription[] = [];
   private userId = '';
@@ -115,6 +143,8 @@ export class InboxComponent implements OnInit, OnDestroy {
       this.mailbox.mailboxConfigs = [previewMailbox] as any;
       this.mailbox.connectedMailbox = previewMailbox as any;
       this.mailbox.mailboxMessages = INBOX_PREVIEW_LETTERS.map( letter => ( { ...letter } ) );
+      this.categories = INBOX_PREVIEW_CATEGORIES.categories.map( category => ( { ...category } ) );
+      this.assignments = { ...INBOX_PREVIEW_CATEGORIES.assignments };
       return;
     }
 
@@ -139,6 +169,7 @@ export class InboxComponent implements OnInit, OnDestroy {
     clearTimeout( this.toastTimer );
     // Leaving the page ends the Undo window: anything still waiting goes now.
     for ( const id of [...this.pending.keys()] ) this.flushSend( id );
+    for ( const batch of [...this.deleting.keys()] ) this.flushDelete( batch );
   }
 
   // ---------------------------------------------------------------- data
@@ -169,7 +200,7 @@ export class InboxComponent implements OnInit, OnDestroy {
   }
 
   get inPills (): boolean {
-    return this.pillDays.some( day => day.key === this.dayKey );
+    return !!this.topic || this.pillDays.some( day => day.key === this.dayKey );
   }
 
   get earlierLabel (): string {
@@ -185,16 +216,49 @@ export class InboxComponent implements OnInit, OnDestroy {
     return `TODD handled ${ count } this week`;
   }
 
-  get daySub (): string {
-    const day = this.day;
-    if ( !day ) return '';
-    const total = day.letters.length;
-    const need = day.waiting;
-    return `${ day.long } · ${ total } ${ total === 1 ? 'letter' : 'letters' } · ${ need ? `${ need } ${ need === 1 ? 'needs' : 'need' } an answer` : 'all answered' }`;
+  get topic (): InboxCategory | null {
+    return this.topicId ? this.categories.find( category => category.id === this.topicId ) || null : null;
   }
 
-  groupRows ( group: 'waiting' | 'handled' | 'answered' ): InboxLetter[] {
-    return ( this.day?.letters || [] ).filter( letter => groupOf( letter ) === group );
+  /** What the sheet lists: the day, or the category across every day. */
+  get scope (): InboxLetter[] {
+    const topic = this.topic;
+    if ( !topic ) return this.day?.letters || [];
+    return orderDay( this.days.flatMap( day => day.letters ).filter( letter => letter.categoryId === topic.id ) );
+  }
+
+  get headTitle (): string {
+    return this.topic?.name || this.day?.label || '';
+  }
+
+  get headSub (): string {
+    const need = this.scope.filter( isWaiting ).length;
+    const answerLine = need ? `${ need } ${ need === 1 ? 'needs' : 'need' } an answer` : 'all answered';
+    if ( this.topic ) return `${ letters( this.scope.length ) } across all days · ${ answerLine }`;
+    const day = this.day;
+    return day ? `${ day.long } · ${ day.letters.length } ${ day.letters.length === 1 ? 'letter' : 'letters' } · ${ answerLine }` : '';
+  }
+
+  /** Letters on the sheet, none of them waiting. */
+  get nobodyWaiting (): boolean {
+    const scope = this.scope;
+    return scope.length > 0 && !scope.some( isWaiting );
+  }
+
+  get clearLine (): string {
+    return this.topic ? `Nobody in ${ this.topic.name } is waiting on you.` : `Nobody from ${ this.day?.label || 'this day' } is waiting on you.`;
+  }
+
+  get sections (): Section[] {
+    const rows = ( group: LetterGroup ) => this.scope.filter( letter => groupOf( letter ) === group );
+    const waiting = rows( 'waiting' );
+    const handled = rows( 'handled' );
+    const answered = rows( 'answered' );
+    return ( [
+      { group: 'waiting', title: 'Waiting on you', sub: `${ waiting.length } ${ waiting.length === 1 ? 'person' : 'people' }`, rows: waiting },
+      { group: 'handled', title: 'TODD handled', sub: `${ handled.length } without you`, rows: handled },
+      { group: 'answered', title: 'Answered', sub: `${ answered.length }`, rows: answered },
+    ] as Section[] ).filter( section => section.rows.length );
   }
 
   get olderDay (): InboxDay | null {
@@ -209,15 +273,32 @@ export class InboxComponent implements OnInit, OnDestroy {
 
   get olderLine (): string {
     const older = this.olderDay;
-    return older ? `${ older.long } · ${ older.letters.length } ${ older.letters.length === 1 ? 'letter' : 'letters' }` : '';
+    return older ? `${ older.long } · ${ letters( older.letters.length ) }` : '';
   }
 
+  /** "9:42 AM" in a day; "Fri 2:51 PM" in a category. */
   time ( letter: InboxLetter ): string {
-    return timeOfDay( letter.receivedAt );
+    return this.topic ? `${ shortDayLabel( letter.dayKey ) } ${ timeOfDay( letter.receivedAt ) }` : timeOfDay( letter.receivedAt );
+  }
+
+  categoryOf ( letter: InboxLetter ): InboxCategory | null {
+    return letter.categoryId ? this.categories.find( category => category.id === letter.categoryId ) || null : null;
+  }
+
+  /** Letters per category, across every loaded day. */
+  categoryCount ( category: InboxCategory ): number {
+    return this.days.reduce( ( total, day ) => total + day.letters.filter( letter => letter.categoryId === category.id ).length, 0 );
   }
 
   sourceLine ( letter: InboxLetter ): string {
     return `From ${ letter.name } · ${ dayLong( letter.dayKey ) }`;
+  }
+
+  /** The address, plus how it's connected when the same address is connected twice. */
+  boxLabel ( box: MailboxConfigSummary ): string {
+    const configs = this.mailbox.mailboxConfigs;
+    const shared = configs.some( other => other.id !== box.id && other.emailAddress === box.emailAddress );
+    return shared ? `${ box.emailAddress } · ${ mailboxConnectionLabel( box, configs ) }` : box.emailAddress;
   }
 
   selectMailboxById ( id: string ): void {
@@ -252,13 +333,14 @@ export class InboxComponent implements OnInit, OnDestroy {
 
   clearQuery (): void {
     this.query = '';
-    this.clearSelection();
   }
 
-  // ---------------------------------------------------------------- days
+  // ---------------------------------------------------------------- days and categories
 
+  /** Picking a day (pill, calendar, arrows or ← →) clears the category filter and the selection. */
   pickDay ( key: string ): void {
     this.clearSelection();
+    this.topicId = null;
     this.selectedDay = key;
     this.calendarOpen = false;
     this.query = '';
@@ -266,8 +348,21 @@ export class InboxComponent implements OnInit, OnDestroy {
   }
 
   shiftDay ( older: boolean ): void {
-    const target = older ? this.olderDay : this.newerDay;
+    const target = this.topic ? this.day : older ? this.olderDay : this.newerDay;
     if ( target ) this.pickDay( target.key );
+  }
+
+  /** A chip turns its category filter on; the active chip turns it off. */
+  pickTopic ( category: InboxCategory ): void {
+    this.topicId = this.topicId === category.id ? null : category.id;
+    this.clearSelection();
+    this.calendarOpen = false;
+    this.query = '';
+  }
+
+  clearTopic (): void {
+    this.topicId = null;
+    this.clearSelection();
   }
 
   toggleCalendar (): void {
@@ -320,8 +415,10 @@ export class InboxComponent implements OnInit, OnDestroy {
   }
 
   get backLabel (): string {
+    if ( this.queue ) return 'Stop answering';
+    if ( this.topic ) return `Back to ${ this.topic.name }`;
     const day = this.days.find( item => item.key === this.openLetter?.dayKey );
-    return this.queue ? 'Stop answering' : `Back to ${ day?.label || 'Inbox' }`;
+    return `Back to ${ day?.label || 'Inbox' }`;
   }
 
   get position (): string {
@@ -331,27 +428,30 @@ export class InboxComponent implements OnInit, OnDestroy {
     if ( this.queue ) {
       line = `${ this.waitingAll.length } still waiting`;
     } else {
-      const ids = this.dayOrder( letter.dayKey );
+      const ids = this.listOf( letter );
       line = `${ ids.indexOf( letter.id ) + 1 } of ${ ids.length }`;
     }
     return this.narrow ? line : `${ line } · Esc to go back · ← → to move`;
   }
 
   openLetterView ( letter: InboxLetter ): void {
+    this.categoryMenu = null;
     this.router.navigate( ['/inbox', letter.id] );
   }
 
   closeLetter (): void {
     // Back returns to the letter's day (the queue may have walked to another).
-    if ( this.openLetter ) this.selectedDay = this.openLetter.dayKey;
+    if ( this.openLetter && !this.topic ) this.selectedDay = this.openLetter.dayKey;
     this.queue = false;
+    this.categoryMenu = null;
     this.router.navigate( ['/inbox'] );
   }
 
+  /** Prev/next move through the day, or through the category it was opened from. */
   step ( delta: number ): void {
     const letter = this.openLetter;
     if ( !letter ) return;
-    const ids = this.dayOrder( letter.dayKey );
+    const ids = this.listOf( letter );
     const next = ids[( ids.indexOf( letter.id ) + delta + ids.length ) % ids.length];
     if ( next && next !== letter.id ) this.router.navigate( ['/inbox', next], { replaceUrl: true } );
   }
@@ -361,6 +461,7 @@ export class InboxComponent implements OnInit, OnDestroy {
     if ( !first ) return;
     this.queue = true;
     this.query = '';
+    this.clearSelection();
     this.router.navigate( ['/inbox', first.id] );
   }
 
@@ -426,31 +527,24 @@ export class InboxComponent implements OnInit, OnDestroy {
     undo?.();
   }
 
-  // ---------------------------------------------------------------- select and delete
+  // ---------------------------------------------------------------- selection and the bulk bar
 
-  /** The rows on screen, top to bottom: the day's groups, or the Ask TODD hits. */
-  get visibleRows (): InboxLetter[] {
-    if ( this.searching ) return this.ask.hits;
-    return [...this.groupRows( 'waiting' ), ...this.groupRows( 'handled' ), ...this.groupRows( 'answered' )];
+  /** Ticked letters that are still listed. */
+  get selectedLetters (): InboxLetter[] {
+    return this.letters.filter( letter => this.selectedIds.has( letter.id ) );
   }
 
-  get selecting (): boolean {
-    return this.selectMode || this.selectedIds.size > 0;
+  get showBulkBar (): boolean {
+    return !this.openId && this.selectedLetters.length > 0;
   }
 
-  get allVisibleSelected (): boolean {
-    const rows = this.visibleRows;
-    return rows.length > 0 && rows.every( letter => this.selectedIds.has( letter.id ) );
-  }
-
-  toggleSelectMode (): void {
-    if ( this.selecting ) this.clearSelection();
-    else this.selectMode = true;
+  get selectionHasWaiting (): boolean {
+    return this.selectedLetters.some( isWaiting );
   }
 
   /** Tick or untick one row; Shift ticks everything between it and the last one. */
   tick ( { letter, range }: { letter: InboxLetter; range: boolean; } ): void {
-    const rows = this.visibleRows;
+    const rows = this.sections.flatMap( section => section.rows );
     const from = this.lastTicked ? rows.findIndex( item => item.id === this.lastTicked ) : -1;
     const to = rows.findIndex( item => item.id === letter.id );
     if ( range && from >= 0 && to >= 0 ) {
@@ -461,60 +555,159 @@ export class InboxComponent implements OnInit, OnDestroy {
       this.selectedIds.add( letter.id );
     }
     this.lastTicked = letter.id;
-    this.selectMode = true;
   }
 
-  selectAllVisible (): void {
-    const rows = this.visibleRows;
-    const all = this.allVisibleSelected;
+  allSelected ( rows: InboxLetter[] ): boolean {
+    return rows.length > 0 && rows.every( letter => this.selectedIds.has( letter.id ) );
+  }
+
+  /** Each section's "Select all" / "Clear". */
+  toggleSection ( rows: InboxLetter[] ): void {
+    const all = this.allSelected( rows );
     rows.forEach( letter => all ? this.selectedIds.delete( letter.id ) : this.selectedIds.add( letter.id ) );
   }
 
   clearSelection (): void {
-    this.selectMode = false;
     this.selectedIds.clear();
     this.lastTicked = null;
   }
 
-  async deleteSelected (): Promise<void> {
-    const ids = [...this.selectedIds];
-    if ( !ids.length || this.mailbox.isDeletingMailboxMessage ) return;
-    if ( !window.confirm( `Delete ${ ids.length } message${ ids.length === 1 ? '' : 's' } from the connected mailbox?` ) ) return;
-    const deleted = await this.deleteMessages( ids );
-    deleted.forEach( id => this.selectedIds.delete( id ) );
-    if ( !this.selectedIds.size ) this.clearSelection();
+  bulkDone (): void {
+    const waiting = this.selectedLetters.filter( isWaiting );
+    if ( !waiting.length ) return;
+    waiting.forEach( letter => this.done.add( letter.id ) );
+    this.saveDone();
+    this.touch();
+    this.clearSelection();
+    this.flash( { text: `${ letters( waiting.length ) } marked as done` } );
   }
 
-  /** Delete in the letter: confirm, then go on to the next letter like Send and Done do. */
-  async deleteOpenLetter (): Promise<void> {
-    const letter = this.openLetter;
-    if ( !letter || this.mailbox.isDeletingMailboxMessage ) return;
-    if ( !window.confirm( 'Delete this message from the connected mailbox?' ) ) return;
-    const ids = this.dayOrder( letter.dayKey );
-    const next = this.queue
-      ? this.waitingAll.find( item => item.id !== letter.id )?.id
-      : ids.length > 1 ? ids[( ids.indexOf( letter.id ) + 1 ) % ids.length] : undefined;
-    const deleted = await this.deleteMessages( [letter.id] );
-    if ( !deleted.length || this.openId !== letter.id ) return;
-    if ( next ) {
-      this.router.navigate( ['/inbox', next], { replaceUrl: true } );
-    } else {
-      this.selectedDay = letter.dayKey;
-      this.closeLetter();
+  deleteSelected (): void {
+    this.deleteLetters( this.selectedLetters.map( letter => letter.id ) );
+  }
+
+  deleteOpenLetter (): void {
+    if ( this.openId ) this.deleteLetters( [this.openId] );
+  }
+
+  /**
+   * Soft delete: the letters go from the list now and from the mailbox
+   * after the Undo window, so Undo really brings them back. An open letter
+   * moves on to the next one in its list, or closes when none are left.
+   */
+  deleteLetters ( ids: string[] ): void {
+    const gone = [...new Set( ids )].filter( id => !this.hidden.has( id ) );
+    if ( !gone.length ) return;
+    const open = this.openLetter;
+    let nextOpen: string | null = null;
+    if ( open && gone.includes( open.id ) ) {
+      const list = this.listOf( open ).filter( id => id === open.id || !gone.includes( id ) );
+      const index = list.indexOf( open.id );
+      nextOpen = list[index + 1] || list[index - 1] || null;
+    }
+    gone.forEach( id => this.hidden.add( id ) );
+    this.touch();
+    this.clearSelection();
+    this.categoryMenu = null;
+    const batch = ++this.deleteBatch;
+    this.deleting.set( batch, { ids: gone, timer: setTimeout( () => this.flushDelete( batch ), UNDO_MS ) } );
+    if ( open && gone.includes( open.id ) ) {
+      if ( nextOpen ) this.router.navigate( ['/inbox', nextOpen], { replaceUrl: true } );
+      else this.closeLetter();
+    }
+    this.flash( {
+      text: `Deleted ${ letters( gone.length ) }`,
+      undo: () => {
+        const pending = this.deleting.get( batch );
+        if ( !pending ) return;
+        clearTimeout( pending.timer );
+        this.deleting.delete( batch );
+        pending.ids.forEach( id => this.hidden.delete( id ) );
+        this.touch();
+      },
+    } );
+  }
+
+  // ---------------------------------------------------------------- the category menu
+
+  openCategoryMenu ( mode: CategoryMenuMode, event: Event ): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = ( event.currentTarget as HTMLElement ).getBoundingClientRect();
+    this.categoryMenu = { mode, anchor: { left: rect.left, top: rect.top, bottom: rect.bottom } };
+  }
+
+  /** Who the menu acts on: the selection, or the open letter. */
+  private get menuTargets (): InboxLetter[] {
+    const mode = this.categoryMenu?.mode;
+    if ( mode === 'bulk' ) return this.selectedLetters;
+    if ( mode === 'letter' && this.openLetter ) return [this.openLetter];
+    return [];
+  }
+
+  get menuOptions (): CategoryOption[] {
+    const targets = this.menuTargets;
+    return this.categories.map( category => ( {
+      category,
+      count: this.categoryCount( category ),
+      checked: targets.length > 0 && targets.every( letter => letter.categoryId === category.id ),
+    } ) );
+  }
+
+  get menuCount (): number {
+    return this.menuTargets.length;
+  }
+
+  get menuCanRemove (): boolean {
+    return this.menuTargets.some( letter => !!letter.categoryId );
+  }
+
+  /** Files the menu's letters under a category, or (null) takes them out. */
+  async assignCategory ( category: InboxCategory | null ): Promise<void> {
+    const mode = this.categoryMenu?.mode;
+    const targets = this.menuTargets;
+    this.categoryMenu = null;
+    if ( !targets.length ) return;
+    const ids = targets.map( letter => letter.id );
+    const before = { ...this.assignments };
+    ids.forEach( id => category ? this.assignments[id] = category.id : delete this.assignments[id] );
+    this.touch();
+    if ( mode === 'bulk' ) this.clearSelection();
+    this.flash( { text: !category ? 'Category removed' : mode === 'bulk' ? `${ letters( ids.length ) } moved to ${ category.name }` : `Filed under ${ category.name }` } );
+    if ( this.preview ) return;
+    try {
+      await this.mailbox.categorizeMessages( ids, category?.id || null );
+    } catch ( error: any ) {
+      this.logger.error( 'Inbox categorize failed', error );
+      this.assignments = before;
+      this.touch();
+      this.flash( { text: `Couldn't file ${ ids.length === 1 ? 'that letter' : 'those letters' }. Try again.` } );
     }
   }
 
-  /** Returns the ids that went; the service reports successes and failures. */
-  private async deleteMessages ( ids: string[] ): Promise<string[]> {
-    const before = new Set( this.mailbox.mailboxMessages.map( message => message.id ) );
-    if ( this.preview ) {
-      this.mailbox.mailboxMessages = this.mailbox.mailboxMessages.filter( message => !ids.includes( message.id ) );
-      this.flash( { text: `Deleted ${ ids.length } message${ ids.length === 1 ? '' : 's' }` } );
-    } else {
-      await this.mailbox.deleteMailboxMessages( ids );
+  /** "New category": a name that exists (any case) reuses that category. From a bulk or letter menu it's also assigned. */
+  async addCategory ( name: string ): Promise<void> {
+    const clean = name.trim().replace( /\s+/g, ' ' );
+    if ( !clean ) return;
+    let category = this.categories.find( item => item.name.toLowerCase() === clean.toLowerCase() ) || null;
+    if ( !category ) {
+      try {
+        category = this.preview
+          ? { id: `c${ Date.now() }`, name: clean, color: COLORS[this.categories.length % COLORS.length] }
+          : await this.mailbox.createInboxCategory( clean );
+      } catch ( error: any ) {
+        this.logger.error( 'Inbox category create failed', error );
+        this.flash( { text: `Couldn't add ${ clean }. Try again.` } );
+        return;
+      }
+      if ( !this.categories.some( item => item.id === category!.id ) ) this.categories = [...this.categories, category];
     }
-    const after = new Set( this.mailbox.mailboxMessages.map( message => message.id ) );
-    return ids.filter( id => before.has( id ) && !after.has( id ) );
+    if ( this.categoryMenu?.mode === 'filter' ) {
+      this.categoryMenu = null;
+      this.flash( { text: `Added ${ category.name }` } );
+    } else {
+      await this.assignCategory( category );
+    }
   }
 
   // ---------------------------------------------------------------- keyboard
@@ -523,7 +716,7 @@ export class InboxComponent implements OnInit, OnDestroy {
   onKey ( event: KeyboardEvent ): void {
     const target = event.target as HTMLElement | null;
     const typing = !!target && ( ['TEXTAREA', 'INPUT', 'SELECT'].includes( target.tagName ) || target.isContentEditable );
-    if ( event.metaKey || event.ctrlKey || event.altKey ) return;
+    if ( event.metaKey || event.ctrlKey || event.altKey || this.categoryMenu ) return;
     if ( event.key === '/' && !typing && !this.openId ) {
       event.preventDefault();
       this.askField?.nativeElement.focus();
@@ -536,6 +729,16 @@ export class InboxComponent implements OnInit, OnDestroy {
       }
       return;
     }
+    if ( event.key === 'Delete' || event.key === 'Backspace' ) {
+      if ( this.openId ) {
+        event.preventDefault();
+        this.deleteOpenLetter();
+      } else if ( this.selectedLetters.length ) {
+        event.preventDefault();
+        this.deleteSelected();
+      }
+      return;
+    }
     if ( this.openId ) {
       if ( event.key === 'Escape' ) this.closeLetter();
       if ( event.key === 'ArrowRight' ) this.step( 1 );
@@ -545,8 +748,8 @@ export class InboxComponent implements OnInit, OnDestroy {
     if ( event.key === 'ArrowLeft' ) this.shiftDay( true );
     if ( event.key === 'ArrowRight' ) this.shiftDay( false );
     if ( event.key === 'Escape' ) {
-      if ( this.calendarOpen ) this.calendarOpen = false;
-      else if ( this.selecting ) this.clearSelection();
+      this.calendarOpen = false;
+      this.clearSelection();
     }
   }
 
@@ -568,24 +771,41 @@ export class InboxComponent implements OnInit, OnDestroy {
     if ( mailboxId !== this.doneLoadedFor ) {
       this.doneLoadedFor = mailboxId;
       this.loadDone();
+      this.loadCategories( mailboxId );
       this.version++;
     }
     if ( this.cache.messages !== messages || this.cache.version !== this.version ) {
       const done = new Set( [...this.done, ...this.answeredNow] );
       const ownEmail = this.mailbox.connectedMailbox?.emailAddress || '';
-      const letters = ( messages || [] ).map( message => toLetter( message, { ownEmail, done } ) );
+      const letters = ( messages || [] )
+        .filter( message => !this.hidden.has( message.id ) )
+        .map( message => toLetter( message, { ownEmail, done, categories: this.assignments } ) );
       this.cache = { messages, version: this.version, letters, days: buildDays( letters ) };
     }
     return this.cache;
   }
 
-  /** Rebuild the letters after a local change (sent, done, undone). */
+  /** Rebuild the letters after a local change (sent, done, filed, deleted, undone). */
   private touch (): void {
     this.version++;
   }
 
-  private dayOrder ( key: string ): string[] {
-    return ( this.days.find( day => day.key === key )?.letters || [] ).map( letter => letter.id );
+  /** The list a letter belongs to on screen: its category when one is picked, else its day. */
+  private listOf ( letter: InboxLetter ): string[] {
+    if ( this.topic ) return this.scope.map( item => item.id );
+    return ( this.days.find( day => day.key === letter.dayKey )?.letters || [] ).map( item => item.id );
+  }
+
+  private loadCategories ( mailboxId: string ): void {
+    if ( this.preview || !mailboxId ) return;
+    this.mailbox.loadInboxCategories()
+      .then( ( { categories, assignments } ) => {
+        if ( this.mailbox.connectedMailbox?.id !== mailboxId ) return;
+        this.categories = categories;
+        this.assignments = assignments;
+        this.touch();
+      } )
+      .catch( ( error ) => this.logger.error( 'Inbox categories failed to load', error ) );
   }
 
   private readRoute (): void {
@@ -598,7 +818,7 @@ export class InboxComponent implements OnInit, OnDestroy {
       return;
     }
     const letter = this.letters.find( item => item.id === id );
-    if ( letter ) this.selectedDay = letter.dayKey;
+    if ( letter && !this.topic ) this.selectedDay = letter.dayKey;
     this.loadDetail( id );
   }
 
@@ -609,7 +829,7 @@ export class InboxComponent implements OnInit, OnDestroy {
     if ( this.openId === id ) this.detail = detail;
   }
 
-  /** After Send or Done: the next waiting letter in queue mode, else back to the day. */
+  /** After Send or Done: the next waiting letter in queue mode, else back to the list. */
   private finish ( letter: InboxLetter ): void {
     if ( this.queue ) {
       const next = this.waitingAll.find( item => item.id !== letter.id );
@@ -656,6 +876,28 @@ export class InboxComponent implements OnInit, OnDestroy {
       this.touch();
       this.flash( { text: `Couldn't send to ${ pending.name }: ${ error?.message || 'try again' }` } );
     }
+  }
+
+  /** The Undo window is over: remove them from the mailbox. Any that fail come back. */
+  private flushDelete ( batch: number ): Promise<void> {
+    const pending = this.deleting.get( batch );
+    if ( !pending ) return this.deleteChain;
+    clearTimeout( pending.timer );
+    this.deleting.delete( batch );
+    this.deleteChain = this.deleteChain.then( () => this.removeFromMailbox( pending.ids ) );
+    return this.deleteChain;
+  }
+
+  private async removeFromMailbox ( ids: string[] ): Promise<void> {
+    if ( this.preview ) {
+      this.mailbox.mailboxMessages = this.mailbox.mailboxMessages.filter( message => !ids.includes( message.id ) );
+      return;
+    }
+    // Deleted ones have left the list; any that failed are still in it, so they show again.
+    const { failed } = await this.mailbox.deleteMailboxMessages( ids, { notify: false } );
+    ids.forEach( id => this.hidden.delete( id ) );
+    this.touch();
+    if ( failed ) this.flash( { text: `Couldn't delete ${ letters( failed ) }. They're back in your inbox.` } );
   }
 
   private flash ( toast: Toast ): void {

@@ -45,7 +45,7 @@
     padding: 7px 12px;
     border-radius: 999px;
     background: rgba(15, 23, 42, 0.06);
-    color: #0f172a;
+    color: var(--text);
     font-size: 12px;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -57,7 +57,7 @@
     font-size: clamp(28px, 4vw, 42px);
     font-weight: 900;
     line-height: 1.08;
-    color: #0f172a;
+    color: var(--text);
 }
 
 .inbox-access-hero p {
@@ -167,7 +167,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    color: #0f172a;
+    color: var(--text);
 }
 
 .mailbox-summary-meta {
@@ -201,9 +201,9 @@
 .mailbox-inbox-list,
 .mailbox-inbox-detail,
 .mailbox-empty--panel {
-    border: 1px solid rgba(15, 23, 42, 0.08);
+    border: 0;
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.82);
+    background: var(--surface);
     padding: 16px;
 }
 
@@ -211,7 +211,7 @@
     margin-bottom: 12px;
     font-size: 15px;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text);
 }
 
 .mailbox-actions {
@@ -270,7 +270,7 @@
 .mailbox-message-subject {
     font-size: 14px;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text);
 }
 
 .mailbox-message-preview,
@@ -286,7 +286,7 @@
     margin: 14px 0;
     border-radius: 16px;
     background: rgba(248, 250, 252, 0.92);
-    color: #0f172a;
+    color: var(--text);
     line-height: 1.65;
     max-height: 340px;
     overflow: auto;
@@ -345,7 +345,7 @@
 .profile-label {
     margin-bottom: 8px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text);
 }
 
 .profile-list {
@@ -543,37 +543,77 @@
   box-shadow: none;
 }
 
-.mailbox-card .form-control,
-.mailbox-card .form-select {
+/* Inside an inbox card (white): fields and secondary buttons sit on grey. */
+.box .form-control,
+.box .form-select {
   border: 0;
   border-radius: 12px;
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text);
 }
 
-.mailbox-card .btn-todd,
-.mailbox-card .btn-todd-secondary,
-.mailbox-card .btn-todd-danger {
+/* controls.css gives .btn-todd a glass look with !important; these are
+ * the Find family's flat pills instead. */
+.box .btn-todd,
+.box .btn-todd-secondary,
+.box .btn-todd-danger {
   height: 40px;
+  min-height: 0;
+  margin: 0;
   padding: 0 18px;
-  border: 0;
+  border: 0 !important;
   border-radius: 999px;
+  box-shadow: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   font-weight: 700;
 }
 
-.mailbox-card .btn-todd {
-  background: var(--blue);
-  color: #fff;
+.box .btn-todd,
+.box .btn-todd:hover {
+  background: var(--blue) !important;
+  color: #fff !important;
 }
 
-.mailbox-card .btn-todd-secondary {
+.box .btn-todd.btn-todd-secondary,
+.box .btn-todd.btn-todd-secondary:hover {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+.box .btn-todd-danger,
+.box .btn-todd-danger:hover {
+  background: transparent !important;
+  box-shadow: inset 0 0 0 1.5px var(--danger) !important;
+  color: var(--danger) !important;
+}
+
+.box .btn-todd:disabled,
+.box .btn-todd-secondary:disabled {
+  opacity: .55;
+}
+
+.box .mailbox-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.box .mailbox-advanced-panel .form-control {
   background: var(--bg);
+}
+
+.box .product-toggle-item {
+  color: var(--muted);
+}
+
+.box .mailbox-advanced-panel h6 {
   color: var(--text);
 }
 
-.mailbox-card .btn-todd-danger {
-  background: var(--bg);
-  color: var(--danger);
+.box .mailbox-google-step {
+  margin-top: 16px;
 }
 
 @media (max-width: 1000px) {
@@ -584,5 +624,165 @@
   .inbox-head {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+/* The page's link colour (styles.css, every <a> in a routed page) beat the
+ * pill's white text: blue on blue. */
+a.pill {
+  text-decoration: none !important;
+}
+
+a.pill--primary,
+a.pill--primary:hover {
+  color: #fff !important;
+}
+
+/* ---- Connected inboxes: pick one, its settings open under it ---- */
+
+.inbox-head p {
+  max-width: 640px;
+}
+
+.boxes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eyebrow {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.box {
+  border-radius: 20px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1.5px var(--surface2);
+  overflow: clip;
+}
+
+.box.is-selected {
+  box-shadow: inset 0 0 0 2px var(--blue);
+}
+
+.box__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 0;
+  padding: 16px 18px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.box:not(.is-selected) .box__head:hover {
+  background: var(--surface);
+}
+
+.box.is-selected .box__head {
+  background: var(--t-blue);
+  cursor: default;
+}
+
+.box__radio {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--surface2);
+}
+
+.box.is-selected .box__radio {
+  border: 6px solid var(--blue);
+}
+
+.box__plus {
+  flex: none;
+  width: 20px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--blue-ink);
+}
+
+.box__who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.box__who strong {
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.box__who small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tag {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tag--primary {
+  background: var(--t-green);
+  color: var(--t-green-fg);
+}
+
+.box__state {
+  flex: none;
+  min-width: 64px;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--blue-ink);
+}
+
+.box.is-selected .box__state {
+  color: var(--t-blue-fg);
+}
+
+.box__body {
+  padding: 4px 18px 18px;
+  border-top: 1px solid var(--surface2);
+}
+
+.box__body--solo {
+  border-top: 0;
+  padding-top: 18px;
+}
+
+.panel-note {
+  margin: 16px 0 4px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .box__head {
+    flex-wrap: wrap;
+  }
+
+  .box__state {
+    display: none;
   }
 }

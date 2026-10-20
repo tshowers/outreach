@@ -1,0 +1,157 @@
+:host {
+  display: contents;
+}
+
+/* Above the letter overlay (50) and the bulk bar. */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 69;
+}
+
+.menu {
+  position: fixed;
+  z-index: 70;
+  width: 300px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  border-radius: 20px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font-family: var(--font);
+}
+
+.menu__title {
+  padding: 6px 10px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  min-height: 0;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--surface);
+}
+
+.option__name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.option__count {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.option__check {
+  color: var(--blue);
+  opacity: 0;
+}
+
+.option__check.is-on {
+  opacity: 1;
+}
+
+.option--remove {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.option--remove:hover {
+  color: var(--text);
+}
+
+.dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot[data-color="blue"] { background: var(--t-blue-fg); }
+.dot[data-color="violet"] { background: var(--t-violet-fg); }
+.dot[data-color="green"] { background: var(--t-green-fg); }
+.dot[data-color="yellow"] { background: var(--t-yellow-fg); }
+.dot[data-color="pink"] { background: var(--t-pink-fg); }
+
+.add {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--surface2);
+}
+
+/* controls.css rings every field with !important. */
+.add input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border: 0 !important;
+  border-radius: 999px;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.add input:focus {
+  box-shadow: 0 0 0 2px var(--blue) !important;
+}
+
+.add__btn {
+  flex: none;
+  height: 40px;
+  min-height: 0;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.add__btn:hover {
+  background: var(--blue-ink);
+}
+
+@media (max-width: 819px) {
+  .menu {
+    left: 12px !important;
+    right: 12px;
+    width: auto;
+  }
+}

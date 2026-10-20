@@ -198,6 +198,9 @@ export interface MailboxConfigSummary {
   auth?: {
     username?: string;
     hasSecret?: boolean;
+    /** "oauth" when connected with Google sign-in, else "app_password". */
+    mode?: string;
+    hasOAuthToken?: boolean;
   };
   lastConnectionTestAt?: string;
   lastConnectionStatus?: string;
@@ -276,6 +279,22 @@ export interface MailboxMessageListItem {
   fromCompany?: string;
   attachments?: Array<{ name: string; }>;
   quotedFrom?: { date: string; } | null;
+}
+
+/** Outreach Inbox categories (design_handoff_outreach_inbox_2026-b). */
+export type InboxCategoryColor = 'blue' | 'violet' | 'green' | 'yellow' | 'pink';
+
+export interface InboxCategory {
+  id: string;
+  name: string;
+  color: InboxCategoryColor;
+}
+
+export interface InboxCategoriesResponse {
+  success: boolean;
+  message: string;
+  /** assignments: message id → category id, for the mailbox asked about. */
+  data: { categories: InboxCategory[]; assignments: Record<string, string>; };
 }
 
 export interface MailboxMessageDetail extends MailboxMessageListItem {
@@ -630,6 +649,24 @@ export class OutreachApiService {
   syncMailbox ( mailboxId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<MailboxSignalSummaryResponse> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.post<MailboxSignalSummaryResponse>( `${this.baseUrl}/outreach/mailboxes/${encodeURIComponent( mailboxId )}/sync`, {}, { headers } );
+  }
+
+  listInboxCategories ( mailboxId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<InboxCategoriesResponse> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    const params = new HttpParams().set( 'mailboxId', mailboxId );
+    return this.http.get<InboxCategoriesResponse>( `${this.baseUrl}/outreach/inbox/categories`, { headers, params } );
+  }
+
+  /** Returns the existing category when the name matches one (any case). */
+  createInboxCategory ( name: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; message: string; data: InboxCategory; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.post<{ success: boolean; message: string; data: InboxCategory; }>( `${this.baseUrl}/outreach/inbox/categories`, { name }, { headers } );
+  }
+
+  /** categoryId null takes the letters out of their category. */
+  categorizeInboxMessages ( mailboxId: string, ids: string[], categoryId: string | null, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; message: string; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.post<{ success: boolean; message: string; }>( `${this.baseUrl}/outreach/inbox/categorize`, { mailboxId, ids, categoryId }, { headers } );
   }
 
   listMailboxMessages ( mailboxId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; limit?: number; } = {} ): Observable<MailboxMessageListResponse> {
