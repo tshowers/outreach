@@ -16,7 +16,7 @@ describe('Platform menu navigation', () => {
     // /app, so "Home" lands there rather than on '/' itself.
     { label: 'Home', route: '/app' },
     { label: 'Growth', route: '/app' },
-    { label: 'Inbox', route: '/inbox-access' },
+    { label: 'Inbox', route: '/inbox' },
     { label: 'Outbox', route: '/signal-engine' },
     { label: 'Catalyst', route: '/email-processor' },
     { label: 'Email Composer', route: '/compose-email' },

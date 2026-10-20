@@ -56,9 +56,9 @@ describe('Inbox Access buttons', () => {
     cy.location('pathname', { timeout: 15000 }).should('eq', '/inbox-access');
   });
 
-  it('switches between the Inbox and Inbox Settings tabs', () => {
-    cy.contains('.inbox-access-tab', 'Inbox Settings').click().should('have.class', 'active');
-    cy.contains('.inbox-access-tab', 'Inbox').click().should('have.class', 'active');
+  // The inbox moved to /inbox (Outreach Inbox 2026); this page is settings only.
+  it('is the Inbox settings page', () => {
+    cy.contains('h1', 'Inbox settings').should('be.visible');
   });
 
   it('"Open Outbox Drafts" goes to Signal Engine', () => {
