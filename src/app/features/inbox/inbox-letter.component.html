@@ -1,0 +1,78 @@
+<div class="bar">
+  <button type="button" class="bar__back" (click)="back.emit()"><app-inbox-icon name="chevL" [size]="18"></app-inbox-icon>{{ backLabel }}</button>
+  <span class="bar__pos">{{ position }}</span>
+  <button type="button" class="bar__step" (click)="prev.emit()" title="Previous letter" aria-label="Previous letter"><app-inbox-icon name="chevL" [size]="18"></app-inbox-icon></button>
+  <button type="button" class="bar__step" (click)="next.emit()" title="Next letter" aria-label="Next letter"><app-inbox-icon name="chevR" [size]="18"></app-inbox-icon></button>
+</div>
+
+<div class="content">
+  <article class="paper">
+    <header class="sender">
+      <span class="avatar" [attr.data-tint]="tint">{{ ini }}</span>
+      <span class="sender__who">
+        <span class="sender__name">{{ letter.name }}</span>
+        <span class="sender__email">{{ letter.email }}</span>
+      </span>
+      <span class="sender__when"><span>{{ whenDay }}</span><span>{{ whenTime }}</span></span>
+    </header>
+
+    <h1 class="subject">{{ letter.subject }}</h1>
+
+    <div class="body" [class.body--loading]="loadingBody">
+      @for (paragraph of paragraphs; track $index) {
+        <p>{{ paragraph }}</p>
+      }
+    </div>
+
+    @if (files.length) {
+      <div class="files">
+        @for (file of files; track file) {
+          <span class="files__pill"><app-inbox-icon name="clip"></app-inbox-icon>{{ file }}</span>
+        }
+      </div>
+    }
+    @if (quote) {
+      <span class="quote">{{ quote }}</span>
+    }
+
+    @if (canReply) {
+      <section class="reply">
+        <label class="reply__label" for="inbox-reply">{{ replyLabel }}</label>
+        <textarea #replyBox id="inbox-reply" class="reply__box" rows="6" [placeholder]="'Write back to ' + first" [ngModel]="reply" (ngModelChange)="onReplyChange($event)"></textarea>
+        <div class="reply__actions">
+          <button type="button" class="btn btn--primary" appWriteAction="send this reply" (click)="send.emit(reply)" [disabled]="sending || !reply.trim()">
+            <app-inbox-icon name="send"></app-inbox-icon>{{ sending ? 'Sending…' : 'Send to ' + first }}
+          </button>
+          <button type="button" class="btn" appWriteAction="write a reply with TODD" (click)="rewrite.emit()" [disabled]="rewriting">
+            <app-inbox-icon name="spark"></app-inbox-icon>{{ rewriting ? 'TODD is writing…' : helpLabel }}
+          </button>
+          <button type="button" class="btn" appWriteAction="mark this letter done" (click)="done.emit()">
+            <app-inbox-icon name="check"></app-inbox-icon>Mark as done
+          </button>
+        </div>
+      </section>
+    }
+
+    <footer class="paper__foot">
+      <button type="button" class="delete" appWriteAction="delete this message" (click)="delete.emit()" [disabled]="deleting">
+        <app-inbox-icon name="trash"></app-inbox-icon>{{ deleting ? 'Deleting…' : 'Delete' }}
+      </button>
+    </footer>
+  </article>
+
+  <aside class="todd">
+    <div class="todd__head"><app-inbox-icon name="spark" [size]="18"></app-inbox-icon><span>What TODD sees</span></div>
+    <p class="todd__text">{{ letter.toddSummary || letter.ask }}</p>
+    @if (actions.length) {
+      <div class="todd__actions">
+        @for (action of actions; track action.label) {
+          @if (action.href) {
+            <a class="todd__action" [href]="action.href"><app-inbox-icon [name]="action.icon"></app-inbox-icon>{{ action.label }}</a>
+          } @else {
+            <span class="todd__action todd__action--note"><app-inbox-icon [name]="action.icon"></app-inbox-icon>{{ action.label }}</span>
+          }
+        }
+      </div>
+    }
+  </aside>
+</div>

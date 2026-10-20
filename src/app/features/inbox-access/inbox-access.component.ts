@@ -1,24 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { OutreachDataService } from '../../services/outreach-data.service';
 import { LoggerService } from '../../services/logger.service';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
-import { EmailEditorComponent } from '../../shared/page/email-editor/email-editor.component';
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { MailboxAccessService } from '../../services/mailbox-access.service';
-import { MailboxConfigSummary, MailboxMessageListItem, MailboxProviderId } from '../../services/outreach-api.service';
-import { DESIGN_PREVIEW_MAILBOX, DESIGN_PREVIEW_MESSAGES, isDesignPreview } from '../../shared/utils/design-preview';
-import { cleanMessageText, MESSAGE_KIND_LABELS, MessageKind, messageKind } from '../../shared/utils/message-kind.util';
-import { cleanEmailHtml } from '../../shared/utils/email-html.util';
+import { MailboxConfigSummary, MailboxProviderId } from '../../services/outreach-api.service';
+import { DESIGN_PREVIEW_MAILBOX, isDesignPreview } from '../../shared/utils/design-preview';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 
 /**
+ * Inbox settings: connect, test and choose mailboxes. The inbox itself is
+ * /inbox (Outreach Inbox 2026), which replaced the three-pane inbox that
+ * used to be this page's other tab.
+ *
  * Ported from features/email/pages/inbox-access/. Swapped AuthService for
  * OutreachAuthService and UserService.getLoggedInContactInfo() for
  * OutreachDataService.getContact(tenantId, userId) (same "read my own
@@ -30,10 +31,10 @@ import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.c
 @Component( {
   selector: 'app-inbox-access',
   standalone: true,
-  imports: [WriteActionDirective, BrowseNoticeComponent, 
+  imports: [WriteActionDirective, BrowseNoticeComponent,
     CommonModule,
-    EmailEditorComponent,
     FormsModule,
+    RouterLink,
     PreloaderComponent,
     BackToTopComponent,
   ],
@@ -42,7 +43,6 @@ import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.c
   styleUrl: './inbox-access.component.css'
 } )
 export class InboxAccessComponent implements OnInit, OnDestroy {
-  activeTab: 'inbox' | 'settings' = 'inbox';
   /** Gmail: the password form stays tucked away unless asked for - Google
    * authorization is the way to connect. */
   showPasswordForm = false;
@@ -77,12 +77,12 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit (): void {
+    // Settings only list mailboxes; the inbox page lists messages.
+    this.mailboxAccess.messageLimit = 1;
+    this.mailboxAccess.openFirstMessage = false;
     if ( isDesignPreview() ) {
       this.mailboxAccess.mailboxConfigs = [DESIGN_PREVIEW_MAILBOX] as any;
       this.mailboxAccess.connectedMailbox = DESIGN_PREVIEW_MAILBOX as any;
-      this.mailboxAccess.mailboxMessages = DESIGN_PREVIEW_MESSAGES as any;
-      this.mailboxAccess.selectedMailboxMessage = { ...DESIGN_PREVIEW_MESSAGES[0] } as any;
-      this.mailboxAccess.mailboxReplyDraft.subject = `Re: ${ DESIGN_PREVIEW_MESSAGES[0].subject }`;
     }
     this.userSubscription = this.authService.getUser().subscribe( ( user ) => {
       if ( !user ) return;
@@ -112,168 +112,12 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
     this.tenantSubscription?.unsubscribe();
   }
 
-  selectTab ( tab: 'inbox' | 'settings' ): void {
-    this.activeTab = tab;
-  }
-
   selectMailbox ( mailbox: MailboxConfigSummary ): void {
     this.mailboxAccess.selectMailbox( mailbox );
-    this.activeTab = 'inbox';
-  }
-
-  selectMailboxById ( mailboxId: string ): void {
-    const mailbox = this.mailboxAccess.mailboxConfigs.find( (item) => item.id === mailboxId );
-    if ( mailbox ) this.mailboxAccess.selectMailbox( mailbox );
   }
 
   startAddingMailbox (): void {
     this.mailboxAccess.startAddingMailbox();
-    this.activeTab = 'settings';
-  }
-
-  get shouldShowConnectedHero (): boolean {
-    return !this.mailboxAccess.connectedMailbox;
-  }
-
-  get shouldShowHeaderSendReply (): boolean {
-    return this.activeTab === 'inbox'
-      && !!this.mailboxAccess.selectedMailboxMessage;
-  }
-
-  openOutboxDrafts (): void {
-    this.router.navigate( ['/signal-engine'], {
-      queryParams: { tab: 'outbox' }
-    } );
-  }
-
-  openSelectedMessageDraft (): void {
-    const message = this.mailboxAccess.selectedMailboxMessage;
-    const threadId = String( message?.threadId || '' ).trim();
-    if ( !threadId ) return;
-
-    this.router.navigate( ['/signal-engine'], {
-      queryParams: {
-        tab: this.getOutboxReviewTab( message ),
-        threadId,
-        openDraftReview: 1
-      }
-    } );
-  }
-
-  canOpenSelectedMessageDraft ( message: MailboxMessageListItem | null | undefined ): boolean {
-    return this.hasLinkedOutboxDraft( message );
-  }
-
-  hasResponderDraft ( message: MailboxMessageListItem | null | undefined ): boolean {
-    if ( !message ) return false;
-    return String( message.responderDecision || '' ).trim().toLowerCase() === 'draft_only'
-      && !!String( message.replyDraftBody || message.replyDraftSubject || '' ).trim();
-  }
-
-  hasLinkedOutboxDraft ( message: MailboxMessageListItem | null | undefined ): boolean {
-    return this.hasResponderDraft( message ) && !!String( message?.threadId || '' ).trim();
-  }
-
-  isMailboxOnlyResponderDraft ( message: MailboxMessageListItem | null | undefined ): boolean {
-    return this.hasResponderDraft( message ) && !String( message?.threadId || '' ).trim();
-  }
-
-  // Inbox (design 4f): filters, message-type tags and TODD's one-liner.
-  inboxFilter: 'all' | 'replies' | 'auto' | 'unreplied' = 'all';
-
-  // Selecting several messages: the Select chip, ⌘/Ctrl-click to toggle one,
-  // Shift-click for a range.
-  selectMode = false;
-  selectedMessageIds = new Set<string>();
-  private emailHtmlCache = { key: '', html: '' };
-  private lastClickedIndex: number | null = null;
-
-  get selectionActive (): boolean {
-    return this.selectMode || this.selectedMessageIds.size > 0;
-  }
-
-  onMessageClick ( message: MailboxMessageListItem, index: number, event: MouseEvent ): void {
-    const list = this.filteredMessages;
-    if ( event.shiftKey && this.lastClickedIndex !== null ) {
-      const [from, to] = [Math.min( this.lastClickedIndex, index ), Math.max( this.lastClickedIndex, index )];
-      list.slice( from, to + 1 ).forEach( item => this.selectedMessageIds.add( item.id ) );
-      // A shift-click would otherwise also select the text in between.
-      window.getSelection()?.removeAllRanges();
-    } else if ( this.selectMode || event.metaKey || event.ctrlKey ) {
-      if ( this.selectedMessageIds.has( message.id ) ) this.selectedMessageIds.delete( message.id );
-      else this.selectedMessageIds.add( message.id );
-      this.lastClickedIndex = index;
-    } else {
-      this.selectedMessageIds.clear();
-      this.lastClickedIndex = index;
-      this.mailboxAccess.openMailboxMessage( message );
-    }
-  }
-
-  toggleSelectMode (): void {
-    this.selectMode = !this.selectMode;
-    if ( !this.selectMode ) this.clearSelection();
-  }
-
-  selectAllVisible (): void {
-    const visible = this.filteredMessages;
-    const allSelected = visible.every( message => this.selectedMessageIds.has( message.id ) );
-    visible.forEach( message => allSelected ? this.selectedMessageIds.delete( message.id ) : this.selectedMessageIds.add( message.id ) );
-  }
-
-  clearSelection (): void {
-    this.selectedMessageIds.clear();
-    this.lastClickedIndex = null;
-  }
-
-  async deleteSelectedMessages (): Promise<void> {
-    const ids = [...this.selectedMessageIds];
-    if ( !ids.length ) return;
-    if ( !window.confirm( `Delete ${ ids.length } message${ ids.length === 1 ? '' : 's' } from the connected mailbox?` ) ) return;
-    await this.mailboxAccess.deleteMailboxMessages( ids );
-    this.clearSelection();
-    this.selectMode = false;
-  }
-
-  get filteredMessages (): MailboxMessageListItem[] {
-    const messages = this.mailboxAccess.mailboxMessages || [];
-    switch ( this.inboxFilter ) {
-      case 'replies': return messages.filter( message => ['reply', 'forward'].includes( this.kindOf( message ) ) );
-      case 'auto': return messages.filter( message => this.kindOf( message ) === 'outOfOffice' );
-      case 'unreplied': return messages.filter( message => !message.replied && ['reply', 'forward'].includes( this.kindOf( message ) ) );
-      default: return messages;
-    }
-  }
-
-  kindOf ( message: MailboxMessageListItem ): MessageKind {
-    return messageKind( message as any );
-  }
-
-  kindLabel ( message: MailboxMessageListItem ): string {
-    return MESSAGE_KIND_LABELS[this.kindOf( message )];
-  }
-
-  /** TODD's read when there is one, else the message without headers or links. */
-  summaryLine ( message: MailboxMessageListItem ): string {
-    const summary = String( ( message as any ).signalSummary || '' ).trim();
-    return summary || cleanMessageText( message.preview ).replace( /\n/g, ' ' );
-  }
-
-  readableBody ( message: { text?: string | null; } ): string {
-    return cleanMessageText( message.text ) || String( message.text || '' );
-  }
-
-  /** The sender's HTML when there is any - plain text can't tell a line break from a paragraph. Cached per message. */
-  emailHtml ( message: { id?: string; html?: string | null; } ): string {
-    const raw = String( message.html || '' );
-    if ( !raw.trim() ) return '';
-    const key = `${ message.id }:${ raw.length }`;
-    if ( this.emailHtmlCache.key !== key ) this.emailHtmlCache = { key, html: cleanEmailHtml( raw ) };
-    return this.emailHtmlCache.html;
-  }
-
-  initials ( name: string | null | undefined ): string {
-    return String( name || '?' ).trim().split( /\s+/ ).slice( 0, 2 ).map( part => part[0] || '' ).join( '' ).toUpperCase();
   }
 
   syncedAgo ( iso: string | null | undefined ): string {
@@ -284,51 +128,6 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
     if ( minutes < 60 ) return `Synced ${ minutes } min ago`;
     if ( minutes < 1440 ) return `Synced ${ Math.round( minutes / 60 ) } h ago`;
     return `Synced ${ Math.round( minutes / 1440 ) } d ago`;
-  }
-
-  trackMessage ( _: number, message: { id: string; } ): string {
-    return message.id;
-  }
-
-  getResponderBadgeLabel ( message: MailboxMessageListItem | null | undefined ): string {
-    const decision = String( message?.responderDecision || '' ).trim().toLowerCase();
-    if ( decision === 'responded' ) return 'Responded';
-    if ( decision === 'draft_only' ) {
-      return this.getOutboxReviewTab( message ) === 'needs_you'
-        ? 'Draft prepared • human review'
-        : 'Draft prepared';
-    }
-    if ( decision === 'skipped' ) return 'Skipped';
-    return '';
-  }
-
-  getResponderReasonLabel ( message: MailboxMessageListItem | null | undefined ): string {
-    const reason = String( message?.responderReason || '' ).trim();
-    if ( !reason ) return '';
-    return reason.replace( /[_-]+/g, ' ' );
-  }
-
-  onReplyHtmlChange ( html: string ): void {
-    this.mailboxAccess.updateReplyHtml( html );
-  }
-
-  onReplyTextFromHtmlChange ( text: string ): void {
-    this.mailboxAccess.updateReplyTextFromHtml( text );
-  }
-
-  deleteSelectedMessage (): void {
-    this.mailboxAccess.deleteSelectedMailboxMessage();
-  }
-
-  private getOutboxReviewTab ( message: MailboxMessageListItem | null | undefined ): 'drafts' | 'needs_you' {
-    const classification = String( message?.classification || '' ).trim().toLowerCase();
-    const recommendedAction = String( message?.recommendedAction || '' ).trim().toLowerCase();
-
-    if ( classification === 'needs_human' || recommendedAction === 'needs_human' || recommendedAction === 'review' ) {
-      return 'needs_you';
-    }
-
-    return 'drafts';
   }
 
   private syncMailboxContext (): void {
@@ -346,12 +145,6 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
       preferredEmail: ( this.route.snapshot.queryParamMap.get( 'email' ) || '' ).trim().toLowerCase() || undefined,
       preferredProvider: ( this.route.snapshot.queryParamMap.get( 'provider' ) || undefined ) as MailboxProviderId | undefined,
     } );
-
-    if ( !this.mailboxAccess.connectedMailbox && !this.mailboxAccess.loadingMailboxes ) {
-      this.activeTab = 'settings';
-    } else if ( this.mailboxAccess.connectedMailbox && this.activeTab === 'settings' && this.mailboxAccess.mailboxMessages.length ) {
-      this.activeTab = 'inbox';
-    }
 
     this.logger.info( 'Inbox access context ready', {
       tenantId: this.tenantId,

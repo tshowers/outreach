@@ -1,0 +1,824 @@
+/* Outreach Inbox 2026: grey page, white day sheet (design_handoff_outreach_inbox_2026). */
+:host {
+  display: block;
+  container: inbox / inline-size;
+  background: var(--surface) !important;
+  color: var(--text);
+  font-family: var(--font);
+}
+
+button,
+.primary,
+.tool {
+  font: inherit;
+  box-sizing: border-box;
+  min-height: 0;
+  border: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+.page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 20px 28px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---- header ---- */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.head__logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.head__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.head__title h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.head__meta {
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.ask-field {
+  flex: 0 1 440px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  margin: 0;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--bg);
+  box-shadow: var(--shadow-sm);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* controls.css rings every input with !important; the pill is the field here. */
+.ask-field input {
+  flex: 1;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none;
+  background: transparent !important;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.ask-field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.ask-field:focus-within {
+  box-shadow: 0 0 0 2px var(--blue);
+}
+
+.ask-field kbd {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ask-field__clear {
+  padding: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.head__tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.head__select {
+  height: 44px;
+  max-width: 220px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--bg);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.tool {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  box-shadow: var(--shadow-sm);
+  color: var(--text) !important;
+}
+
+.tool:disabled {
+  opacity: .6;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- day bar ---- */
+
+.daybar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+
+.pill.is-on {
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: none;
+}
+
+.pill__count {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  background: var(--t-pink);
+  color: var(--t-pink-fg);
+}
+
+.earlier {
+  position: relative;
+  display: flex;
+}
+
+.calendar {
+  position: absolute;
+  top: 52px;
+  left: 0;
+  z-index: 5;
+  width: 336px;
+  box-sizing: border-box;
+  padding: 18px;
+  border-radius: 24px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.calendar__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.calendar__title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.calendar__nav {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.calendar__nav:disabled {
+  opacity: .35;
+}
+
+.calendar__legend {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.calendar__dow {
+  padding-bottom: 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.calendar__day {
+  height: 40px;
+  padding: 0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  opacity: .45;
+}
+
+.calendar__day.has-mail {
+  font-weight: 700;
+  opacity: 1;
+}
+
+.calendar__day.has-mail:hover {
+  background: var(--surface);
+}
+
+.calendar__day.is-future {
+  opacity: .3;
+}
+
+.calendar__day.is-on,
+.calendar__day.is-on:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.dot--pink { background: var(--pink); }
+.dot--muted { background: var(--muted); }
+.dot--green { background: var(--t-green-fg); }
+
+/* Wide: the day pills flow in the bar like everything else. */
+.daybar__days {
+  display: contents;
+}
+
+.daybar__fill {
+  flex: 1;
+}
+
+.daybar__handled {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff !important;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.primary:hover {
+  background: var(--blue-ink);
+}
+
+.primary__count {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .22);
+  font-size: 12px;
+}
+
+/* ---- the day sheet ---- */
+
+.sheet {
+  background: var(--bg);
+  border-radius: 24px;
+  box-shadow: var(--shadow-sm);
+  /* clip, not hidden: hidden would stop the selection bar sticking. */
+  overflow: clip;
+}
+
+.sheet--note {
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.sheet--note h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.sheet--note p {
+  margin: 0;
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.sheet__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 20px 20px 4px;
+}
+
+.arrows {
+  display: flex;
+  gap: 6px;
+}
+
+.arrow {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.arrow:disabled {
+  opacity: .35;
+}
+
+.sheet__title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.sheet__sub {
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.clear {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 20px 4px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--t-green);
+  color: var(--t-green-fg);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px 10px;
+}
+
+.group .dot {
+  width: 8px;
+  height: 8px;
+}
+
+.group__title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.group__sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.answer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: var(--t-green);
+  color: var(--t-green-fg);
+}
+
+.answer__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.answer__text {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.answer__source {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.keep-going {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 40px);
+  margin: 12px 20px 0;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+}
+
+.keep-going:hover {
+  background: var(--surface2);
+}
+
+.keep-going__label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.keep-going__line {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.keep-going__wait {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--t-pink);
+  color: var(--t-pink-fg);
+  white-space: nowrap;
+}
+
+.foot {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 14px 20px;
+  background: var(--surface);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---- Select and delete ---- */
+
+.select-toggle {
+  margin-left: auto;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.selection {
+  position: sticky;
+  top: 12px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  padding: 8px 8px 8px 18px;
+  border-radius: 999px;
+  background: var(--t-blue);
+  color: var(--t-blue-fg);
+  font-size: 14px;
+}
+
+.selection__count {
+  font-weight: 700;
+}
+
+.selection__link {
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.selection__fill {
+  flex: 1;
+}
+
+.selection__delete {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.selection__delete:disabled {
+  opacity: .5;
+}
+
+/* ---- the letter and the toast ---- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--surface);
+  animation: fade .2s;
+}
+
+.overlay--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  z-index: 60;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  min-height: 48px;
+  padding: 8px 8px 8px 20px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+}
+
+.toast > span {
+  padding-right: 12px;
+}
+
+.toast__undo {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: rgba(127, 127, 127, .28);
+  color: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* In the laptop shell the letter covers the page but leaves the sidebar. */
+@media (min-width: 900px) {
+  :host-context(.app-frame--shell) .overlay {
+    left: 240px;
+  }
+
+  :host-context(.app-frame--shell) .toast {
+    left: calc(50% + 120px);
+  }
+}
+
+/* Below 900px the sidebar goes and the floating Menu button returns:
+ * the selection bar moves to the bottom, out of its way. */
+@media (max-width: 899px) {
+  .page {
+    padding-top: 72px;
+  }
+
+  .page:has(.selection) {
+    padding-bottom: 96px;
+  }
+
+  .selection {
+    position: fixed;
+    top: auto;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+}
+
+/* ---- compact, below 820px of page ---- */
+
+@container inbox (max-width: 819px) {
+  .page {
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 32px;
+    gap: 12px;
+  }
+
+  .ask-field {
+    flex: 1 1 100%;
+    order: 3;
+  }
+
+  /* Narrow: the day pills scroll sideways; Start answering gets its own row. */
+  .daybar__days {
+    display: flex;
+    gap: 8px;
+    flex: 1 1 100%;
+    min-width: 0;
+    overflow-x: auto;
+    margin: 0 -12px;
+    padding: 2px 12px 4px;
+    scrollbar-width: none;
+  }
+
+  .daybar__days::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pill {
+    flex: none;
+  }
+
+  .daybar__fill {
+    display: none;
+  }
+
+  .daybar > .primary {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .daybar__handled,
+  .foot--keys {
+    display: none;
+  }
+
+  /* The calendar spans the page under the day pills. */
+  .daybar {
+    position: relative;
+  }
+
+  .earlier {
+    position: static;
+  }
+
+  .calendar {
+    left: 0;
+    right: 0;
+    width: auto;
+  }
+
+  .sheet__head {
+    padding: 16px 16px 4px;
+  }
+
+  .sheet__title {
+    font-size: 26px;
+  }
+
+  .group {
+    padding: 14px 16px 8px;
+  }
+
+  .clear {
+    margin: 12px 16px 4px;
+  }
+
+
+
+  .keep-going {
+    width: calc(100% - 32px);
+    margin: 12px 16px 16px;
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .keep-going__label {
+    flex: 1 1 100%;
+    font-size: 12px;
+  }
+
+  .keep-going__line {
+    font-size: 15px;
+  }
+}

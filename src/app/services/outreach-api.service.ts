@@ -261,6 +261,21 @@ export interface MailboxMessageListItem {
   responderReason?: string;
   responderSuppressed?: boolean;
   responderProcessedMessageId?: string;
+  // Outreach Inbox 2026 (design_handoff_outreach_inbox_2026/README.md):
+  // TODD's read of each letter. Optional until the server sends them; the
+  // inbox falls back to signalSummary, replyDraftBody and the sender rules.
+  kind?: 'reply' | 'out_of_office' | 'bounce' | 'forward' | 'newsletter' | 'test' | 'automated';
+  needsAnswer?: boolean;
+  answeredAt?: string | null;
+  ask?: string;
+  toddSummary?: string;
+  toddDid?: string;
+  draft?: string | null;
+  nextAction?: { type: 'call' | 'text' | 'email' | 'calendar' | 'attach'; label: string; value?: string; } | null;
+  filed?: boolean;
+  fromCompany?: string;
+  attachments?: Array<{ name: string; }>;
+  quotedFrom?: { date: string; } | null;
 }
 
 export interface MailboxMessageDetail extends MailboxMessageListItem {

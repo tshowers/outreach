@@ -1,0 +1,237 @@
+:host {
+  display: block;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 40px minmax(110px, 180px) minmax(0, 1.4fr) minmax(0, 1fr) 64px 96px;
+  grid-template-areas: "av who ask prep when quick";
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+}
+
+.row:hover {
+  background: var(--surface);
+}
+
+.row:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--blue);
+}
+
+.row--answered {
+  opacity: .55;
+}
+
+.avatar {
+  grid-area: av;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--surface2);
+  color: var(--muted);
+}
+
+.avatar[data-tint="blue"] { background: var(--t-blue); color: var(--t-blue-fg); }
+.avatar[data-tint="yellow"] { background: var(--t-yellow); color: var(--t-yellow-fg); }
+.avatar[data-tint="pink"] { background: var(--t-pink); color: var(--t-pink-fg); }
+.avatar[data-tint="violet"] { background: var(--t-violet); color: var(--t-violet-fg); }
+
+.check {
+  grid-area: av;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  margin: 6px;
+  border-radius: 50%;
+  border: 2px solid var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.row.is-selected {
+  background: var(--t-blue);
+}
+
+.row.is-selected .check {
+  border-color: var(--blue);
+  background: var(--blue);
+}
+
+.who,
+.ask {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.who { grid-area: who; }
+.ask { grid-area: ask; gap: 2px; }
+
+.who__name,
+.who__co,
+.ask__line,
+.ask__subject,
+.prep__text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.who__name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.who__co,
+.ask__subject {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.ask__line {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.prep {
+  grid-area: prep;
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.prep[data-tone="draft"],
+.prep[data-tone="done"] { background: var(--t-green); color: var(--t-green-fg); }
+.prep[data-tone="action"] { background: var(--t-blue); color: var(--t-blue-fg); }
+
+/* Wide: the prep pill and quick action are grid cells of their own. */
+.act {
+  display: contents;
+}
+
+.row--search {
+  grid-template-columns: 40px minmax(110px, 180px) minmax(0, 1.4fr) minmax(0, 1fr) 140px;
+  grid-template-areas: "av who ask prep when";
+}
+
+.row--search .quick {
+  display: none;
+}
+
+.when {
+  grid-area: when;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.quick {
+  grid-area: quick;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.quick__btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  height: 36px;
+  min-height: 0;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.quick__btn:hover {
+  background: var(--blue-ink);
+}
+
+/* Compact rows below 820px of page: avatar | name and time, the ask
+ * (wraps), then the prep pill and the quick action. */
+@container inbox (max-width: 819px) {
+  .row {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "av who when"
+      "av ask ask"
+      "av act act";
+    align-items: start;
+    gap: 6px 12px;
+    padding: 14px 16px;
+  }
+
+  .row:hover {
+    background: transparent;
+  }
+
+  .who__co,
+  .ask__subject {
+    display: none;
+  }
+
+  .when {
+    font-size: 12px;
+    align-self: baseline;
+    padding-top: 2px;
+  }
+
+  .ask__line {
+    font-weight: 400;
+    line-height: 1.35;
+    white-space: normal;
+    text-wrap: pretty;
+  }
+
+  .act {
+    grid-area: act;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .prep {
+    flex: 0 1 auto;
+  }
+
+  .quick,
+  .row--search .quick {
+    flex: none;
+    display: flex;
+  }
+
+  .quick:empty {
+    display: none;
+  }
+}

@@ -78,6 +78,10 @@ export class MailboxAccessService {
   isSyncingMailbox = false;
   isReplyingMailbox = false;
   isDeletingMailboxMessage = false;
+  /** How many recent messages to list. The day-by-day inbox asks for more. */
+  messageLimit = 20;
+  /** The old three-pane inbox opened the newest message as soon as the list loaded. */
+  openFirstMessage = true;
 
   private context: MailboxAccessContext | null = null;
   private lastContextKey = '';
@@ -302,7 +306,7 @@ export class MailboxAccessService {
     this.loadingMailboxMessages = true;
     this.outreachApi.listMailboxMessages(mailboxId, {
       ...this.getMailboxRequestOptions(),
-      limit: 20
+      limit: this.messageLimit
     })
       .pipe(take(1))
       .subscribe({
@@ -311,7 +315,7 @@ export class MailboxAccessService {
           this.mailboxMessages = Array.isArray(response?.data) ? response.data : [];
           if (this.mailboxMessages.length === 0) {
             this.selectedMailboxMessage = null;
-          } else if (!this.selectedMailboxMessage) {
+          } else if (!this.selectedMailboxMessage && this.openFirstMessage) {
             this.openMailboxMessage(this.mailboxMessages[0]);
           }
         },
@@ -340,6 +344,61 @@ export class MailboxAccessService {
           this.mailboxReplyStatus = error?.error?.message || 'Unable to open this message.';
         }
       });
+  }
+
+  /** One message's full text, without making it the selected message. */
+  async fetchMessageDetail(messageId: string): Promise<MailboxMessageDetail | null> {
+    const mailboxId = this.connectedMailbox?.id;
+    if (!mailboxId || !messageId) return null;
+    try {
+      const response = await firstValueFrom(this.outreachApi.getMailboxMessage(mailboxId, messageId, this.getMailboxRequestOptions()));
+      return response?.data || null;
+    } catch (error) {
+      this.logger.error('Unable to open mailbox message:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Replies to one message with a plain-text body (the inbox's Send and
+   * quick Send). Marks it replied in the list; throws the server's message
+   * when it fails.
+   */
+  async sendReplyTo(messageId: string, reply: { subject: string; text: string; }): Promise<void> {
+    const mailboxId = this.connectedMailbox?.id;
+    const text = String(reply.text || '').trim();
+    if (!mailboxId || !messageId || !text) throw new Error('Nothing to send.');
+    try {
+      await firstValueFrom(this.outreachApi.replyToMailboxMessage(mailboxId, messageId, {
+        subject: reply.subject,
+        body: text,
+        text,
+        html: this.convertTextToReplyHtml(text),
+      }, this.getMailboxRequestOptions()));
+    } catch (error: any) {
+      throw new Error(error?.error?.message || 'Unable to send reply.');
+    }
+    const listed = this.mailboxMessages.find(item => item.id === messageId);
+    if (listed) listed.replied = true;
+  }
+
+  /**
+   * TODD's reply for a contact's thread (the same draft-assist Needs you
+   * uses). Plain text; throws when TODD can't write one.
+   */
+  async draftReplyWithTodd(contactId: string): Promise<string> {
+    if (!contactId) throw new Error('TODD needs this sender in your contacts to write a reply.');
+    let data: any = {};
+    try {
+      const response = await firstValueFrom(this.outreachApi.draftAssistMomentumReply(contactId, this.getMailboxRequestOptions()));
+      data = response?.data || {};
+    } catch (error: any) {
+      throw new Error(error?.error?.message || "TODD couldn't write this one. Try writing your own.");
+    }
+    const body = String(data.replyDraftBody || data.draftBody || data.body || '');
+    const text = this.convertReplyHtmlToText(body) || body.trim();
+    if (!text) throw new Error("TODD couldn't write this one. Try writing your own.");
+    return text;
   }
 
   deleteSelectedMailboxMessage(): void {

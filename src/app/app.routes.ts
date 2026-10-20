@@ -83,6 +83,18 @@ export const routes: Routes = [
       import( './features/get-the-app/get-the-app.component' ).then( ( m ) => m.GetTheAppComponent ),
   },
   {
+    // Outreach Inbox 2026: the day-by-day inbox. /inbox/:id is the letter,
+    // full screen; the list stays mounted under it so Back keeps the day
+    // and scroll position. Mailbox settings stay at /inbox-access.
+    path: 'inbox',
+    loadComponent: () =>
+      import( './features/inbox/inbox.component' ).then( ( m ) => m.InboxComponent ),
+    children: [
+      { path: '', children: [] },
+      { path: ':id', children: [] },
+    ],
+  },
+  {
     path: 'inbox-access',
     loadComponent: () =>
       import( './features/inbox-access/inbox-access.component' ).then( ( m ) => m.InboxAccessComponent ),

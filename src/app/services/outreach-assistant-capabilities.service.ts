@@ -52,7 +52,8 @@ export class OutreachAssistantCapabilitiesService {
     'engagement': 'engagement',
     'inbox access': 'inbox-access',
     'connect inbox': 'inbox-access',
-    'my inbox': 'inbox-access',
+    'my inbox': 'inbox',
+    'inbox': 'inbox',
     'pricing': 'pricing',
     'home': '',
   };
@@ -62,6 +63,7 @@ export class OutreachAssistantCapabilitiesService {
     { path: 'app' },
     { path: 'login' },
     { path: 'pricing' },
+    { path: 'inbox' },
     { path: 'inbox-access' },
     { path: 'signal-engine' },
     { path: 'engagement' },

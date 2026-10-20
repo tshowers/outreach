@@ -8,7 +8,7 @@ export const PLATFORM_MENU_CONFIG: MenuAppConfig = {
     { label: 'Home', icon: 'home', route: '/' },
     { label: 'Growth', icon: 'growth', route: '/app' },
     { label: 'Needs you', icon: 'users', route: '/needs-you', keywords: 'replies waiting' },
-    { label: 'Inbox', icon: 'inbox', route: '/inbox-access', keywords: 'mail replies' },
+    { label: 'Inbox', icon: 'inbox', route: '/inbox', keywords: 'mail replies' },
     { label: 'Signal Engine', icon: 'send', route: '/signal-engine', keywords: 'outbox sent plan' },
     { label: 'Catalyst', icon: 'bolt', route: '/email-processor', keywords: 'stale contacts batch' },
     { label: 'Email Composer', icon: 'pen', route: '/compose-email', keywords: 'write new email' },
