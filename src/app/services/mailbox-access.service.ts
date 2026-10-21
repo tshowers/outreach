@@ -379,6 +379,18 @@ export class MailboxAccessService {
     }
   }
 
+  /** One attachment's bytes (the letter's Open / Save); null when it can't be fetched. */
+  async fetchAttachment(messageId: string, attachmentId: string): Promise<Blob | null> {
+    const mailboxId = this.connectedMailbox?.id;
+    if (!mailboxId || !messageId || !attachmentId) return null;
+    try {
+      return await firstValueFrom(this.outreachApi.getMailboxAttachment(mailboxId, messageId, attachmentId, this.getMailboxRequestOptions()));
+    } catch (error) {
+      this.logger.error('Unable to open attachment:', error);
+      return null;
+    }
+  }
+
   /**
    * Replies to one message with a plain-text body (the inbox's Send and
    * quick Send). Marks it replied in the list; throws the server's message

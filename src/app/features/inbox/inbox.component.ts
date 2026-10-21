@@ -5,7 +5,7 @@ import { Subscription, filter } from 'rxjs';
 
 import { LoggerService } from '../../services/logger.service';
 import { MailboxAccessService } from '../../services/mailbox-access.service';
-import { InboxCategory, InboxCategoryColor, MailboxConfigSummary, MailboxMessageDetail, MailboxMessageListItem } from '../../services/outreach-api.service';
+import { InboxCategory, InboxCategoryColor, MailboxAttachment, MailboxConfigSummary, MailboxMessageDetail, MailboxMessageListItem } from '../../services/outreach-api.service';
 import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { OutreachDataService } from '../../services/outreach-data.service';
 import { isDesignPreview } from '../../shared/utils/design-preview';
@@ -584,6 +584,37 @@ export class InboxComponent implements OnInit, OnDestroy {
 
   deleteSelected (): void {
     this.deleteLetters( this.selectedLetters.map( letter => letter.id ) );
+  }
+
+  /**
+   * An attachment tile: pictures, PDFs and text open in a new tab, the rest
+   * download. The tab opens now, before the fetch, so Safari doesn't block it.
+   */
+  async openAttachment ( file: MailboxAttachment ): Promise<void> {
+    const letterId = this.openId;
+    if ( !letterId || !file.id ) return;
+    const viewable = /^(image\/(png|jpe?g|gif|webp)|application\/pdf|text\/plain)$/i.test( file.contentType || '' );
+    const tab = viewable ? window.open( '', '_blank' ) : null;
+    const blob = this.preview
+      ? ( file.preview ? await ( await fetch( file.preview ) ).blob() : null )
+      : await this.mailbox.fetchAttachment( letterId, file.id );
+    if ( !blob ) {
+      tab?.close();
+      this.flash( { text: `Couldn't open ${ file.name }.` } );
+      return;
+    }
+    const url = URL.createObjectURL( blob.type ? blob : new Blob( [blob], { type: file.contentType || 'application/octet-stream' } ) );
+    if ( tab ) {
+      tab.location.href = url;
+    } else {
+      const link = document.createElement( 'a' );
+      link.href = url;
+      link.download = file.name;
+      document.body.appendChild( link );
+      link.click();
+      link.remove();
+    }
+    setTimeout( () => URL.revokeObjectURL( url ), 60_000 );
   }
 
   deleteOpenLetter (): void {

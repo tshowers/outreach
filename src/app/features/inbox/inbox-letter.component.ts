@@ -1,11 +1,13 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
-import { InboxCategory, MailboxMessageDetail } from '../../services/outreach-api.service';
+import { InboxCategory, MailboxAttachment, MailboxMessageDetail } from '../../services/outreach-api.service';
 import { cleanMessageText } from '../../shared/utils/message-kind.util';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { InboxIconComponent } from './inbox-icon.component';
 import { InboxLetter, NextAction, dayLong, dayKeyOf, firstName, htmlToText, initials, isWaiting, kindTint, shortDate, timeOfDay } from './inbox.model';
+import { LetterHtml, prepareLetterHtml } from './letter-html';
 
 interface ToddAction {
   label: string;
@@ -27,8 +29,12 @@ interface ToddAction {
   templateUrl: './inbox-letter.component.html',
   styleUrl: './inbox-letter.component.css',
 } )
-export class InboxLetterComponent {
+export class InboxLetterComponent implements OnChanges, OnDestroy {
   @ViewChild( 'replyBox' ) replyBox?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild( 'mailFrame' ) mailFrame?: ElementRef<HTMLIFrameElement>;
+
+  private sanitizer = inject( DomSanitizer );
+  private host = inject<ElementRef<HTMLElement>>( ElementRef );
 
   letter!: InboxLetter;
   reply = '';
@@ -60,6 +66,85 @@ export class InboxLetterComponent {
   @Output() delete = new EventEmitter<void>();
   /** The category button: the page opens the menu beside it. */
   @Output() openCategory = new EventEmitter<MouseEvent>();
+  /** An attachment tile: the page fetches it and opens or saves it. */
+  @Output() openFile = new EventEmitter<MailboxAttachment>();
+
+  /** The letter's HTML, ready for the frame; null when there is none (text letters). */
+  mail: LetterHtml | null = null;
+  frameDoc: SafeHtml | null = null;
+  /** "Show earlier messages": the frame shows the quoted thread too. */
+  showThread = false;
+  private preparedFor = '';
+  private frameObserver?: ResizeObserver;
+
+  ngOnChanges (): void {
+    const source = this.detail?.id === this.letter.id ? this.detail : null;
+    const html = source?.html || '';
+    const key = `${ this.letter.id }:${ html.length }`;
+    if ( key === this.preparedFor ) return;
+    this.preparedFor = key;
+    this.showThread = false;
+    this.mail = html ? prepareLetterHtml( html, this.theme(), { forward: this.letter.kind === 'forward' } ) : null;
+    this.renderFrame();
+  }
+
+  ngOnDestroy (): void {
+    this.frameObserver?.disconnect();
+  }
+
+  toggleThread (): void {
+    this.showThread = !this.showThread;
+    this.renderFrame();
+  }
+
+  /** Sizes the frame to its letter, and keeps it sized as images load or the page narrows. */
+  onFrameLoad (): void {
+    const frame = this.mailFrame?.nativeElement;
+    const doc = frame?.contentDocument;
+    if ( !frame || !doc?.body ) return;
+    // Next frame, so a resize never lands inside ResizeObserver's own callback.
+    let pending = 0;
+    const fit = () => {
+      cancelAnimationFrame( pending );
+      pending = requestAnimationFrame( () => {
+        const height = `${ Math.ceil( doc.body.getBoundingClientRect().height ) }px`;
+        if ( frame.style.height !== height ) frame.style.height = height;
+      } );
+    };
+    fit();
+    doc.querySelectorAll( 'img' ).forEach( img => img.addEventListener( 'load', fit ) );
+    this.frameObserver?.disconnect();
+    if ( typeof ResizeObserver !== 'undefined' ) {
+      this.frameObserver = new ResizeObserver( fit );
+      this.frameObserver.observe( frame );
+    }
+    // Esc and ←/→ still work while the letter has focus.
+    doc.addEventListener( 'keydown', ( event: KeyboardEvent ) => {
+      if ( ['Escape', 'ArrowLeft', 'ArrowRight'].includes( event.key ) && !event.metaKey && !event.ctrlKey && !event.altKey ) {
+        document.dispatchEvent( new KeyboardEvent( 'keydown', { key: event.key, bubbles: true } ) );
+      }
+    } );
+  }
+
+  private renderFrame (): void {
+    const page = this.mail ? ( this.showThread && this.mail.full ) || this.mail.own : '';
+    // Built from the letter after prepareLetterHtml scrubbed it, and shown in a
+    // frame sandboxed without scripts.
+    this.frameDoc = page ? this.sanitizer.bypassSecurityTrustHtml( page ) : null;
+  }
+
+  /** The paper's own colors and type, for plain mail. */
+  private theme () {
+    const style = getComputedStyle( this.host.nativeElement );
+    const value = ( name: string, fallback: string ) => style.getPropertyValue( name ).trim() || fallback;
+    return {
+      text: value( '--text', '#f2f2f2' ),
+      muted: value( '--muted', '#9aa0a6' ),
+      link: value( '--blue', '#6ea8ff' ),
+      line: value( '--surface2', '#2a2d34' ),
+      font: style.fontFamily || 'system-ui, sans-serif',
+    };
+  }
 
   get first (): string {
     return firstName( this.letter.name ) || this.letter.name;
@@ -97,22 +182,61 @@ export class InboxLetterComponent {
   get paragraphs (): string[] {
     const source = this.detail?.id === this.letter.id ? this.detail : null;
     const text = source
-      ? ( cleanMessageText( source.text ) || cleanMessageText( htmlToText( source.html || '' ) ) || String( source.text || '' ) )
+      ? ( cleanMessageText( source.text, { keepForwarded: true } ) || cleanMessageText( htmlToText( source.html || '' ), { keepForwarded: true } ) || String( source.text || '' ) )
       : cleanMessageText( this.letter.source.preview );
     return text.split( /\n\s*\n/ ).map( part => part.trim() ).filter( Boolean );
+  }
+
+  /** "To info@taliferro.com": the mailbox it came to, as Mail shows it. */
+  get recipients (): string {
+    const to = this.detail?.id === this.letter.id ? this.detail.to || [] : [];
+    const emails = to.map( person => person.email ).filter( Boolean );
+    if ( !emails.length ) return '';
+    return emails.length > 2 ? `${ emails.slice( 0, 2 ).join( ', ' ) } +${ emails.length - 2 }` : emails.join( ', ' );
   }
 
   get loadingBody (): boolean {
     return this.detail?.id !== this.letter.id;
   }
 
-  get files (): string[] {
+  get files (): MailboxAttachment[] {
     const source = this.detail?.id === this.letter.id ? this.detail : this.letter.source;
-    return ( source.attachments || [] ).map( file => file.name ).filter( Boolean );
+    return ( source.attachments || [] ).filter( file => file?.name );
+  }
+
+  /** Photos show as pictures; everything else as a file card. */
+  get photos (): MailboxAttachment[] {
+    return this.files.filter( file => !!file.preview );
+  }
+
+  get documents (): MailboxAttachment[] {
+    return this.files.filter( file => !file.preview );
+  }
+
+  /** "PDF", "DOCX", "EML": the card's badge. */
+  fileBadge ( file: MailboxAttachment ): string {
+    const extension = ( file.name.match( /\.([a-z0-9]{1,5})$/i ) || [] )[1];
+    return ( extension || String( file.contentType || '' ).split( '/' )[1] || 'file' ).slice( 0, 4 ).toUpperCase();
+  }
+
+  /** "PDF document · 1.2 MB". */
+  fileMeta ( file: MailboxAttachment ): string {
+    const size = Number( file.size || 0 );
+    const sized = !size ? '' : size < 1024 ? `${ size } bytes` : size < 1048576 ? `${ Math.round( size / 1024 ) } KB` : `${ ( size / 1048576 ).toFixed( 1 ) } MB`;
+    const type = /rfc822/i.test( file.contentType || '' ) ? 'Email message' : /pdf/i.test( file.contentType || '' ) ? 'PDF document' : /^image\//i.test( file.contentType || '' ) ? 'Image' : '';
+    return [type, sized].filter( Boolean ).join( ' · ' );
   }
 
   /** "Your message · Oct 14": the quoted thread, collapsed to one pill. */
   get quote (): string {
+    if ( this.mail ) {
+      if ( !this.mail.full ) return '';
+      if ( this.showThread ) return 'Hide earlier messages';
+    }
+    return this.quoteLabel || ( this.mail ? 'Show earlier messages' : '' );
+  }
+
+  private get quoteLabel (): string {
     const source = this.detail?.id === this.letter.id ? this.detail : this.letter.source;
     if ( source.quotedFrom?.date ) return `Your message · ${ shortDate( source.quotedFrom.date ) }`;
     const marker = String( ( source as MailboxMessageDetail ).text || '' ).match( /^\s*On (.{6,80}?)(?: at [^,]+)?,? [^\n]{0,120}wrote:?\s*$/m );

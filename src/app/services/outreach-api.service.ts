@@ -277,8 +277,20 @@ export interface MailboxMessageListItem {
   nextAction?: { type: 'call' | 'text' | 'email' | 'calendar' | 'attach'; label: string; value?: string; } | null;
   filed?: boolean;
   fromCompany?: string;
-  attachments?: Array<{ name: string; }>;
+  attachments?: MailboxAttachment[];
   quotedFrom?: { date: string; } | null;
+}
+
+/**
+ * A file on a letter. Inline images are already in the HTML, so these are
+ * the files to open; small images carry a data-URI thumbnail in `preview`.
+ */
+export interface MailboxAttachment {
+  name: string;
+  id?: string;
+  contentType?: string;
+  size?: number;
+  preview?: string;
 }
 
 /** Outreach Inbox categories (design_handoff_outreach_inbox_2026-b). */
@@ -679,6 +691,11 @@ export class OutreachApiService {
   getMailboxMessage ( mailboxId: string, messageId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<MailboxMessageDetailResponse> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.get<MailboxMessageDetailResponse>( `${this.baseUrl}/outreach/mailboxes/${encodeURIComponent( mailboxId )}/messages/${encodeURIComponent( messageId )}`, { headers } );
+  }
+
+  getMailboxAttachment ( mailboxId: string, messageId: string, attachmentId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<Blob> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.get( `${this.baseUrl}/outreach/mailboxes/${encodeURIComponent( mailboxId )}/messages/${encodeURIComponent( messageId )}/attachments/${encodeURIComponent( attachmentId )}`, { headers, responseType: 'blob' } );
   }
 
   replyToMailboxMessage ( mailboxId: string, messageId: string, payload: MailboxReplyRequest, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<MailboxReplyResponse> {

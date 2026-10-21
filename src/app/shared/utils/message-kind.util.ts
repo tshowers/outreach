@@ -47,8 +47,12 @@ export function messageKind ( message: MessageLike ): MessageKind {
   return 'reply';
 }
 
-/** Readable email text: no tracking links, header blocks or quoted thread. */
-export function cleanMessageText ( raw: string | null | undefined ): string {
+/**
+ * Readable email text: no tracking links, header blocks or quoted thread.
+ * `keepForwarded` keeps a forward's message (what follows "Begin forwarded
+ * message"), which is the point of a forward, not an old thread.
+ */
+export function cleanMessageText ( raw: string | null | undefined, opts: { keepForwarded?: boolean; } = {} ): string {
   const withoutLinks = String( raw || '' )
     .replace( /\r\n?/g, '\n' )
     .replace( /[_=]{5,}/g, '\n-----\n' )
@@ -60,7 +64,12 @@ export function cleanMessageText ( raw: string | null | undefined ): string {
   let quoted: string[] | null = null;
   for ( const rawLine of withoutLinks.split( '\n' ) ) {
     const line = rawLine.trim();
-    const isMarker = /^on .{3,200}wrote:?$|^-{2,}\s*(original|forwarded) message\s*-{2,}$|^begin forwarded message:?$|^[\s_\-=*]{5,}$/i.test( line );
+    const isForward = /^-{2,}\s*forwarded message\s*-{2,}$|^begin forwarded message:?$/i.test( line );
+    if ( isForward && opts.keepForwarded && !quoted ) {
+      own.push( '', 'Forwarded message', '' );
+      continue;
+    }
+    const isMarker = isForward || /^on .{3,200}wrote:?$|^-{2,}\s*original message\s*-{2,}$|^[\s_\-=*]{5,}$/i.test( line );
     if ( isMarker || line.startsWith( '>' ) ) {
       quoted = [];
       continue;

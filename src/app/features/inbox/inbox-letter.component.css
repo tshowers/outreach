@@ -147,6 +147,12 @@ button {
   overflow-wrap: anywhere;
 }
 
+.sender__to {
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
 .sender__when {
   text-align: right;
 }
@@ -184,31 +190,170 @@ button {
   opacity: .6;
 }
 
-.files {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+/* The letter's own HTML, in a frame sandboxed without scripts. Plain mail
+ * takes the paper's type (letter-html.ts); designed mail sits on its own
+ * canvas with the paper's rounded corners. */
+.mail {
+  min-width: 0;
 }
 
-.files__pill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 999px;
-  background: var(--surface);
-  font-size: 14px;
-  font-weight: 600;
+.mail__frame {
+  display: block;
+  width: 100%;
+  height: 120px;
+  border: 0;
+  background: transparent;
+  color-scheme: normal;
+}
+
+.mail--designed {
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--surface2);
 }
 
 .quote {
   align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding: 8px 14px;
   border-radius: 999px;
   background: var(--surface);
   font-size: 13px;
   font-weight: 600;
+  color: var(--muted);
+}
+
+.quote--toggle:hover {
+  color: var(--text);
+}
+
+/* Attachments: photos as pictures, everything else as file cards. */
+.files {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--surface2);
+}
+
+.files__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.photo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+
+.photo__img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 16px;
+  background: var(--surface);
+  transition: transform .15s ease;
+}
+
+.photo:hover:not(:disabled) .photo__img {
+  transform: scale(1.02);
+}
+
+.photo__name {
+  font-size: 13px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.docs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+}
+
+.doc {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+}
+
+.doc:hover:not(:disabled) {
+  background: var(--surface2);
+}
+
+.doc:disabled,
+.photo:disabled {
+  cursor: default;
+}
+
+.doc__badge {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--t-blue);
+  color: var(--t-blue-fg);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.doc__text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.doc__name {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc__meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.doc__go {
+  flex: none;
   color: var(--muted);
 }
 

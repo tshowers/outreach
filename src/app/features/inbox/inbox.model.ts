@@ -130,9 +130,12 @@ export function kindTint ( kind: LetterKind ): string {
 
 export function htmlToText ( html: string ): string {
   return String( html || '' )
+    .replace( /<(head|style|script|title)\b[^>]*>[\s\S]*?(?:<\/\1>|$)/gi, '' )
     .replace( /<br\s*\/?>/gi, '\n' )
     .replace( /<\/(p|div|li|h\d)>/gi, '\n\n' )
     .replace( /<[^>]+>/g, '' )
+    // A preview cut mid-tag ("<div dir…").
+    .replace( /<[^>]*$/, '' )
     .replace( /&nbsp;/g, ' ' )
     .replace( /&amp;/g, '&' )
     .replace( /&lt;/g, '<' )
@@ -141,6 +144,12 @@ export function htmlToText ( html: string ): string {
     .replace( /&quot;/g, '"' )
     .replace( /\n{3,}/g, '\n\n' )
     .trim();
+}
+
+/** Text the server stored as HTML (HTML-only mail) reads as text. */
+export function plainText ( value: string | null | undefined ): string {
+  const text = String( value || '' );
+  return /<\/?[a-z][\w-]*(?:\s[^>]*)?>|^\s*<[a-z]/i.test( text ) ? htmlToText( text ) : text;
 }
 
 function firstSentence ( text: string, max = 90 ): string {
@@ -186,8 +195,8 @@ export function toLetter ( message: MailboxMessageListItem, opts: { ownEmail?: s
   const filed = message.filed ?? ['newsletter', 'test', 'automated'].includes( kind );
   const needsAnswer = message.needsAnswer ?? ( ( kind === 'reply' || kind === 'forward' ) && !filed && !responded );
   const answered = needsAnswer && ( !!message.replied || !!message.answeredAt || !!opts.done?.has( message.id ) );
-  const preview = cleanMessageText( message.preview ).replace( /\n/g, ' ' );
-  const summary = String( message.toddSummary || message.signalSummary || '' ).trim();
+  const preview = cleanMessageText( plainText( message.preview ) ).replace( /\n/g, ' ' );
+  const summary = plainText( message.toddSummary || message.signalSummary ).trim();
   const draft = message.draft !== undefined
     ? String( message.draft || '' ).trim()
     : htmlToText( String( message.replyDraftBody || '' ) );

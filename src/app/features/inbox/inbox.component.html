@@ -196,7 +196,8 @@
   <div class="overlay" role="dialog" aria-modal="true" [attr.aria-label]="letter.subject">
     <app-inbox-letter [letter]="letter" [detail]="detail" [backLabel]="backLabel" [position]="position" [rewriting]="rewriting" [category]="categoryOf(letter)"
                       (back)="closeLetter()" (prev)="step(-1)" (next)="step(1)" (send)="sendFromLetter($event)" (done)="markDone()" (rewrite)="rewrite()"
-                      (delete)="deleteOpenLetter()" (openCategory)="openCategoryMenu('letter', $event)"></app-inbox-letter>
+                      (delete)="deleteOpenLetter()" (openCategory)="openCategoryMenu('letter', $event)"
+                      (openFile)="openAttachment($event)"></app-inbox-letter>
   </div>
 } @else if (openId && loading) {
   <div class="overlay overlay--loading"><p>Opening the letter…</p></div>

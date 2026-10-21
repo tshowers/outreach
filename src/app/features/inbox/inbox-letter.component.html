@@ -13,6 +13,7 @@
       <span class="sender__who">
         <span class="sender__name">{{ letter.name }}</span>
         <span class="sender__email">{{ letter.email }}</span>
+        @if (recipients) { <span class="sender__to">To {{ recipients }}</span> }
       </span>
       <span class="sender__when"><span>{{ whenDay }}</span><span>{{ whenTime }}</span></span>
     </header>
@@ -25,21 +26,57 @@
       </button>
     </div>
 
-    <div class="body" [class.body--loading]="loadingBody">
-      @for (paragraph of paragraphs; track $index) {
-        <p>{{ paragraph }}</p>
-      }
-    </div>
-
-    @if (files.length) {
-      <div class="files">
-        @for (file of files; track file) {
-          <span class="files__pill"><app-inbox-icon name="clip"></app-inbox-icon>{{ file }}</span>
+    @if (frameDoc) {
+      <div class="mail" [class.mail--designed]="mail?.designed">
+        <iframe #mailFrame class="mail__frame" title="The letter" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                [srcdoc]="frameDoc" (load)="onFrameLoad()"></iframe>
+      </div>
+    } @else {
+      <div class="body" [class.body--loading]="loadingBody">
+        @for (paragraph of paragraphs; track $index) {
+          <p>{{ paragraph }}</p>
         }
       </div>
     }
+
     @if (quote) {
-      <span class="quote">{{ quote }}</span>
+      @if (mail?.full) {
+        <button type="button" class="quote quote--toggle" [attr.aria-expanded]="showThread" (click)="toggleThread()">
+          <app-inbox-icon [name]="showThread ? 'chevD' : 'chevR'" [size]="14"></app-inbox-icon>{{ quote }}
+        </button>
+      } @else {
+        <span class="quote">{{ quote }}</span>
+      }
+    }
+
+    @if (files.length) {
+      <section class="files" aria-label="Attachments">
+        <h2 class="files__head"><app-inbox-icon name="clip" [size]="14"></app-inbox-icon>{{ files.length === 1 ? '1 attachment' : files.length + ' attachments' }}</h2>
+        @if (photos.length) {
+          <div class="photos">
+            @for (file of photos; track file.id || file.name) {
+              <button type="button" class="photo" [disabled]="!file.id" (click)="openFile.emit(file)" [title]="'Open ' + file.name">
+                <img class="photo__img" [src]="file.preview" [alt]="file.name" loading="lazy">
+                <span class="photo__name">{{ file.name }}</span>
+              </button>
+            }
+          </div>
+        }
+        @if (documents.length) {
+          <div class="docs">
+            @for (file of documents; track file.id || file.name) {
+              <button type="button" class="doc" [disabled]="!file.id" (click)="openFile.emit(file)" [title]="'Open ' + file.name">
+                <span class="doc__badge">{{ fileBadge(file) }}</span>
+                <span class="doc__text">
+                  <span class="doc__name">{{ file.name }}</span>
+                  @if (fileMeta(file)) { <span class="doc__meta">{{ fileMeta(file) }}</span> }
+                </span>
+                @if (file.id) { <app-inbox-icon class="doc__go" name="chevR" [size]="16"></app-inbox-icon> }
+              </button>
+            }
+          </div>
+        }
+      </section>
     }
 
     @if (canReply) {

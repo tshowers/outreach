@@ -27,7 +27,65 @@ const letter = ( daysAgo: number, hour: number, minute: number, fields: Letter )
   ...fields,
 } as MailboxMessageDetail );
 
+
+/** Signature logo: navy on transparent, as banks send them. */
+const LOGO = `data:image/svg+xml;base64,${ btoa( '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="48"><text x="0" y="38" font-family="Georgia" font-size="40" fill="#1b2a4a">Northwind</text></svg>' ) }`;
+const PHOTO_A = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAASCAIAAADOjonJAAADA0lEQVR42hXToaqAMACF4fs4N5lMJpPJZJIFLSsahiDIgisrM4ggiMGVv8wgguATXu95gK8c/p9fQSSIBYkgFWSCXFAISkElkIJW0AkGwSiwgkmwCDbBIUBwCm7BK/j5rYlq4pqkJq3JavKaoqasqWpkTVvT1Qw1Y42tmWqWmq3mqKHmrLlr3vqDJJEkliSSVJJJckkhKSWVREpaSScZJKPESibJItkkhwTJKbklr/yghqghbkga0oasIW8oGsqGqkE2tA1dw9AwNtiGqWFp2BqOBhrOhrvhbT5IESliRaJIFZkiVxSKUlEppKJVdIpBMSqsYlIsik1xKFCcilvxqg/qiXrinqQn7cl68p6ip+ypemRP29P1DD1jj+2ZepaerefooefsuXve/oM0kSbWJJpUk2lyTaEpNZVGalpNpxk0o8ZqJs2i2TSHBs2puTWv/iBDZIgNiSE1ZIbcUBhKQ2WQhtbQGQbDaLCGybAYNsNhwHAabsNrPsgSWWJLYkktmSW3FJbSUlmkpbV0lsEyWqxlsiyWzXJYsJyW2/LaD3JEjtiROFJH5sgdhaN0VA7paB2dY3CMDuuYHItjcxwOHKfjdrzug2aimXgmmUlnspl8ppgpZ6oZOdPOdDPDzDhjZ6aZZWabOWaYOWfumXf+oJVoJV5JVtKVbCVfKVbKlWpFrrQr3cqwMq7YlWllWdlWjhVWzpV75V0/aCfaiXeSnXQn28l3ip1yp9qRO+1OtzPsjDt2Z9pZdradY4edc+feefcP8kSe2JN4Uk/myT2Fp/RUHulpPZ1n8Iwe65k8i2fzHB48p+f2vP6DIIIYEkghgxwKKKH6j4kWOhhg/H+JCRbY4OB/J9zw8kGBKBAHkkAayAJ5oAiUgSogA22gCwyBMWADU2AJbIEjQOAM3IE3fNBFdBFfJBfpRXaRXxQX5UV1IS/ai+5iuBgv7MV0sVxsF8cFF+fFffFeH/QQPcQPyUP6kD3kD8VD+VA9yIf2oXsYHsYH+zA9LA/bw/HAw/lwP7wPf3BipacMSoWCAAAAAElFTkSuQmCC';
+const PHOTO_B = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAASCAIAAADOjonJAAAC/ElEQVR42g3MQceHMADA4feDddppp0477dSp006dRowYMWLEiBEjIiIiovvvY73/5wM8f9iKvsJVDBW+YqwIFVNFrJgrUsVSkSvWilKxVewVR8VZcVXcFU/FW/FVf1hBL3CCQeAFoyAIJkEUzIIkWARZsAqKYBPsgkNwCi7BLXgEr+ATv0jSS5xkkHjJKAmSSRIlsyRJFkmWrJIi2SS75JCckktySx7JK/nkL6rpa1zNUONrxppQM9XEmrkm1Sw1uWatKTVbzV5z1Jw1V81d89S8NV/9ixS9wikGhVeMiqCYFFExK5JiUWTFqiiKTbErDsWpuBS34lG8ik/9Ik2vcZpB4zWjJmgmTdTMmqRZNFmzaopm0+yaQ3NqLs2teTSv5tO/qKFvcA1Dg28YG0LD1BAb5obUsDTkhrWhNGwNe8PRcDZcDXfD0/A2fM0vaulbXMvQ4lvGltAytcSWuSW1LC25ZW0pLVvL3nK0nC1Xy93ytLwtX/uLDL3BGQaDN4yGYJgM0TAbkmExZMNqKIbNsBsOw2m4DLfhMbyGz/yijr7DdQwdvmPsCB1TR+yYO1LH0pE71o7SsXXsHUfH2XF13B1Px9vxdb/I0lucZbB4y2gJlskSLbMlWRZLtqyWYtksu+WwnJbLclsey2v57C9y9A7nGBzeMTqCY3JEx+xIjsWRHaujODbH7jgcp+Ny3I7H8To+94s8vcd5Bo/3jJ7gmTzRM3uSZ/Fkz+opns2zew7P6bk8t+fxvJ7P/6JAH3CBIeADYyAEpkAMzIEUWAI5sAZKYAvsgSNwBq7AHXgCb+ALvyjSR1xkiPjIGAmRKRIjcyRFlkiOrJES2SJ75IickStyR57IG/niL0r0CZcYEj4xJkJiSsTEnEiJJZETa6IktsSeOBJn4krciSfxJr70izJ9xmWGjM+MmZCZMjEzZ1JmyeTMmimZLbNnjsyZuTJ35sm8mS//okJfcIWh4AtjIRSmQizMhVRYCrmwFkphK+yFo3AWrsJdeApv4Sv/fEYRtgKB5QkAAAAASUVORK5CYII=';
+
+/** An Outlook reply: signature with a logo, then the quoted thread under a rule. */
+const OUTLOOK_HTML = `<html><head><style>p.MsoNormal{margin:0;font-size:11pt;font-family:Calibri}</style></head><body lang="EN-US">
+<div class="WordSection1">
+<p class="MsoNormal">Hello Ty,</p><p class="MsoNormal">&nbsp;</p>
+<p class="MsoNormal">Thanks for sending these over. I've attached the term sheet and two photos of the site walk so we're looking at the same thing.</p><p class="MsoNormal">&nbsp;</p>
+<p class="MsoNormal">Please let me know if this is something you are able to provide and if not, let me know how we can be of assistance.</p><p class="MsoNormal">&nbsp;</p>
+<p class="MsoNormal">Best Regards,</p><p class="MsoNormal">&nbsp;</p><p class="MsoNormal">Dana</p><p class="MsoNormal">&nbsp;</p>
+<p class="MsoNormal"><b><span style="color:#1F3864">Dana Whitfield</span></b></p>
+<p class="MsoNormal"><span style="color:#1F3864">VP, Commercial Relationship Manager</span></p><p class="MsoNormal">&nbsp;</p>
+<p class="MsoNormal">Northwind Bank<br>100 Main St, Suite 200<br>Springfield, WA 98000<br>555-010-0199 (Mobile)<br>
+<a href="mailto:dana@northwind.example">dana@northwind.example</a><br><a href="https://northwind.example">www.northwind.example</a></p><p class="MsoNormal">&nbsp;</p>
+<p class="MsoNormal"><img width="220" height="48" src="${ LOGO }" alt="Northwind Bank"></p>
+<p class="MsoNormal">&nbsp;</p>
+<div style="border:none;border-top:solid #E1E1E1 1.0pt;padding:3.0pt 0in 0in 0in">
+<p class="MsoNormal"><b>From:</b> Ty Showers &lt;ty.showers@taliferro.tech&gt;<br><b>Sent:</b> Wednesday, October 7, 2026 1:40 PM<br><b>To:</b> Dana Whitfield &lt;dana@northwind.example&gt;<br><b>Subject:</b> Re: Financial/Document Uploads</p>
+</div><p class="MsoNormal">&nbsp;</p><p class="MsoNormal">Dana, I thought we were opening a checking account first.</p>
+</div></body></html>`;
+
+/** A designed mail on its own dark canvas, like a verification code. */
+const DESIGNED_HTML = `<html><body style="margin:0;background:#45484d"><table width="600" align="center" bgcolor="#333333" style="margin:24px auto;color:#fff;font-family:Arial">
+<tr><td style="padding:40px 56px"><h1 style="font-size:40px;margin:0 0 24px">Partner Hub</h1>
+<p>Please add this device as a trusted device by entering the following <b>verification code</b>.</p>
+<p style="font-size:34px;font-weight:bold;background:#6d5a45;display:inline-block;padding:0 4px">000000</p>
+<p>This code is time-sensitive and will expire shortly.</p></td></tr></table></body></html>`;
+
+/** Apple Mail from an iPad: the forward is the message. */
+const FORWARD_HTML = `<html class="apple-mail-supports-explicit-dark-mode"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"></head><body dir="auto">
+<br id="lineBreakAtBeginningOfSignature"><div dir="ltr">Sent from my iPad</div><div dir="ltr"><br>Begin forwarded message:<br><br></div>
+<blockquote type="cite"><div dir="ltr"><b>From:</b> Sam &amp; Jo &lt;hello@weddings.example&gt;<br><b>Date:</b> October 13, 2026<br><b>Subject:</b> Reception Reminder<br></div>
+<div dir="ltr"><p>We can't wait to celebrate with you! The reception starts at 6:00 PM at the Garden Pavilion.</p><p>Parking is in the north lot.</p></div></blockquote></body></html>`;
+
 export const INBOX_PREVIEW_LETTERS: MailboxMessageDetail[] = [
+  letter( 0, 10, 4, {
+    id: 'dw', fromName: 'Dana Whitfield', fromEmail: 'dana@northwind.example', subject: 'Re: Financial/Document Uploads', kind: 'reply', needsAnswer: true,
+    ask: 'Sent the term sheet and site photos', toddSummary: 'Dana sent the term sheet and two photos from the site walk, and wants to know if you can provide prior financials.',
+    to: [{ email: 'ty.showers@taliferro.tech' }], html: OUTLOOK_HTML,
+    text: 'Hello Ty,\n\nThanks for sending these over.\n\nDana',
+    attachments: [
+      { id: 'a1', name: 'Site walk 1.png', contentType: 'image/png', size: 1840000, preview: PHOTO_A },
+      { id: 'a2', name: 'Site walk 2.png', contentType: 'image/png', size: 1630000, preview: PHOTO_B },
+      { id: 'a3', name: 'Term sheet - Taliferro.pdf', contentType: 'application/pdf', size: 248000 },
+      { id: 'a4', name: 'Forwarded message.eml', contentType: 'message/rfc822', size: 12000 },
+    ], hasAttachments: true,
+  } ),
+  letter( 0, 9, 58, {
+    id: 'ph', fromName: 'Partner Hub', fromEmail: 'noreply@partnerhub.example', subject: 'Verification code', kind: 'automated', filed: true,
+    ask: 'A sign-in code', toddDid: 'Filed', toddSummary: 'A sign-in verification code. Nothing to answer.', to: [{ email: 'info@taliferro.com' }],
+    html: DESIGNED_HTML, text: 'Please add this device as a trusted device.',
+  } ),
+  letter( 0, 9, 50, {
+    id: 'vo', fromName: 'Vee Owens', fromEmail: 'vee@icloud.example', subject: 'Fwd: Reception Reminder', kind: 'forward', needsAnswer: true,
+    preview: FORWARD_HTML.slice( 0, 220 ), html: FORWARD_HTML, to: [{ email: 'ty.showers@taliferro.tech' }],
+  } ),
   letter( 0, 9, 42, {
     id: 'gd', fromName: 'George Dimov', fromEmail: 'george@dimovtax.com', subject: 'Re: Planning ahead for year-end', kind: 'reply', needsAnswer: true,
     ask: 'Wants a 20-minute call: Thu 2:00 or Fri morning',
