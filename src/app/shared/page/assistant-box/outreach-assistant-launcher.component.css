@@ -23,11 +23,13 @@
   }
 }
 
+/* Its own layer, above the app's sidebar (10002): the window inside can't
+ * rise above the layer it lives in. */
 .todd-assistant-root {
   position: fixed;
   bottom: 16px;
   right: 16px;
-  z-index: 10000;
+  z-index: 10011;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -146,14 +148,22 @@
   transition: color 150ms ease-out;
 }
 
-/* Chat window */
+/* Chat window: centered, 80% of the screen. A Mission's whole plan and the
+ * steps that need you fit inside, so there's no reason to keep it small. */
+/* Above the app's sidebar (z-index 10002); the Mission step drawer opens above this. */
+.todd-assistant-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 21, .38);
+  z-index: 10010;
+}
+
 .todd-assistant-window {
   position: fixed;
-  right: 1.75rem;
-  bottom: 5.5rem;
-  width: min(440px, 100vw - 40px);
-  height: auto;
-  max-height: min(640px, 80vh);
+  left: 10vw;
+  top: 10vh;
+  width: 80vw;
+  height: 80vh;
   display: flex;
   flex-direction: column;
   border-radius: 22px;
@@ -166,7 +176,7 @@
   pointer-events: none;
   transform: scale(.96) translateY(12px);
   transition: all .16s ease-out;
-  z-index: 999;
+  z-index: 10011;
 }
 
 .todd-assistant-window-open {
@@ -361,10 +371,15 @@
     bottom: 12px;
   }
 
+}
+
+/* Phones: the whole screen. */
+@media (max-width: 640px) {
   .todd-assistant-window {
-    right: 8px;
-    left: 8px;
-    bottom: 5rem;
-    width: auto;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
   }
 }

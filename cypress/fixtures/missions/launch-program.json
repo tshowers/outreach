@@ -1,0 +1,482 @@
+{
+  "id": "idea-to-launch",
+  "tenantId": "tenant-1",
+  "ownerId": "uid-owner",
+  "origin": "ask",
+  "request": "Help me turn this business idea into a launch plan.",
+  "title": "Turn an idea into a launch plan",
+  "steps": [
+    {
+      "number": 1,
+      "id": "market",
+      "title": "Research the market",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "find.research",
+      "product": "find",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "Findings for market for the business idea",
+      "output": {
+        "summary": "Findings for market for the business idea",
+        "sources": [
+          {
+            "title": "Source",
+            "url": "https://example.com"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 2,
+      "id": "assess",
+      "title": "Size it up",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "todd.analyze",
+      "product": "todd",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "market"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "Three things matter this week.",
+      "output": {
+        "summary": "Three things matter this week.",
+        "findings": [
+          {
+            "title": "Kindred is at risk",
+            "detail": "No update in 5 days",
+            "evidence": "moves.status"
+          }
+        ],
+        "recommendations": [
+          "Call Kindred"
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 3,
+      "id": "position",
+      "title": "Positioning",
+      "detail": "",
+      "owner": "maya",
+      "assigneeId": "",
+      "holder": {
+        "owner": "maya",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "maya.strategy",
+      "product": "maya",
+      "effect": "create",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "assess"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "maya"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "Second-site reporting wall",
+      "output": {
+        "summary": "Lead with the Denver office and the reporting backlog.",
+        "angle": "Second-site reporting wall",
+        "ask": "20 minutes next week",
+        "tone": "warm",
+        "subjectIdeas": [],
+        "documentId": "d4"
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 4,
+      "id": "img",
+      "title": "Launch visuals",
+      "detail": "",
+      "owner": "maya",
+      "assigneeId": "",
+      "holder": {
+        "owner": "maya",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "image.obtain",
+      "product": "image-creator",
+      "effect": "create",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "position"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "maya"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "New image saved to the library",
+      "output": {
+        "documentId": "img-1",
+        "src": "https://example.com/img.png",
+        "reused": false
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 5,
+      "id": "plan",
+      "title": "Launch plan",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "todd.write",
+      "product": "docs",
+      "effect": "create",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "position"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "launch plan",
+      "output": {
+        "documentId": "d3",
+        "title": "launch plan",
+        "summary": "Written."
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 6,
+      "id": "approve",
+      "title": "Approve the plan",
+      "detail": "",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "holder": {
+        "owner": "person",
+        "assigneeId": "uid-owner"
+      },
+      "kind": "approval",
+      "tool": "",
+      "product": "",
+      "effect": "",
+      "automated": false,
+      "status": "active",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "Every send needs your yes.",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 3,
+      "dependsOn": [
+        "plan",
+        "img"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 7,
+      "id": "moves",
+      "title": "Coordinate execution in Moves",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "moves.createTasks",
+      "product": "moves",
+      "effect": "create",
+      "automated": true,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "approve"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 8,
+      "id": "pulse",
+      "title": "Track early feedback",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "pulse.createSurvey",
+      "product": "pulse",
+      "effect": "create",
+      "automated": false,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "approve"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 9,
+      "id": "report",
+      "title": "Write the report",
+      "detail": "Every step, who did it, and the result.",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "todd.report",
+      "product": "todd",
+      "effect": "create",
+      "automated": true,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "moves",
+        "pulse"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    }
+  ],
+  "status": "active",
+  "autoStart": false,
+  "answers": [],
+  "playbookId": "idea-to-launch",
+  "createdAt": "2026-10-14T16:00:00.000Z",
+  "outcomeType": "program",
+  "summary": "",
+  "questions": [],
+  "estimate": {
+    "counts": {
+      "images": 1
+    },
+    "yourMinutes": 3,
+    "approvals": 1,
+    "split": {
+      "todd": 6,
+      "maya": 2,
+      "person": 1
+    },
+    "waitBusinessDays": 0,
+    "products": [
+      "find",
+      "todd",
+      "maya",
+      "image-creator",
+      "docs",
+      "moves",
+      "pulse"
+    ]
+  },
+  "planner": {
+    "provider": "test",
+    "model": "test"
+  },
+  "planFallback": false,
+  "planErrors": [],
+  "examplesUsed": [],
+  "statusDetail": "1 step waiting on a person.",
+  "startedAt": "2026-10-14T16:00:00.000Z",
+  "resumeAt": null,
+  "nextCheckAt": null,
+  "phase": "waiting_on_people",
+  "plan": {
+    "missionId": "idea-to-launch",
+    "status": "active",
+    "phase": "waiting_on_people",
+    "outcomeType": "program",
+    "stepsDone": 5,
+    "stepsTotal": 9,
+    "current": {
+      "stepId": "approve",
+      "title": "Approve the plan",
+      "kind": "approval",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "handedOff": false
+    },
+    "nextCheckAt": null,
+    "playbookId": "idea-to-launch"
+  },
+  "products": [
+    "find",
+    "todd",
+    "maya",
+    "image-creator",
+    "docs",
+    "moves",
+    "pulse"
+  ],
+  "split": {
+    "todd": 6,
+    "maya": 2,
+    "you": 1,
+    "teammates": 0
+  },
+  "isOwner": true
+}

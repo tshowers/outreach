@@ -14,8 +14,11 @@ import { EmailSentAssistantContext } from '../../../features/signal-engine/email
 import { SystemRecoveryService } from '../../../services/system-recovery.service';
 import { OutreachAssistantSignalService, AssistantComposerContactPayload } from '../../../services/outreach-assistant-signal.service';
 import { AssistantUiService } from '../../../services/assistant-ui.service';
+import { MissionsApiService } from '../../missions/missions-api.service';
+import { MissionDetailComponent } from '../../missions/mission-detail.component';
 
-type ChatMsg = { role: 'user' | 'assistant'; content: string; };
+// role 'mission': a Mission the assistant started from this ask, shown in place (missionId).
+type ChatMsg = { role: 'user' | 'assistant' | 'mission'; content: string; missionId?: string; };
 
 /**
  * Outreach's own assistant-box - trimmed port of TODD's
@@ -40,7 +43,7 @@ type ChatMsg = { role: 'user' | 'assistant'; content: string; };
 @Component( {
     selector: 'app-assistant-box',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, MissionDetailComponent],
     templateUrl: './assistant-box.component.html',
     styleUrls: ['./assistant-box.component.css']
 } )
@@ -91,6 +94,7 @@ export class AssistantBoxComponent implements OnInit, OnChanges, OnDestroy {
         private systemRecovery: SystemRecoveryService,
         private assistantBus: OutreachAssistantSignalService,
         private assistantUi: AssistantUiService,
+        private missions: MissionsApiService,
     ) { }
 
     ngOnInit (): void {
@@ -749,6 +753,11 @@ export class AssistantBoxComponent implements OnInit, OnChanges, OnDestroy {
             return;
         }
 
+        if ( await this.tryMission( raw ) ) {
+            this.assistantPrompt = '';
+            return;
+        }
+
         const ctx: AssistantEngineContext = {
             rawPrompt: raw,
             userId: this.userId,
@@ -890,6 +899,48 @@ export class AssistantBoxComponent implements OnInit, OnChanges, OnDestroy {
         this.assistantPrompt = '';
     }
 
+    /**
+     * The Missions gate (todd-backend orchestrator, /orchestration/missions):
+     * real work becomes a Mission shown right here - its plan, who does each
+     * step, Start, and every step a person must finish; a quick question is
+     * answered by the right tool. Navigation commands, help questions (no
+     * tool) and any error fall through to the assistant as before.
+     * @returns true when the ask was handled here.
+     */
+    private async tryMission ( raw: string ): Promise<boolean> {
+        if ( !this.userId || this.parentOwnsHistory || this.externalMode ) return false;
+        if ( this.capabilities.tryDirectNavCommand( raw ).handled ) return false;
+        this.isLoading = true;
+        try {
+            const res = await this.missions.ask( raw, { origin: 'ask', context: this.missionContext() } );
+            if ( res.mode === 'mission' ) {
+                this.history.push( { role: 'mission', content: '', missionId: res.mission.id } );
+                // Bring the plan into view: it's the answer, and it can land below the fold.
+                setTimeout( () => {
+                    if ( typeof document === 'undefined' ) return;
+                    const cards = document.querySelectorAll( '[data-cy="assistant-mission"]' );
+                    cards[cards.length - 1]?.scrollIntoView( { block: 'start', behavior: 'smooth' } );
+                }, 80 );
+                return true;
+            }
+            if ( res.tool && res.summary ) {
+                this.publishChatMessage( 'assistant', this.boxHelper.normalizeAssistantHtml( this.boxHelper.convertMarkdownToHtml( res.summary ) ) );
+                return true;
+            }
+            return false;
+        } catch {
+            return false;
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    /** What's on screen, for the planner: the app, the page, and its summary numbers. */
+    private missionContext (): Record<string, unknown> {
+        const page = this.pageContext && typeof this.pageContext === 'object' ? this.pageContext : {};
+        return { ...page, app: 'outreach', path: typeof window !== 'undefined' ? window.location.pathname : '' };
+    }
+
     private pushUserTurn ( raw: string ): void {
         if ( !this.parentOwnsHistory ) {
             this.history.push( { role: 'user', content: raw } );
@@ -901,6 +952,6 @@ export class AssistantBoxComponent implements OnInit, OnChanges, OnDestroy {
     private buildHistoryForLLM (): Array<ChatMsg> {
         if ( !this.history?.length ) return [];
         const stripHtml = ( html: string ) => html.replace( /<[^>]*>/g, '' );
-        return this.history.slice( -6 ).map( m => ( { role: m.role, content: stripHtml( m.content || '' ).slice( 0, 1000 ) } ) );
+        return this.history.filter( m => m.role !== 'mission' ).slice( -6 ).map( m => ( { role: m.role, content: stripHtml( m.content || '' ).slice( 0, 1000 ) } ) );
     }
 }

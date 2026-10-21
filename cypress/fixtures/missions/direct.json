@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "mode": "direct",
+  "tool": "network.findContactRoute",
+  "product": "network",
+  "summary": "roland.martin@caldersystems.com",
+  "output": {
+    "found": true,
+    "email": "roland.martin@caldersystems.com",
+    "route": "email"
+  },
+  "assessment": {
+    "mode": "direct",
+    "signals": []
+  }
+}

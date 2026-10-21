@@ -1,0 +1,34 @@
+{
+  "id": "planning-1",
+  "tenantId": "tenant-1",
+  "ownerId": "uid-owner",
+  "origin": "ask",
+  "request": "Create an email I can send to Roland Martin.",
+  "title": "",
+  "steps": [],
+  "status": "running",
+  "autoStart": false,
+  "answers": [],
+  "createdAt": "2026-10-14T16:00:00.000Z",
+  "statusDetail": "Checking Network for Roland Martin",
+  "phase": "working",
+  "plan": {
+    "missionId": "planning-1",
+    "status": "running",
+    "phase": "working",
+    "outcomeType": "action",
+    "stepsDone": 0,
+    "stepsTotal": 0,
+    "current": null,
+    "nextCheckAt": null,
+    "playbookId": ""
+  },
+  "products": [],
+  "split": {
+    "todd": 0,
+    "maya": 0,
+    "you": 0,
+    "teammates": 0
+  },
+  "isOwner": true
+}

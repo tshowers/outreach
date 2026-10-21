@@ -1,0 +1,431 @@
+{
+  "id": "reconnect-lost-touch",
+  "tenantId": "tenant-1",
+  "ownerId": "uid-owner",
+  "origin": "ask",
+  "request": "Find opportunities to reconnect with people we've lost touch with.",
+  "title": "Reconnect with people you've lost touch with",
+  "steps": [
+    {
+      "number": 1,
+      "id": "dormant",
+      "title": "People you haven't contacted in 90 days",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "network.dormant",
+      "product": "network",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "1 contacts",
+      "output": {
+        "contacts": [
+          {
+            "contactId": "c2",
+            "name": "Dana Lee",
+            "company": "Harbor",
+            "email": "dana@harbor.com",
+            "lastContacted": "2026-05-01T00:00:00.000Z"
+          }
+        ],
+        "days": 90
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 2,
+      "id": "news",
+      "title": "Relevant news about them",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "find.research",
+      "product": "find",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "dormant"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "Findings for [object Object]",
+      "output": {
+        "summary": "Findings for [object Object]",
+        "sources": [
+          {
+            "title": "Source",
+            "url": "https://example.com"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 3,
+      "id": "rank",
+      "title": "Prioritize who to reconnect with",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "todd.shortlist",
+      "product": "todd",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "dormant",
+        "news"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "1 candidates, 1 strong",
+      "output": {
+        "summary": "8 fit, 3 strong",
+        "items": [
+          {
+            "id": "i1",
+            "name": "Tidepool Clinics",
+            "why": "Raised $12M",
+            "fit": "strong",
+            "route": "Sam Patel"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 4,
+      "id": "keep",
+      "title": "Keep, later or drop each one",
+      "detail": "",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "holder": {
+        "owner": "person",
+        "assigneeId": "uid-owner"
+      },
+      "kind": "decision",
+      "tool": "",
+      "product": "",
+      "effect": "",
+      "automated": false,
+      "status": "active",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "Each one you keep becomes its own small Mission.",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 1,
+      "dependsOn": [
+        "rank"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 5,
+      "id": "emails",
+      "title": "Draft personal reconnect notes",
+      "detail": "",
+      "owner": "maya",
+      "assigneeId": "",
+      "holder": {
+        "owner": "maya",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "email.create",
+      "product": "email-creator",
+      "effect": "create",
+      "automated": true,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "keep"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 6,
+      "id": "approve",
+      "title": "Approve the batch",
+      "detail": "",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "holder": {
+        "owner": "person",
+        "assigneeId": "uid-owner"
+      },
+      "kind": "approval",
+      "tool": "",
+      "product": "",
+      "effect": "",
+      "automated": false,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "One approval covers the batch.",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 3,
+      "dependsOn": [
+        "emails"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 7,
+      "id": "send",
+      "title": "Send them",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "outreach.sendBatch",
+      "product": "outreach",
+      "effect": "send",
+      "automated": false,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "approve"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 8,
+      "id": "later",
+      "title": "Follow-up reminders",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "moves.createTasks",
+      "product": "moves",
+      "effect": "create",
+      "automated": true,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "send"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    }
+  ],
+  "status": "active",
+  "autoStart": false,
+  "answers": [],
+  "playbookId": "reconnect-lost-touch",
+  "createdAt": "2026-10-14T16:00:00.000Z",
+  "outcomeType": "shortlist",
+  "summary": "",
+  "questions": [],
+  "estimate": {
+    "counts": {
+      "emails": 1
+    },
+    "yourMinutes": 4,
+    "approvals": 1,
+    "split": {
+      "todd": 5,
+      "maya": 1,
+      "person": 2
+    },
+    "waitBusinessDays": 0,
+    "products": [
+      "network",
+      "find",
+      "todd",
+      "email-creator",
+      "outreach",
+      "moves"
+    ]
+  },
+  "planner": {
+    "provider": "test",
+    "model": "test"
+  },
+  "planFallback": false,
+  "planErrors": [],
+  "examplesUsed": [],
+  "statusDetail": "1 step waiting on a person.",
+  "startedAt": "2026-10-14T16:00:00.000Z",
+  "resumeAt": null,
+  "nextCheckAt": null,
+  "phase": "waiting_on_people",
+  "plan": {
+    "missionId": "reconnect-lost-touch",
+    "status": "active",
+    "phase": "waiting_on_people",
+    "outcomeType": "shortlist",
+    "stepsDone": 3,
+    "stepsTotal": 8,
+    "current": {
+      "stepId": "keep",
+      "title": "Keep, later or drop each one",
+      "kind": "decision",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "handedOff": false
+    },
+    "nextCheckAt": null,
+    "playbookId": "reconnect-lost-touch"
+  },
+  "products": [
+    "network",
+    "find",
+    "todd",
+    "email-creator",
+    "outreach",
+    "moves"
+  ],
+  "split": {
+    "todd": 5,
+    "maya": 1,
+    "you": 2,
+    "teammates": 0
+  },
+  "isOwner": true
+}

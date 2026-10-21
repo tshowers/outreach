@@ -1,0 +1,379 @@
+{
+  "id": "funded-companies",
+  "tenantId": "tenant-1",
+  "ownerId": "uid-owner",
+  "origin": "ask",
+  "request": "Find companies that recently received funding and might need our services.",
+  "title": "Recently funded companies",
+  "steps": [
+    {
+      "number": 1,
+      "id": "funding",
+      "title": "Companies that raised money recently",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "find.research",
+      "product": "find",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "Findings for companies that raised funding in the last 60 days",
+      "output": {
+        "summary": "Findings for companies that raised funding in the last 60 days",
+        "sources": [
+          {
+            "title": "Source",
+            "url": "https://example.com"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 2,
+      "id": "leads",
+      "title": "Decision makers at those companies",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "leadVault.search",
+      "product": "lead-vault",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "funding"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "1 leads",
+      "output": {
+        "leads": [
+          {
+            "id": "lv1",
+            "name": "Sam Patel",
+            "title": "Head of Ops",
+            "company": "Tidepool Clinics",
+            "location": "Denver, CO",
+            "sector": "Health",
+            "capabilities": [],
+            "emailMasked": "s***@tidepool.com"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 3,
+      "id": "fit",
+      "title": "Rank by fit with what you sell",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "todd.shortlist",
+      "product": "todd",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "funding",
+        "leads"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "1 candidates, 1 strong",
+      "output": {
+        "summary": "8 fit, 3 strong",
+        "items": [
+          {
+            "id": "i1",
+            "name": "Tidepool Clinics",
+            "why": "Raised $12M",
+            "fit": "strong",
+            "route": "Sam Patel"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 4,
+      "id": "next",
+      "title": "Propose outreach Missions",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "todd.proposeMissions",
+      "product": "todd",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "fit"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "1 next Missions proposed",
+      "output": {
+        "proposals": [
+          {
+            "title": "Email Tidepool Clinics",
+            "request": "Email Sam Patel at Tidepool Clinics about reporting",
+            "why": "Strong fit"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    }
+  ],
+  "status": "done",
+  "autoStart": false,
+  "answers": [],
+  "playbookId": "funded-companies",
+  "createdAt": "2026-10-14T16:00:00.000Z",
+  "outcomeType": "insight",
+  "summary": "",
+  "questions": [],
+  "estimate": {
+    "counts": {},
+    "yourMinutes": 0,
+    "approvals": 0,
+    "split": {
+      "todd": 4,
+      "maya": 0,
+      "person": 0
+    },
+    "waitBusinessDays": 0,
+    "products": [
+      "find",
+      "lead-vault",
+      "todd"
+    ]
+  },
+  "planner": {
+    "provider": "test",
+    "model": "test"
+  },
+  "planFallback": false,
+  "planErrors": [],
+  "examplesUsed": [],
+  "statusDetail": "Every step finished.",
+  "startedAt": "2026-10-14T16:00:00.000Z",
+  "resumeAt": null,
+  "finishedAt": "2026-10-14T16:00:00.000Z",
+  "report": {
+    "missionId": "funded-companies",
+    "title": "Recently funded companies",
+    "outcomeType": "insight",
+    "headline": "8 fit, 3 strong",
+    "startedAt": "2026-10-14T16:00:00.000Z",
+    "finishedAt": "2026-10-14T16:00:00.000Z",
+    "days": 0,
+    "rows": [
+      {
+        "stepId": "funding",
+        "title": "Companies that raised money recently",
+        "kind": "tool",
+        "by": {
+          "type": "todd",
+          "id": ""
+        },
+        "finishedAt": "2026-10-14T16:00:00.000Z",
+        "result": "Findings for companies that raised funding in the last 60 days",
+        "status": "done",
+        "timedOut": false,
+        "skipReason": "",
+        "handedOff": false,
+        "handoffReason": "",
+        "artifacts": []
+      },
+      {
+        "stepId": "leads",
+        "title": "Decision makers at those companies",
+        "kind": "tool",
+        "by": {
+          "type": "todd",
+          "id": ""
+        },
+        "finishedAt": "2026-10-14T16:00:00.000Z",
+        "result": "1 leads",
+        "status": "done",
+        "timedOut": false,
+        "skipReason": "",
+        "handedOff": false,
+        "handoffReason": "",
+        "artifacts": []
+      },
+      {
+        "stepId": "fit",
+        "title": "Rank by fit with what you sell",
+        "kind": "tool",
+        "by": {
+          "type": "todd",
+          "id": ""
+        },
+        "finishedAt": "2026-10-14T16:00:00.000Z",
+        "result": "1 candidates, 1 strong",
+        "status": "done",
+        "timedOut": false,
+        "skipReason": "",
+        "handedOff": false,
+        "handoffReason": "",
+        "artifacts": []
+      },
+      {
+        "stepId": "next",
+        "title": "Propose outreach Missions",
+        "kind": "tool",
+        "by": {
+          "type": "todd",
+          "id": ""
+        },
+        "finishedAt": "2026-10-14T16:00:00.000Z",
+        "result": "1 next Missions proposed",
+        "status": "done",
+        "timedOut": false,
+        "skipReason": "",
+        "handedOff": false,
+        "handoffReason": "",
+        "artifacts": []
+      }
+    ],
+    "split": {
+      "todd": 4,
+      "maya": 0,
+      "owner": 0,
+      "teammates": 0
+    },
+    "ownerMinutes": 0,
+    "findings": [],
+    "recommendations": [],
+    "shortlist": [
+      {
+        "id": "i1",
+        "name": "Tidepool Clinics",
+        "why": "Raised $12M",
+        "fit": "strong",
+        "route": "Sam Patel"
+      }
+    ],
+    "proposals": [
+      {
+        "title": "Email Tidepool Clinics",
+        "request": "Email Sam Patel at Tidepool Clinics about reporting",
+        "why": "Strong fit"
+      }
+    ],
+    "artifacts": [],
+    "line": "4 steps by TODD."
+  },
+  "nextCheckAt": null,
+  "phase": "done",
+  "plan": {
+    "missionId": "funded-companies",
+    "status": "done",
+    "phase": "done",
+    "outcomeType": "insight",
+    "stepsDone": 4,
+    "stepsTotal": 4,
+    "current": null,
+    "nextCheckAt": null,
+    "playbookId": "funded-companies"
+  },
+  "products": [
+    "find",
+    "lead-vault",
+    "todd"
+  ],
+  "split": {
+    "todd": 4,
+    "maya": 0,
+    "you": 0,
+    "teammates": 0
+  },
+  "isOwner": true
+}

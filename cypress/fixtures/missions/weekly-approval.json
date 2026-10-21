@@ -1,0 +1,388 @@
+{
+  "id": "weekly-status",
+  "tenantId": "tenant-1",
+  "ownerId": "uid-owner",
+  "origin": "ask",
+  "request": "Send the weekly status report.",
+  "title": "Weekly status report",
+  "steps": [
+    {
+      "number": 1,
+      "id": "moves",
+      "title": "Gather done, at-risk and slipped Moves",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "moves.status",
+      "product": "moves",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "1 done, 1 at risk, 0 slipped",
+      "output": {
+        "done": [
+          {
+            "moveId": "m1",
+            "title": "Ship v2"
+          }
+        ],
+        "atRisk": [
+          {
+            "moveId": "m2",
+            "title": "Kindred proposal",
+            "assigneeId": "uid-dana"
+          }
+        ],
+        "slipped": [],
+        "owners": [
+          "uid-dana"
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 2,
+      "id": "numbers",
+      "title": "Outreach numbers",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "outreach.engagement",
+      "product": "outreach",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "120 sent, 54 opened, 9 clicked, 4 replied in undefined days",
+      "output": {
+        "sent": 120,
+        "opened": 54,
+        "clicked": 9,
+        "replied": 4,
+        "bounced": 1
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 3,
+      "id": "updates",
+      "title": "One-line update on your at-risk Moves",
+      "detail": "",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "holder": {
+        "owner": "person",
+        "assigneeId": "uid-owner"
+      },
+      "kind": "task",
+      "tool": "",
+      "product": "",
+      "effect": "",
+      "automated": false,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "Only the owners know where these stand.",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 2,
+      "dependsOn": [
+        "moves"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:07:00.000Z",
+      "finishedBy": {
+        "type": "person",
+        "id": "uid-owner"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": true,
+      "resultSummary": "No update",
+      "output": {
+        "timedOut": true
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 4,
+      "id": "draft",
+      "title": "Draft the report",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "todd.write",
+      "product": "docs",
+      "effect": "create",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "moves",
+        "numbers",
+        "updates"
+      ],
+      "activeSince": "2026-10-14T16:07:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:07:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "weekly status report",
+      "output": {
+        "documentId": "d3",
+        "title": "weekly status report",
+        "summary": "Written."
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 5,
+      "id": "approve",
+      "title": "Approve the report",
+      "detail": "",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "holder": {
+        "owner": "person",
+        "assigneeId": "uid-owner"
+      },
+      "kind": "approval",
+      "tool": "",
+      "product": "",
+      "effect": "",
+      "automated": false,
+      "status": "active",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "Every send needs your yes.",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 3,
+      "dependsOn": [
+        "draft"
+      ],
+      "activeSince": "2026-10-14T16:07:00.000Z",
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 6,
+      "id": "send",
+      "title": "Send it to stakeholders",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "outreach.sendBatch",
+      "product": "outreach",
+      "effect": "send",
+      "automated": false,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "approve"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 7,
+      "id": "report",
+      "title": "Write the report",
+      "detail": "Every step, who did it, and the result.",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "todd.report",
+      "product": "todd",
+      "effect": "create",
+      "automated": true,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "send"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    }
+  ],
+  "status": "active",
+  "autoStart": false,
+  "answers": [],
+  "playbookId": "weekly-status",
+  "createdAt": "2026-10-14T16:00:00.000Z",
+  "outcomeType": "action",
+  "summary": "",
+  "questions": [],
+  "estimate": {
+    "counts": {},
+    "yourMinutes": 5,
+    "approvals": 1,
+    "split": {
+      "todd": 5,
+      "maya": 0,
+      "person": 2
+    },
+    "waitBusinessDays": 0,
+    "products": [
+      "moves",
+      "outreach",
+      "docs",
+      "todd"
+    ]
+  },
+  "planner": {
+    "provider": "test",
+    "model": "test"
+  },
+  "planFallback": false,
+  "planErrors": [],
+  "examplesUsed": [],
+  "statusDetail": "1 step waiting on a person.",
+  "startedAt": "2026-10-14T16:00:00.000Z",
+  "resumeAt": null,
+  "nextCheckAt": null,
+  "phase": "waiting_on_people",
+  "plan": {
+    "missionId": "weekly-status",
+    "status": "active",
+    "phase": "waiting_on_people",
+    "outcomeType": "action",
+    "stepsDone": 4,
+    "stepsTotal": 7,
+    "current": {
+      "stepId": "approve",
+      "title": "Approve the report",
+      "kind": "approval",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "handedOff": false
+    },
+    "nextCheckAt": null,
+    "playbookId": "weekly-status"
+  },
+  "products": [
+    "moves",
+    "outreach",
+    "docs",
+    "todd"
+  ],
+  "split": {
+    "todd": 5,
+    "maya": 0,
+    "you": 2,
+    "teammates": 0
+  },
+  "isOwner": true
+}

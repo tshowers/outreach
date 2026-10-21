@@ -3,7 +3,7 @@
   <button
     type="button"
     class="talk-to-todd-glass"
-    [class.talk-to-todd-glass-hidden]="!launcherVisible && !showAssistant"
+    [class.talk-to-todd-glass-hidden]="showAssistant || !launcherVisible"
     (click)="toggleAssistant()"
     [attr.aria-expanded]="showAssistant"
     aria-label="Talk to TODD"
@@ -14,7 +14,8 @@
     <span class="todd-assistant-launcher-label">{{ hasUnread && !showAssistant ? 'Do this next' : 'Talk to TODD' }}</span>
   </button>
 
-  <div class="todd-assistant-window" [class.todd-assistant-window-open]="showAssistant">
+  <div class="todd-assistant-scrim" *ngIf="showAssistant" (click)="dismissAssistant()" aria-hidden="true"></div>
+  <div class="todd-assistant-window" [class.todd-assistant-window-open]="showAssistant" role="dialog" aria-label="TODD">
     <div class="todd-assistant-header">
       <div class="todd-assistant-header-main">
         <div class="todd-assistant-avatar">

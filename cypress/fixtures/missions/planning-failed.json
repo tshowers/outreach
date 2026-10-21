@@ -1,0 +1,73 @@
+{
+  "id": "denver",
+  "tenantId": "tenant-1",
+  "ownerId": "uid-owner",
+  "origin": "ask",
+  "request": "Sort out the Denver thing",
+  "title": "Sort out the Denver thing",
+  "steps": [
+    {
+      "number": 1,
+      "id": "plan",
+      "title": "Plan this",
+      "detail": "Sort out the Denver thing",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "holder": {
+        "owner": "person",
+        "assigneeId": "uid-owner"
+      },
+      "kind": "task",
+      "tool": "",
+      "product": "",
+      "effect": "",
+      "automated": false,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "Nothing in Moves, Docs or Network mentions \"the Denver thing\".",
+      "doneWhen": "You've told TODD more or planned it yourself.",
+      "options": [],
+      "minutes": 10,
+      "dependsOn": [],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    }
+  ],
+  "status": "proposed",
+  "autoStart": false,
+  "answers": [],
+  "createdAt": "2026-10-14T16:00:00.000Z",
+  "planFallback": true,
+  "summary": "I couldn't plan this one: Nothing in Moves, Docs or Network mentions \"the Denver thing\". It's yours to plan, or tell me more.",
+  "phase": "proposed",
+  "plan": {
+    "missionId": "denver",
+    "status": "proposed",
+    "phase": "proposed",
+    "outcomeType": "action",
+    "stepsDone": 0,
+    "stepsTotal": 1,
+    "current": null,
+    "nextCheckAt": null,
+    "playbookId": ""
+  },
+  "products": [],
+  "split": {
+    "todd": 0,
+    "maya": 0,
+    "you": 1,
+    "teammates": 0
+  },
+  "isOwner": true
+}
