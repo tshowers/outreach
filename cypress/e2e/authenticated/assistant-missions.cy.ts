@@ -63,6 +63,21 @@ describe('Outreach assistant: Missions', () => {
     });
   });
 
+  it('emailing a whole industry becomes the segment Mission, right in the conversation', () => {
+    missionAt('segment-proposed', 'pitch-segment');
+    openAssistant();
+    ask('Email the venture capital and finance firms in my contacts asking if they are interested in investing');
+    cy.wait('@ask').its('request.body').should((body) => {
+      expect(body.request).to.contain('venture capital');
+      expect(body.context).to.include({ app: 'outreach' });
+    });
+    cy.get('[data-cy="assistant-mission"]').should('exist').within(() => {
+      cy.get('[data-cy="mission-title"]').should('be.visible').and('contain.text', 'Email an industry segment');
+      cy.get('[data-cy="start"]').should('be.visible');
+      cy.contains('a', 'Open in Moves').should('have.attr', 'href', 'https://moves.taliferro.tech/missions/pitch-segment');
+    });
+  });
+
   it('a step that needs you (the send) is finished right here', () => {
     missionAt('roland-send-handed');
     cy.intercept('POST', `${MISSIONS}/reach-named-person/steps/send?*`, { statusCode: 202, body: { success: true } }).as('done');

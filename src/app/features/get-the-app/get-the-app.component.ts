@@ -2,10 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import {
   GET_THE_APP_PRODUCTS,
   GET_THE_APP_STEPS,
+  TODD_SUITE,
   GetTheAppProduct,
   GetTheAppProductKey,
   appStoreUrl,
@@ -48,6 +49,9 @@ export class GetTheAppComponent implements OnInit {
   state$!: Observable<WriteAccessState>;
   isLive = false;
   appStoreLink = '';
+  readonly suite = TODD_SUITE;
+  /** Already on TODD Suite (checked once signed in). */
+  hasSuite = false;
 
   async ngOnInit (): Promise<void> {
     const key = ( this.route.snapshot.data['product'] as GetTheAppProductKey | undefined ) || this.productKey;
@@ -62,6 +66,18 @@ export class GetTheAppComponent implements OnInit {
     this.meta.updateTag( { property: 'og:description', content: description } );
     this.isLive = await isLiveOnAppStore( this.product );
     this.appStoreLink = this.isLive ? appStoreUrl( this.product ) : '';
+    // Prerendered pages have no browser session; signed out there's nothing to check.
+    if ( typeof window !== 'undefined' && ( await firstValueFrom( this.state$ ) ) !== 'signedOut' ) {
+      this.hasSuite = await this.checkout.hasAccess( TODD_SUITE.key );
+    }
+  }
+
+  /** TODD Suite through the shared prompt: sign in first, then Stripe in a new tab. */
+  async getSuite (): Promise<void> {
+    const state = await firstValueFrom( this.state$ );
+    this.prompts.open( state === 'signedOut' ?
+      { state: 'signedOut', action: `get ${ TODD_SUITE.name }` } :
+      { state: 'browsing', action: `get ${ TODD_SUITE.name }`, plan: 'suite' } );
   }
 
   subscribe (): void {

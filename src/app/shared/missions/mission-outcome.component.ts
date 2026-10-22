@@ -40,11 +40,20 @@ type Pick = 'keep' | 'later' | 'drop' | '';
           </ol>
           <aside class="side">
             <h3>What happens to the ones you keep</h3>
-            <p>Each becomes its own small Mission: TODD finds a way in, Maya writes to them, and nothing sends until you approve it.</p>
-            @if (batchDone()) {
-              <span class="started" data-cy="batch-started">✓ {{ batchDone() }} Mission{{ batchDone() === 1 ? '' : 's' }} started · in Moves</span>
+            @if (continues()) {
+              <p>This Mission carries on with them: {{ nextTitles() }}. Nothing sends until you approve it.</p>
+              @if (batchDone()) {
+                <span class="started" data-cy="batch-started">✓ {{ batchDone() }} kept · the Mission carries on</span>
+              } @else {
+                <button type="button" class="btn primary" [disabled]="!count('keep') || busy()" (click)="keepAndContinue(decide)" data-cy="continue-kept">Continue with {{ count('keep') }} kept</button>
+              }
             } @else {
-              <button type="button" class="btn primary" [disabled]="!count('keep') || busy()" (click)="startKept(decide)" data-cy="start-kept">Start {{ count('keep') }} Mission{{ count('keep') === 1 ? '' : 's' }}</button>
+              <p>Each becomes its own small Mission: TODD finds a way in, Maya writes to them, and nothing sends until you approve it.</p>
+              @if (batchDone()) {
+                <span class="started" data-cy="batch-started">✓ {{ batchDone() }} Mission{{ batchDone() === 1 ? '' : 's' }} started · in Moves</span>
+              } @else {
+                <button type="button" class="btn primary" [disabled]="!count('keep') || busy()" (click)="startKept(decide)" data-cy="start-kept">Start {{ count('keep') }} Mission{{ count('keep') === 1 ? '' : 's' }}</button>
+              }
             }
           </aside>
         </div>
@@ -148,6 +157,14 @@ export class MissionOutcomeComponent {
     return this.mission().steps.find( ( s ) => decide.dependsOn.includes( s.id ) && s.tool === 'todd.shortlist' ) || null;
   } );
 
+  /** Steps that build on the decision: when there are any, the plan itself acts on the kept ones (no extra Missions, no double emails). */
+  private readonly nextSteps = computed<StepView[]>( () => {
+    const decide = this.shortlistStep();
+    return decide ? this.mission().steps.filter( ( s ) => s.dependsOn.includes( decide.id ) ) : [];
+  } );
+  readonly continues = computed( () => this.nextSteps().length > 0 );
+  readonly nextTitles = computed( () => this.nextSteps().map( ( s ) => s.title.charAt( 0 ).toLowerCase() + s.title.slice( 1 ) ).join( ', then ' ) );
+
   readonly items = computed<ShortlistItem[]>( () => ( this.shortlistSource()?.output?.['items'] as ShortlistItem[] ) || [] );
   readonly shortlistSummary = computed( () => String( this.shortlistSource()?.output?.['summary'] || '' ) );
 
@@ -172,6 +189,18 @@ export class MissionOutcomeComponent {
       for ( const item of kept ) {
         await this.api.ask( `Reach ${item.name}. Why: ${item.why}${item.route ? ` Route: ${item.route}.` : ''}`, { origin: 'suggestion', force: 'mission', title: `Reach ${item.name}`, autoStart: true } );
       }
+      this.batchDone.set( kept.length );
+    } finally {
+      this.busy.set( false );
+    }
+  }
+
+  async keepAndContinue ( decide: StepView ): Promise<void> {
+    const kept = this.items().filter( ( item ) => this.picks()[item.id] === 'keep' );
+    if ( !kept.length ) return;
+    this.busy.set( true );
+    try {
+      await this.api.act( this.mission().id, decide.id, 'answer', { value: kept.map( ( item ) => item.name ).join( ', ' ) } );
       this.batchDone.set( kept.length );
     } finally {
       this.busy.set( false );

@@ -35,6 +35,16 @@
         <span class="gta-store__apple" aria-hidden="true">&#63743;</span><span><small>iPhone app</small><strong>Coming soon</strong></span>
       </span>
     </article>
+    <article class="gta-plan gta-plan--suite" data-cy="get-the-app-suite">
+      <h2>{{ suite.name }}</h2>
+      <p class="gta-price">{{ suite.monthlyPrice }}<span> / month</span></p>
+      <p class="gta-note">{{ suite.summary }}, on the web and in every app</p>
+      <ul>
+        <li *ngFor="let item of suite.includes">{{ item }}</li>
+      </ul>
+      <p *ngIf="hasSuite" class="gta-status gta-status--ok" data-cy="get-the-app-suite-active">&#10003; You have {{ suite.name }} - every app is unlocked.</p>
+      <button *ngIf="!hasSuite" type="button" class="gta-subscribe" (click)="getSuite()" data-cy="get-the-app-suite-subscribe">Get {{ suite.name }} · {{ suite.monthlyPrice }}/mo</button>
+    </article>
   </section>
   <section class="gta-steps" aria-labelledby="gta-steps-title">
     <h2 id="gta-steps-title">How it works</h2>

@@ -219,7 +219,9 @@ export class StepDrawerComponent {
     const column = this.column();
     const steps = this.mission().steps;
     const live = column.stepIds.map( ( id ) => steps.find( ( s ) => s.id === id )! ).find( ( s ) => s && s.status === 'active' );
-    return live || column.step || steps.find( ( s ) => s.id === column.stepIds[0] )!;
+    // Always the step as it is now, not as it was when the drawer opened: a
+    // refresh that finishes it must not leave stale buttons on screen.
+    return live || steps.find( ( s ) => s.id === ( column.step ? column.step.id : column.stepIds[0] ) ) || column.step!;
   } );
 
   readonly who = computed( () => whoOf( this.step().holder, this.viewerId() ) );
