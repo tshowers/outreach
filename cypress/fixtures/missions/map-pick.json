@@ -1,0 +1,319 @@
+{
+  "id": "map-account",
+  "tenantId": "tenant-1",
+  "ownerId": "uid-owner",
+  "origin": "ask",
+  "request": "Who are the decision makers at Tidepool Clinics?",
+  "title": "Map an account",
+  "steps": [
+    {
+      "number": 1,
+      "id": "known",
+      "title": "Who you already know there",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "network.relationshipPaths",
+      "product": "network",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": {
+        "paths": [
+          {
+            "contactId": "c3",
+            "name": "Jo Kim",
+            "company": "Calder Systems",
+            "title": "Engineer",
+            "email": "jo@calder.com"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 2,
+      "id": "leads",
+      "title": "Find decision makers in Lead Vault",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "leadVault.search",
+      "product": "lead-vault",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "1 leads",
+      "output": {
+        "leads": [
+          {
+            "id": "lv1",
+            "name": "Sam Patel",
+            "title": "Head of Ops",
+            "company": "Tidepool Clinics",
+            "location": "Denver, CO",
+            "sector": "Health",
+            "capabilities": [],
+            "emailMasked": "s***@tidepool.com"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 3,
+      "id": "research",
+      "title": "Public org chart and news",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "find.research",
+      "product": "find",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "Findings for Tidepool Clinics leadership team",
+      "output": {
+        "summary": "Findings for Tidepool Clinics leadership team",
+        "sources": [
+          {
+            "title": "Source",
+            "url": "https://example.com"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 4,
+      "id": "list",
+      "title": "Rank who to approach",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "todd.shortlist",
+      "product": "todd",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "known",
+        "leads",
+        "research"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "1 candidates, 1 strong",
+      "output": {
+        "summary": "8 fit, 3 strong",
+        "items": [
+          {
+            "id": "i1",
+            "name": "Tidepool Clinics",
+            "why": "Raised $12M",
+            "fit": "strong",
+            "route": "Sam Patel"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 5,
+      "id": "pick",
+      "title": "Pick who to approach",
+      "detail": "",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "holder": {
+        "owner": "person",
+        "assigneeId": "uid-owner"
+      },
+      "kind": "decision",
+      "tool": "",
+      "product": "",
+      "effect": "",
+      "automated": false,
+      "status": "active",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "You choose; each pick becomes its own Mission.",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 1,
+      "dependsOn": [
+        "list"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    }
+  ],
+  "status": "active",
+  "autoStart": false,
+  "answers": [],
+  "playbookId": "map-account",
+  "createdAt": "2026-10-14T16:00:00.000Z",
+  "outcomeType": "shortlist",
+  "summary": "",
+  "questions": [],
+  "estimate": {
+    "counts": {},
+    "yourMinutes": 1,
+    "approvals": 0,
+    "split": {
+      "todd": 4,
+      "maya": 0,
+      "person": 1
+    },
+    "waitBusinessDays": 0,
+    "products": [
+      "network",
+      "lead-vault",
+      "find",
+      "todd"
+    ]
+  },
+  "planner": {
+    "provider": "test",
+    "model": "test"
+  },
+  "planFallback": false,
+  "planErrors": [],
+  "examplesUsed": [],
+  "statusDetail": "1 step waiting on a person.",
+  "startedAt": "2026-10-14T16:00:00.000Z",
+  "resumeAt": null,
+  "nextCheckAt": null,
+  "phase": "waiting_on_people",
+  "plan": {
+    "missionId": "map-account",
+    "status": "active",
+    "phase": "waiting_on_people",
+    "outcomeType": "shortlist",
+    "stepsDone": 4,
+    "stepsTotal": 5,
+    "current": {
+      "stepId": "pick",
+      "title": "Pick who to approach",
+      "kind": "decision",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "handedOff": false
+    },
+    "nextCheckAt": null,
+    "playbookId": "map-account"
+  },
+  "products": [
+    "network",
+    "lead-vault",
+    "find",
+    "todd"
+  ],
+  "split": {
+    "todd": 4,
+    "maya": 0,
+    "you": 1,
+    "teammates": 0
+  },
+  "isOwner": true
+}

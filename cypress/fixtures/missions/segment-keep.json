@@ -1,0 +1,686 @@
+{
+  "id": "pitch-segment",
+  "tenantId": "tenant-1",
+  "ownerId": "uid-owner",
+  "origin": "ask",
+  "request": "Email the venture capital and finance companies in my contacts and Lead Vault: research each firm, then send a personalized email asking if they'd consider investing.",
+  "title": "Email an industry segment",
+  "steps": [
+    {
+      "number": 1,
+      "id": "network",
+      "title": "Find venture capital and finance people in your Network",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "network.segment",
+      "product": "network",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "1 people at 1 companies",
+      "output": {
+        "contacts": [
+          {
+            "contactId": "c4",
+            "name": "Mara Okafor",
+            "company": "Northline Ventures",
+            "title": "Partner",
+            "email": "mara@northline.vc",
+            "lastContacted": null,
+            "industry": "Venture Capital",
+            "matchedOn": [
+              "venture capital",
+              "vc"
+            ]
+          }
+        ],
+        "companies": [
+          "Northline Ventures"
+        ],
+        "total": 1,
+        "withoutEmail": 0,
+        "terms": [
+          "venture capital",
+          "venture partner",
+          "vc",
+          "private equity",
+          "investor",
+          "investment",
+          "angel",
+          "family office",
+          "fund",
+          "capital partners",
+          "finance",
+          "financial",
+          "bank"
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 2,
+      "id": "leads",
+      "title": "Find venture capital and finance decision makers in Lead Vault",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "leadVault.search",
+      "product": "lead-vault",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "1 leads",
+      "output": {
+        "leads": [
+          {
+            "id": "lv1",
+            "name": "Sam Patel",
+            "title": "Head of Ops",
+            "company": "Tidepool Clinics",
+            "location": "Denver, CO",
+            "sector": "Health",
+            "capabilities": [],
+            "emailMasked": "s***@tidepool.com"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 3,
+      "id": "research",
+      "title": "Research the firms: focus, stage and recent deals",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "find.research",
+      "product": "find",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "network",
+        "leads"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "Findings for Investment focus, check size and recent deals of [\"Northline Ventures\"]",
+      "output": {
+        "summary": "Findings for Investment focus, check size and recent deals of [\"Northline Ventures\"]",
+        "sources": [
+          {
+            "title": "Source",
+            "url": "https://example.com"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 4,
+      "id": "fit",
+      "title": "Rank which firms are real candidates",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "todd.shortlist",
+      "product": "todd",
+      "effect": "read",
+      "automated": true,
+      "status": "done",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "network",
+        "leads",
+        "research"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": "2026-10-14T16:00:00.000Z",
+      "finishedBy": {
+        "type": "todd"
+      },
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "3 candidates, 1 strong",
+      "output": {
+        "summary": "3 firms invest at your stage; 1 is a strong fit.",
+        "items": [
+          {
+            "id": "f1",
+            "name": "Northline Ventures",
+            "why": "Leads seed rounds in B2B software; two deals this year",
+            "fit": "strong",
+            "route": "Mara Okafor (in your Network)"
+          },
+          {
+            "id": "f2",
+            "name": "Grant & Co",
+            "why": "Private equity, but runs a growth fund for software",
+            "fit": "medium",
+            "route": "Leo Grant (in your Network)"
+          },
+          {
+            "id": "f3",
+            "name": "Harbor Bank",
+            "why": "Lends, doesn't invest in equity",
+            "fit": "weak",
+            "route": "Lead Vault: unlock to email"
+          }
+        ]
+      },
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 5,
+      "id": "keep",
+      "title": "Keep or drop each one",
+      "detail": "",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "holder": {
+        "owner": "person",
+        "assigneeId": "uid-owner"
+      },
+      "kind": "decision",
+      "tool": "",
+      "product": "",
+      "effect": "",
+      "automated": false,
+      "status": "active",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "You choose who gets the email.",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 10,
+      "dependsOn": [
+        "fit"
+      ],
+      "activeSince": "2026-10-14T16:00:00.000Z",
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 6,
+      "id": "unlock",
+      "title": "Unlock emails for the Lead Vault people you kept",
+      "detail": "",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "holder": {
+        "owner": "person",
+        "assigneeId": "uid-owner"
+      },
+      "kind": "task",
+      "tool": "",
+      "product": "",
+      "effect": "",
+      "automated": false,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "Lead Vault emails stay masked until you unlock them, and unlocking uses credits.",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 5,
+      "dependsOn": [
+        "keep"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 7,
+      "id": "strategy",
+      "title": "Shape the pitch from what you told TODD",
+      "detail": "",
+      "owner": "maya",
+      "assigneeId": "",
+      "holder": {
+        "owner": "maya",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "maya.strategy",
+      "product": "maya",
+      "effect": "create",
+      "automated": true,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "fit",
+        "keep"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 8,
+      "id": "email",
+      "title": "Write the personalized email",
+      "detail": "",
+      "owner": "maya",
+      "assigneeId": "",
+      "holder": {
+        "owner": "maya",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "email.create",
+      "product": "email-creator",
+      "effect": "create",
+      "automated": true,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "strategy"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 9,
+      "id": "approve",
+      "title": "Approve the batch",
+      "detail": "",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "holder": {
+        "owner": "person",
+        "assigneeId": "uid-owner"
+      },
+      "kind": "approval",
+      "tool": "",
+      "product": "",
+      "effect": "",
+      "automated": false,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "Every send needs your yes; one approval covers the batch.",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 10,
+      "dependsOn": [
+        "email",
+        "unlock"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 10,
+      "id": "send",
+      "title": "Send to everyone you kept",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "outreach.sendBatch",
+      "product": "outreach",
+      "effect": "send",
+      "automated": false,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "approve"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 11,
+      "id": "results",
+      "title": "Check opens, clicks and replies",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "outreach.engagement",
+      "product": "outreach",
+      "effect": "read",
+      "automated": true,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "send"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 12,
+      "id": "track",
+      "title": "Put follow-ups with the interested firms in Moves",
+      "detail": "",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "moves.createTasks",
+      "product": "moves",
+      "effect": "create",
+      "automated": true,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "results"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    },
+    {
+      "number": 13,
+      "id": "report",
+      "title": "Write the report",
+      "detail": "Every step, who did it, and the result.",
+      "owner": "todd",
+      "assigneeId": "",
+      "holder": {
+        "owner": "todd",
+        "assigneeId": ""
+      },
+      "kind": "tool",
+      "tool": "todd.report",
+      "product": "todd",
+      "effect": "create",
+      "automated": true,
+      "status": "pending",
+      "skipReason": "",
+      "when": "",
+      "branch": null,
+      "why": "",
+      "doneWhen": "",
+      "options": [],
+      "minutes": 0,
+      "dependsOn": [
+        "track"
+      ],
+      "activeSince": null,
+      "waitUntil": null,
+      "finishedAt": null,
+      "finishedBy": null,
+      "handoff": null,
+      "reassigned": null,
+      "timedOut": false,
+      "resultSummary": "",
+      "output": null,
+      "error": null,
+      "revisions": 0
+    }
+  ],
+  "status": "active",
+  "autoStart": false,
+  "answers": [],
+  "playbookId": "pitch-segment",
+  "createdAt": "2026-10-14T16:00:00.000Z",
+  "outcomeType": "action",
+  "summary": "",
+  "questions": [],
+  "estimate": {
+    "counts": {
+      "emails": 1
+    },
+    "yourMinutes": 25,
+    "approvals": 1,
+    "split": {
+      "todd": 8,
+      "maya": 2,
+      "person": 3
+    },
+    "waitBusinessDays": 0,
+    "products": [
+      "network",
+      "lead-vault",
+      "find",
+      "todd",
+      "maya",
+      "email-creator",
+      "outreach",
+      "moves"
+    ]
+  },
+  "planner": {
+    "provider": "test",
+    "model": "test"
+  },
+  "planFallback": false,
+  "planErrors": [],
+  "examplesUsed": [],
+  "statusDetail": "1 step waiting on a person.",
+  "startedAt": "2026-10-14T16:00:00.000Z",
+  "resumeAt": null,
+  "nextCheckAt": null,
+  "phase": "waiting_on_people",
+  "plan": {
+    "missionId": "pitch-segment",
+    "status": "active",
+    "phase": "waiting_on_people",
+    "outcomeType": "action",
+    "stepsDone": 4,
+    "stepsTotal": 13,
+    "current": {
+      "stepId": "keep",
+      "title": "Keep or drop each one",
+      "kind": "decision",
+      "owner": "person",
+      "assigneeId": "uid-owner",
+      "handedOff": false
+    },
+    "nextCheckAt": null,
+    "playbookId": "pitch-segment"
+  },
+  "products": [
+    "network",
+    "lead-vault",
+    "find",
+    "todd",
+    "maya",
+    "email-creator",
+    "outreach",
+    "moves"
+  ],
+  "split": {
+    "todd": 8,
+    "maya": 2,
+    "you": 3,
+    "teammates": 0
+  },
+  "isOwner": true
+}
