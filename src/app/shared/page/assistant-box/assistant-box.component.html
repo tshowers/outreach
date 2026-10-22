@@ -8,10 +8,7 @@
         </div>
       </div>
       <!-- A Mission started from this ask: its live plan, Start, and the steps that need you -->
-      <div *ngIf="msg.role === 'mission' && msg.missionId" class="assistant-message assistant-mission" data-cy="assistant-mission">
-        <tm-mission-detail [missionId]="msg.missionId" [viewerId]="userId || ''"></tm-mission-detail>
-        <a class="assistant-mission__open" [href]="'https://moves.taliferro.tech/missions/' + msg.missionId" target="_blank" rel="noopener">Open in Moves ↗</a>
-      </div>
+      <tm-assistant-mission *ngIf="msg.role === 'mission' && msg.missionId" [missionId]="msg.missionId" [viewerId]="userId || ''"></tm-assistant-mission>
       <!-- Assistant messages -->
       <div *ngIf="msg.role === 'assistant'" class="assistant-message assistant-message-assistant">
         <div class="assistant-message-bubble assistant-message-bubble-assistant assistant-response" [innerHTML]="msg.content" (click)="onAssistantContentClick($event)">
