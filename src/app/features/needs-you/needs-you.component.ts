@@ -16,20 +16,23 @@ import { OutreachDataService } from '../../services/outreach-data.service';
 import { DESIGN_PREVIEW_NEEDS_YOU, isDesignPreview } from '../../shared/utils/design-preview';
 import { cleanMessageText } from '../../shared/utils/message-kind.util';
 import {
-  NEEDS_YOU_KIND_LABELS, NEEDS_YOU_KIND_TINTS, NeedsYouAction, NeedsYouKind, hasMayaReply, isNeedsYou, needsAnswer,
+  NEEDS_YOU_KIND_LABELS, NEEDS_YOU_KIND_TINTS, NeedsYouAction, NeedsYouKind, hasMayaReply, isDraftToApprove, isNeedsYou, needsAnswer,
   needsYouKind, outOfOfficeDetails, primaryAction, readableReply, whyItsHere
 } from '../../shared/utils/needs-you.util';
 
 interface PendingDone {
   items: MomentumThread[];
   timer: ReturnType<typeof setTimeout>;
+  /** Discarding a draft rather than marking a reply done. */
+  discard?: boolean;
 }
 
 /**
  * Needs you (design 5e): the people waiting on a decision from you, split
  * into "needs an answer" and "nothing to answer", with one person open at a
  * time beside the list. The goal is zero. Plan - everything Maya is still
- * handling herself - is separate.
+ * handling herself - is separate. First emails someone asked to have
+ * approved wait here too, under "Drafts to approve".
  */
 @Component( {
   selector: 'app-needs-you',
@@ -66,6 +69,9 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
   draftSubject = '';
   draftBody = '';
   working: 'send' | 'help' | 'compose' | null = null;
+  /** A draft's signature, kept out of the editor and put back on save. */
+  private draftSignature = '';
+  private draftOriginal = { subject: '', body: '' };
   notice = '';
   showOriginal = false;
 
@@ -118,7 +124,7 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
       const response = await firstValueFrom( this.api.getSignalEngineBootstrap( this.opts ) );
       const threads: MomentumThread[] = Array.isArray( response?.data?.threads ) ? response.data.threads : [];
       const pendingIds = new Set( ( this.pendingDone?.items || [] ).map( item => item.contactId ) );
-      this.items = this.sorted( threads.filter( thread => isNeedsYou( thread ) && !pendingIds.has( thread.contactId ) ) );
+      this.items = this.sorted( threads.filter( thread => ( isNeedsYou( thread ) || isDraftToApprove( thread ) ) && !pendingIds.has( thread.contactId ) ) );
       this.planCount = threads.filter( thread => thread.userLane === 'plan' && !isNeedsYou( thread ) ).length;
       this.count.set( this.items.length );
       this.error = '';
@@ -131,19 +137,25 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Needs an answer first, then newest reply first. */
+  /** Needs an answer, then drafts to approve (by company), then nothing to answer - newest reply first. */
   private sorted ( items: MomentumThread[] ): MomentumThread[] {
+    const rank = ( item: MomentumThread ) => isDraftToApprove( item ) ? 1 : needsAnswer( item ) ? 0 : 2;
     return [...items].sort( ( a, b ) =>
-      Number( needsAnswer( b ) ) - Number( needsAnswer( a ) )
-      || String( b.latestReplyAt || '' ).localeCompare( String( a.latestReplyAt || '' ) ) );
+      rank( a ) - rank( b )
+      || String( b.latestReplyAt || '' ).localeCompare( String( a.latestReplyAt || '' ) )
+      || String( a.companyName || '' ).localeCompare( String( b.companyName || '' ) ) );
   }
 
   get answerItems (): MomentumThread[] {
-    return this.items.filter( needsAnswer );
+    return this.items.filter( item => !isDraftToApprove( item ) && needsAnswer( item ) );
+  }
+
+  get approveItems (): MomentumThread[] {
+    return this.items.filter( isDraftToApprove );
   }
 
   get clearItems (): MomentumThread[] {
-    return this.items.filter( item => !needsAnswer( item ) );
+    return this.items.filter( item => !isDraftToApprove( item ) && !needsAnswer( item ) );
   }
 
   get selected (): MomentumThread | null {
@@ -168,9 +180,18 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
     this.selectedId = item?.contactId || null;
     this.notice = '';
     this.showOriginal = false;
-    this.phone = '';
+    // A prospect-list contact may have no Network record; its thread carries the number.
+    this.phone = String( item?.contactPhone || '' ).trim();
+    this.draftSignature = '';
+    // A first email to approve opens in the editor, signature set aside.
+    if ( item && isDraftToApprove( item ) ) {
+      const html = String( item.draftBody || '' );
+      const signatureAt = html.search( /<table\b/i );
+      this.draftSignature = signatureAt >= 0 ? html.slice( signatureAt ) : '';
+      this.openDraft( String( item.draftSubject || '' ), this.htmlToText( signatureAt >= 0 ? html.slice( 0, signatureAt ) : html ).trim() );
+      this.draftOriginal = { subject: this.draftSubject, body: this.draftBody };
     // Maya's reply is open and editable from the start (5e); otherwise nothing yet.
-    if ( item && hasMayaReply( item ) ) {
+    } else if ( item && hasMayaReply( item ) ) {
       this.openDraft( String( item.replyDraftSubject || '' ), this.htmlToText( String( item.replyDraftBody || '' ) ) );
     } else {
       this.draftOpen = false;
@@ -184,7 +205,7 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
     if ( !this.tenantId ) return;
     const contact = await this.data.getContact( this.tenantId, item.contactId ).catch( () => null );
     if ( this.selectedId !== item.contactId ) return;
-    this.phone = String( contact?.phoneNumbers?.find( entry => entry?.phoneNumber )?.phoneNumber || '' ).trim();
+    this.phone = String( contact?.phoneNumbers?.find( entry => entry?.phoneNumber )?.phoneNumber || item.contactPhone || '' ).trim();
   }
 
   // MARK: - Presentation
@@ -194,12 +215,23 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
   }
 
   kindLabel ( item: MomentumThread ): string {
+    if ( isDraftToApprove( item ) ) return 'Draft to approve';
     const label = this.labels[this.kind( item )];
     const back = this.kind( item ) === 'out_of_office' ? this.outOfOffice( item ).returnDate : null;
     return back ? `${ label } · back ${ back.toLocaleDateString( undefined, { month: 'short', day: 'numeric' } ) }` : label;
   }
 
+  /** The pill in the person's header - no out-of-office date there. */
+  tagLabel ( item: MomentumThread ): string {
+    return isDraftToApprove( item ) ? 'Draft to approve' : this.labels[this.kind( item )];
+  }
+
+  tint ( item: MomentumThread ): string {
+    return isDraftToApprove( item ) ? 'violet' : this.tints[this.kind( item )];
+  }
+
   why ( item: MomentumThread ): string {
+    if ( isDraftToApprove( item ) ) return String( item.approvalReason || 'TODD drafted this first email. Nothing sends until you approve it.' );
     return whyItsHere( item );
   }
 
@@ -219,6 +251,10 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
     return hasMayaReply( item );
   }
 
+  isDraft ( item: MomentumThread ): boolean {
+    return isDraftToApprove( item );
+  }
+
   outOfOffice ( item: MomentumThread ) {
     return outOfOfficeDetails( this.reply( item ) );
   }
@@ -228,6 +264,7 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
   }
 
   preview ( item: MomentumThread ): string {
+    if ( isDraftToApprove( item ) ) return [item.companyName, item.draftSubject].filter( Boolean ).join( ' · ' );
     const summary = String( item.replySummary || '' ).trim();
     if ( this.kind( item ) === 'automated' && summary ) return summary;
     return cleanMessageText( item.latestReplyText ).replace( /\n/g, ' ' ) || summary;
@@ -287,6 +324,34 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Saves any edits, then sends - the same approve the Signal Engine used. */
+  async approve ( item: MomentumThread ): Promise<void> {
+    if ( !this.draftBody.trim() || this.working ) return;
+    this.working = 'send';
+    this.notice = '';
+    try {
+      const edited = this.draftSubject !== this.draftOriginal.subject || this.draftBody !== this.draftOriginal.body;
+      if ( edited ) {
+        const html = this.draftBody.trim().split( /\n{2,}/ ).map( part => `<p>${ this.escape( part ).replace( /\n/g, '<br>' ) }</p>` ).join( '' );
+        await firstValueFrom( this.api.upsertMomentumThread( { contactId: item.contactId, draftSubject: this.draftSubject.trim(), draftBody: html + this.draftSignature }, this.opts ) );
+      }
+      await firstValueFrom( this.api.approveMomentumDraft( item.contactId, this.opts ) );
+      this.removeAndAdvance( [item] );
+      this.showToast( `Sent to ${ this.firstName( item ) }`, false );
+    } catch ( error: any ) {
+      this.notice = String( error?.error?.message || error?.message || 'Unable to send this email.' );
+    } finally {
+      this.working = null;
+    }
+  }
+
+  discard ( item: MomentumThread ): void {
+    this.commitPendingDone();
+    this.removeAndAdvance( [item] );
+    this.pendingDone = { items: [item], timer: setTimeout( () => this.commitPendingDone(), 5000 ), discard: true };
+    this.showToast( `Discarded the email to ${ item.contactName || 'them' }`, true );
+  }
+
   markDone ( items: MomentumThread[] ): void {
     if ( !items.length ) return;
     this.commitPendingDone();
@@ -313,11 +378,14 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
     this.pendingDone = null;
     if ( isDesignPreview() ) return;
     for ( const item of pending.items ) {
-      firstValueFrom( this.api.dismissMomentumThreadFromPlan( item.contactId, this.opts ) ).catch( () => {
+      const call: Promise<unknown> = pending.discard
+        ? firstValueFrom( this.api.discardMomentumDraft( item.contactId, this.opts ) )
+        : firstValueFrom( this.api.dismissMomentumThreadFromPlan( item.contactId, this.opts ) );
+      call.catch( () => {
         // It didn't go through: put them back so nothing is silently lost.
         this.items = this.sorted( [...this.items, item] );
         this.count.set( this.items.length );
-        this.showToast( `Couldn't mark ${ item.contactName || 'them' } done`, false );
+        this.showToast( pending.discard ? `Couldn't discard the email to ${ item.contactName || 'them' }` : `Couldn't mark ${ item.contactName || 'them' } done`, false );
       } );
     }
   }
@@ -356,19 +424,22 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
       if ( this.draftOpen ) {
         event.preventDefault();
         if ( this.writeState !== 'canWrite' ) this.prompts.open( { state: this.writeState, action: 'send this reply' } );
+        else if ( isDraftToApprove( item ) ) void this.approve( item );
         else void this.send( item );
       }
       return;
     }
     const target = event.target as HTMLElement | null;
     if ( event.metaKey || event.ctrlKey || event.altKey ) return;
-    if ( event.key.toLowerCase() === 'd' && this.writeState !== 'canWrite' && !( target && /^(input|textarea|select)$/i.test( target.tagName ) ) ) {
+    if ( event.key.toLowerCase() === 'd' && this.writeState !== 'canWrite' && !isDraftToApprove( item ) && !( target && /^(input|textarea|select)$/i.test( target.tagName ) ) ) {
       event.preventDefault();
       this.prompts.open( { state: this.writeState, action: 'mark this done' } );
       return;
     }
     if ( target && ( target.isContentEditable || /^(input|textarea|select)$/i.test( target.tagName ) ) ) return;
     const key = event.key.toLowerCase();
+    // W and D are reply actions; a draft to approve only sends or discards.
+    if ( isDraftToApprove( item ) && ( key === 'w' || key === 'd' ) ) return;
     if ( key === 'w' ) this.writeOwn( item );
     else if ( key === 'd' ) this.markDone( [item] );
     else if ( event.key === 'ArrowRight' && this.next ) this.select( this.next );

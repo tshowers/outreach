@@ -24,7 +24,7 @@
       <header class="list__head">
         <div>
           <h1>Needs you</h1>
-          <p>{{ answerItems.length }} need{{ answerItems.length === 1 ? 's' : '' }} an answer · {{ clearItems.length }} to clear</p>
+          <p>{{ answerItems.length }} need{{ answerItems.length === 1 ? 's' : '' }} an answer<ng-container *ngIf="approveItems.length"> · {{ approveItems.length }} to approve</ng-container> · {{ clearItems.length }} to clear</p>
         </div>
         <span class="list__count">{{ items.length }}</span>
       </header>
@@ -32,6 +32,13 @@
       <ng-container *ngIf="answerItems.length">
         <span class="eyebrow">Needs an answer</span>
         <ng-container *ngFor="let item of answerItems">
+          <ng-container *ngTemplateOutlet="row; context: { $implicit: item, answer: true }"></ng-container>
+        </ng-container>
+      </ng-container>
+
+      <ng-container *ngIf="approveItems.length">
+        <span class="eyebrow">Drafts to approve</span>
+        <ng-container *ngFor="let item of approveItems">
           <ng-container *ngTemplateOutlet="row; context: { $implicit: item, answer: true }"></ng-container>
         </ng-container>
       </ng-container>
@@ -52,7 +59,7 @@
           <span class="row__main">
             <span class="row__top"><strong>{{ item.contactName || item.emailAddress }}</strong><span>{{ age(item.latestReplyAt) }}</span></span>
             <span class="row__pills">
-              <span class="tag" [attr.data-tint]="tints[kind(item)]">{{ kindLabel(item) }}</span>
+              <span class="tag" [attr.data-tint]="tint(item)">{{ kindLabel(item) }}</span>
               <span class="tag" data-tint="green" *ngIf="hasMayaReply(item)">Maya drafted</span>
             </span>
             <span class="row__preview">{{ preview(item) }}</span>
@@ -78,8 +85,8 @@
       <header class="person__head">
         <span class="badge badge--big" [class.badge--quiet]="!answers(item)" aria-hidden="true">{{ initials(item.contactName) }}</span>
         <div class="person__who">
-          <h2>{{ item.contactName || item.emailAddress }} <span class="tag" [attr.data-tint]="tints[kind(item)]">{{ labels[kind(item)] }}</span></h2>
-          <span>{{ item.companyName }}<ng-container *ngIf="item.companyName"> · </ng-container>{{ item.emailAddress }}<ng-container *ngIf="item.latestReplyAt"> · replied {{ age(item.latestReplyAt) }} ago</ng-container></span>
+          <h2>{{ item.contactName || item.emailAddress }} <span class="tag" [attr.data-tint]="tint(item)">{{ tagLabel(item) }}</span></h2>
+          <span><ng-container *ngIf="item.contactTitle">{{ item.contactTitle }}, </ng-container>{{ item.companyName }}<ng-container *ngIf="item.companyName"> · </ng-container>{{ item.emailAddress }}<ng-container *ngIf="item.latestReplyAt"> · replied {{ age(item.latestReplyAt) }} ago</ng-container></span>
         </div>
         <div class="person__contact">
           <a class="round" [class.is-off]="!phone" [attr.href]="phone ? 'tel:' + phone : null" title="Call" aria-label="Call">
@@ -95,7 +102,7 @@
       </header>
 
       <!-- Out of office (5c) replaces the reason card. -->
-      <ng-container *ngIf="kind(item) === 'out_of_office'; else whyCard">
+      <ng-container *ngIf="!isDraft(item) && kind(item) === 'out_of_office'; else whyCard">
         <section class="away" *ngIf="outOfOffice(item) as away">
           <span class="away__date" *ngIf="away.returnDate">
             <small>{{ away.returnDate | date:'MMM' }}</small>
@@ -111,7 +118,7 @@
         <p class="why"><strong>Why it's here.</strong> {{ why(item) }}</p>
       </ng-template>
 
-      <div class="conversation" [class.conversation--two]="draftOpen">
+      <div class="conversation" [class.conversation--two]="draftOpen && !!reply(item)">
         <section class="said" *ngIf="reply(item)">
           <span class="eyebrow">{{ kind(item) === 'automated' ? 'The email' : 'What ' + firstName(item) + ' said' }}</span>
           <p class="said__bubble">{{ reply(item) }}</p>
@@ -123,17 +130,27 @@
         </section>
 
         <section class="draft" *ngIf="draftOpen">
-          <span class="eyebrow">{{ hasMayaReply(item) && draftBody ? "Maya's reply · edit here" : 'Your reply' }}</span>
+          <span class="eyebrow">{{ isDraft(item) ? 'First email · edit here' : hasMayaReply(item) && draftBody ? "Maya's reply · edit here" : 'Your reply' }}</span>
           <div class="draft__card">
             <input type="text" [(ngModel)]="draftSubject" aria-label="Subject">
-            <textarea [(ngModel)]="draftBody" rows="6" placeholder="Keep it short and human." aria-label="Reply"></textarea>
+            <textarea [(ngModel)]="draftBody" [attr.rows]="isDraft(item) ? 10 : 6" placeholder="Keep it short and human." aria-label="Reply"></textarea>
           </div>
+          <p class="draft__hint" *ngIf="isDraft(item)">Your signature is added when it sends.</p>
         </section>
       </div>
 
       <p class="note note--error" *ngIf="notice">{{ notice }}</p>
 
-      <div class="actions">
+      <div class="actions" *ngIf="isDraft(item)">
+        <button type="button" appWriteAction="send this email" class="pill pill--primary pill--big" (click)="approve(item)" [disabled]="!draftBody.trim() || !!working">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+          {{ working === 'send' ? 'Sending…' : 'Approve & send' }} <kbd>⌘↵</kbd>
+        </button>
+        <a class="pill pill--big" *ngIf="phone" [href]="'tel:' + phone">Call {{ phone }}</a>
+        <button type="button" class="pill pill--big actions__done" appWriteAction="discard this email" (click)="discard(item)" [disabled]="!!working">Discard</button>
+      </div>
+
+      <div class="actions" *ngIf="!isDraft(item)">
         <ng-container [ngSwitch]="draftOpen ? 'send' : action(item)">
           <button *ngSwitchCase="'send'" type="button" appWriteAction="send this reply" class="pill pill--primary pill--big" (click)="send(item)" [disabled]="!draftBody.trim() || !!working">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>

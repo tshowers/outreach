@@ -18,7 +18,7 @@ import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.c
 import { PageAction } from '../../models/page-actions.models';
 import { buildCockpitDiagnosisRows, CockpitDiagnosisRowVm } from '../../shared/utils/cockpit-diagnosis-board.util';
 import { MomentumThread } from '../../models/momentum-thread.model';
-import { isNeedsYou } from '../../shared/utils/needs-you.util';
+import { isDraftToApprove, isNeedsYou } from '../../shared/utils/needs-you.util';
 import { NeedsYouCountService } from '../../services/needs-you-count.service';
 
 /**
@@ -679,7 +679,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
     this.greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     this.todayLabel = new Date().toLocaleDateString( undefined, { weekday: 'short', month: 'short', day: 'numeric' } );
     this.needsYouRows = threads
-      .filter( isNeedsYou )
+      .filter( thread => isNeedsYou( thread ) || isDraftToApprove( thread ) )
       .sort( ( a, b ) => String( b.latestReplyAt || b.lastSentAt || '' ).localeCompare( String( a.latestReplyAt || a.lastSentAt || '' ) ) )
       .map( thread => {
         const name = String( thread.contactName || thread.emailAddress || 'Someone' ).trim();
@@ -687,7 +687,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
           id: String( thread.contactId || thread.id ),
           initials: name.split( /\s+/ ).slice( 0, 2 ).map( part => part[0] || '' ).join( '' ).toUpperCase(),
           name,
-          reason: String( thread.replySummary || thread.needsYouReason?.label || 'Waiting on your decision' ),
+          reason: isDraftToApprove( thread ) ? 'Draft to approve' : String( thread.replySummary || thread.needsYouReason?.label || 'Waiting on your decision' ),
           age: this.shortAge( thread.latestReplyAt || thread.lastSentAt )
         };
       } );

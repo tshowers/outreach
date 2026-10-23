@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, combineLatest, filter, firstValueFrom, take } from 'rxjs';
 
 import { MomentumThread } from '../models/momentum-thread.model';
-import { isNeedsYou } from '../shared/utils/needs-you.util';
+import { isDraftToApprove, isNeedsYou } from '../shared/utils/needs-you.util';
 import { OutreachApiService } from './outreach-api.service';
 import { OutreachAuthService } from './outreach-auth.service';
 
@@ -23,7 +23,7 @@ export class NeedsYouCountService {
   }
 
   setFromThreads ( threads: MomentumThread[] ): void {
-    this.set( threads.filter( isNeedsYou ).length );
+    this.set( threads.filter( thread => isNeedsYou( thread ) || isDraftToApprove( thread ) ).length );
   }
 
   /** Once at sign-in, so the badge is right before any page loads it. */

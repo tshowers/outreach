@@ -239,6 +239,13 @@ export interface MomentumThread {
 
     draftSubject?: string;
     draftBody?: string;
+    /** Set on drafts that should wait in Needs You for the user's OK. */
+    approvalRequested?: boolean;
+    approvalSource?: string;
+    approvalReason?: string;
+    /** Phone and title for contacts that have no Network record (e.g. a prospect list). */
+    contactPhone?: string;
+    contactTitle?: string;
     rejectedDraftSubject?: string;
     rejectedDraftBody?: string;
     strategySummary?: string;

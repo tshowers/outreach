@@ -56,6 +56,17 @@ export function isNeedsYou ( thread: MomentumThread ): boolean {
   return thread.signalState === 'replied' && thread.mode === 'handoff' && hasMayaReply( thread );
 }
 
+/**
+ * A first email waiting for the user's OK. Only drafts someone explicitly
+ * asked to have approved - the drafts lane also holds thousands of old
+ * drafts nobody is waiting on.
+ */
+export function isDraftToApprove ( thread: MomentumThread ): boolean {
+  if ( !thread || ( thread as any ).archived === true ) return false;
+  return thread.approvalRequested === true && thread.userLane === 'drafts' && !thread.rewriteQueueState
+    && !!String( thread.draftBody || '' ).trim();
+}
+
 export function hasMayaReply ( thread: MomentumThread ): boolean {
   return !!String( thread.replyDraftSubject || '' ).trim() && !!String( thread.replyDraftBody || '' ).trim();
 }

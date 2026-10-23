@@ -91,5 +91,12 @@ export const DESIGN_PREVIEW_NEEDS_YOU = [
   needsYou( 'gd', 'George Dimov', 'Dimov Tax', 'What would onboarding look like for a five-person firm?', 'Asked about onboarding', 'no_safe_draft', 30, { replyClassification: 'question' } ),
   needsYou( 'tr', 'Theodore Ricks-Freeman', 'The DC Voice', 'Timing is tight until after our board meeting on the 20th.', 'Timing concern', 'reply_came_in', 31, { replyClassification: 'timing_objection', replyDraftSubject: 'Re: Finding', replyDraftBody: '<p>Understood - I\'ll check back after the 20th.</p>' } ),
   needsYou( 'rl', 'Robert Leung', 'Rosendin', 'I am currently out of the office and will return on Monday, October 5, 2026. If any immediate needs, please contact Matt Zika at mzika@rosendin.com.', 'Out until Oct 5.', 'no_safe_draft', 13 ),
-  needsYou( 'gt', 'Glenn Torrez', 'Torrez Design', 'This is an automated message. This address is no longer active.', '', 'no_safe_draft', 96 )
+  needsYou( 'gt', 'Glenn Torrez', 'Torrez Design', 'This is an automated message. This address is no longer active.', '', 'no_safe_draft', 96 ),
+  {
+    id: 'draft-rt', contactId: 'draft-rt', contactName: 'Randy Talbot', companyName: 'Talbot Financial', emailAddress: 'randy@example.com',
+    contactTitle: 'Founder', contactPhone: '+1 425.555.0142', userLane: 'drafts', mode: 'draft_only', approvalRequested: true,
+    approvalReason: 'First email to a firm on your discovery list. Nothing sends until you approve it.',
+    draftSubject: '20 minutes on how Talbot Financial wins clients?',
+    draftBody: '<p>Hi Randy,</p><p>I run Taliferro Tech in Seattle. Could we find 20 minutes next week to talk about how your firm wins new clients?</p><p>Thanks, Ty</p><table><tr><td>Signature</td></tr></table>'
+  }
 ];
