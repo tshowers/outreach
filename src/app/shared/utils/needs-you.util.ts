@@ -41,7 +41,10 @@ const AUTOMATED = [
   /\bthis (is an|is a|email was) (automated|automatic|auto-generated)\b/i,
   /\bplease do not reply to this (email|message)\b/i,
   /\bdelivery (status notification|has failed)\b/i,
-  /\bautomated (notification|message|email)\b/i
+  /\bautomated (notification|message|email)\b/i,
+  // Maya's summary: "The reply is an automated renewal notice ..., not a response from Don."
+  /\b(reply|email|message|response) (is|was) an? (automated|automatic|auto-generated|system-generated)\b/i,
+  /\bnot a (response|reply) from\b/i
 ];
 const CLASSIFICATION_KINDS: Record<string, NeedsYouKind> = {
   positive: 'interested', question: 'question', timing_objection: 'concern', pricing_objection: 'concern',

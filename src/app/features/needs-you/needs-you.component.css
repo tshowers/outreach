@@ -63,6 +63,11 @@
   border-right: 1px solid var(--surface2);
 }
 
+/* A long queue scrolls; it must not squeeze rows into each other. */
+.list > * {
+  flex: none;
+}
+
 .list__head {
   display: flex;
   justify-content: space-between;
