@@ -1,0 +1,87 @@
+<div class="page">
+  <header class="head">
+    <img class="head__logo" src="assets/outreach/logo.png" alt="" width="34" height="34">
+    <div class="head__title">
+      <h1>Drips</h1>
+      <span class="head__sub">Set it once. It sends for up to {{ maxDays }} days, then archives itself.</span>
+    </div>
+    <a class="primary pill" [href]="emailCreatorUrl" target="_blank" rel="noopener">
+      <app-inbox-icon name="plus" [size]="18"></app-inbox-icon>New drip from Email Creator
+    </a>
+  </header>
+
+  <div class="state" *ngIf="loading">Loading your drips…</div>
+  <div class="state state--error" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
+
+  <ng-container *ngIf="!loading && !errorMessage">
+    <section class="section" aria-labelledby="slots-label">
+      <h2 class="label" id="slots-label">Drip slots <span class="label__sub">{{ slotLabel }}</span></h2>
+      <div class="slots">
+        <a class="card slot" *ngFor="let slot of slots" [routerLink]="['/drips', slot.id]">
+          <div class="slot__tags">
+            <span class="tag" [attr.data-tint]="slot.kindTint">{{ slot.kindLabel }}</span>
+            <span class="tag tag--status" [class.tag--live]="slot.live" [attr.data-tint]="slot.statusTint">{{ slot.statusLabel }}</span>
+            <span class="slot__next">{{ slot.next }}</span>
+          </div>
+          <div>
+            <h3 class="slot__title">{{ slot.title }}</h3>
+            <p class="slot__meta">{{ slot.meta }}</p>
+          </div>
+          <div>
+            <div class="bar" role="progressbar" [attr.aria-valuenow]="slot.day" aria-valuemin="1" [attr.aria-valuemax]="maxDays">
+              <span class="bar__fill" [class.bar__fill--late]="slot.late" [style.width.%]="slot.progress"></span>
+            </div>
+            <div class="bar__row"><span><strong>Day {{ slot.day }}</strong> of {{ maxDays }}</span><span>{{ slot.archives }}</span></div>
+          </div>
+          <div class="tiles">
+            <div class="tile"><strong>{{ slot.sent }}</strong><span>{{ slot.ofTotal }}</span></div>
+            <div class="tile"><strong>{{ slot.opened }}</strong><span>opened</span></div>
+            <div class="tile"><strong>{{ slot.clicked }}</strong><span>clicked</span></div>
+          </div>
+        </a>
+        <div class="slot slot--open" *ngFor="let open of openSlots">
+          <strong>Open slot</strong>
+          <span>Open a ready email below and turn on Drip.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" *ngIf="scheduled.length" aria-labelledby="scheduled-label">
+      <h2 class="label list-label" id="scheduled-label">Scheduled <span class="label__sub">Takes a slot on its start day</span></h2>
+      <div class="rows">
+        <a class="row" *ngFor="let row of scheduled" [routerLink]="['/drips', row.id]">
+          <span class="tag" [attr.data-tint]="row.kindTint">{{ row.kindLabel }}</span>
+          <span class="row__main"><span class="row__title">{{ row.title }}</span><span class="row__meta">{{ row.meta }}</span></span>
+          <app-inbox-icon class="row__chev" name="chevR" [size]="18"></app-inbox-icon>
+        </a>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="ready-label">
+      <h2 class="label list-label" id="ready-label">Ready to drip <span class="label__sub">Made in Email Creator, not started</span></h2>
+      <div class="rows">
+        <a class="row" *ngFor="let row of ready" [routerLink]="['/drips', row.id]">
+          <span class="tag" [attr.data-tint]="row.kindTint">{{ row.kindLabel }}</span>
+          <span class="row__main"><span class="row__title">{{ row.title }}</span><span class="row__meta">{{ row.meta }}</span></span>
+          <app-inbox-icon class="row__chev" name="chevR" [size]="18"></app-inbox-icon>
+        </a>
+        <p class="empty" *ngIf="!ready.length">Nothing waiting. Build an announcement, blog post or newsletter in Email Creator and send it here.</p>
+      </div>
+    </section>
+
+    <section class="card" *ngIf="archived.length" aria-labelledby="archived-label">
+      <h2 class="label list-label" id="archived-label">Archived <span class="label__sub">Read-only. Duplicate one to run it again.</span></h2>
+      <div class="rows">
+        <div class="row" *ngFor="let row of archived">
+          <span class="tag" [attr.data-tint]="row.kindTint">{{ row.kindLabel }}</span>
+          <a class="row__main row__link" [routerLink]="['/drips', row.id]"><span class="row__title">{{ row.title }}</span><span class="row__meta">{{ row.meta }}</span></a>
+          <button type="button" class="duplicate" (click)="duplicate(row)" [disabled]="duplicating === row.id">
+            <app-inbox-icon name="copy" [size]="16"></app-inbox-icon>Duplicate
+          </button>
+        </div>
+      </div>
+    </section>
+  </ng-container>
+</div>
+
+<div class="toast" *ngIf="toast" role="status">{{ toast }}</div>

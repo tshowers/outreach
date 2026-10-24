@@ -100,6 +100,16 @@ export const routes: Routes = [
       import( './features/inbox-access/inbox-access.component' ).then( ( m ) => m.InboxAccessComponent ),
   },
   {
+    path: 'drips',
+    loadComponent: () =>
+      import( './features/drips/drips.component' ).then( ( m ) => m.DripsComponent ),
+  },
+  {
+    path: 'drips/:id',
+    loadComponent: () =>
+      import( './features/drips/drip-detail.component' ).then( ( m ) => m.DripDetailComponent ),
+  },
+  {
     path: 'maya-day',
     loadComponent: () =>
       import( './features/maya-day/maya-day.component' ).then( ( m ) => m.MayaDayComponent ),

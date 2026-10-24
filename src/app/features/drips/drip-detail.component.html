@@ -1,0 +1,233 @@
+<div class="page">
+  <header class="head">
+    <img class="head__logo" src="assets/outreach/logo.png" alt="" width="34" height="34">
+    <div class="head__title">
+      <h1>Drips</h1>
+      <span class="head__sub">Set it once. It sends for up to {{ maxDays }} days, then archives itself.</span>
+    </div>
+    <a class="primary pill" [href]="emailCreatorUrl" target="_blank" rel="noopener">
+      <app-inbox-icon name="plus" [size]="18"></app-inbox-icon>New drip from Email Creator
+    </a>
+  </header>
+
+  <div class="state" *ngIf="loading && !drip">Loading…</div>
+  <div class="state state--error" *ngIf="!loading && errorMessage">{{ errorMessage }} <a routerLink="/drips">All drips</a></div>
+
+  <ng-container *ngIf="drip && !errorMessage">
+    <div class="crumbs">
+      <a class="back" routerLink="/drips"><app-inbox-icon name="chevL" [size]="18"></app-inbox-icon>All drips</a>
+      <span class="tag" [attr.data-tint]="kindTint">{{ kindLabel }}</span>
+      <span class="tag tag--status" [class.tag--live]="live" [attr.data-tint]="statusTint">{{ statusLabel }}</span>
+    </div>
+    <h2 class="title">{{ drip.title }}</h2>
+
+    <div class="cols">
+      <!-- Left: the email, and its clicks -->
+      <div class="col">
+        <section class="card preview">
+          <div class="preview__head">
+            <div class="preview__subject">
+              <strong>{{ drip.subject }}</strong>
+              <span>{{ fromLine }}</span>
+            </div>
+            <div class="seg" role="tablist" aria-label="Preview">
+              <button type="button" role="tab" [class.is-on]="previewMode === 'email'" [attr.aria-selected]="previewMode === 'email'" (click)="setPreviewMode('email')">Email</button>
+              <button type="button" role="tab" [class.is-on]="previewMode === 'clicks'" [attr.aria-selected]="previewMode === 'clicks'" (click)="setPreviewMode('clicks')">
+                <app-inbox-icon name="pointer" [size]="15"></app-inbox-icon>Clicks
+              </button>
+            </div>
+          </div>
+          <div class="stage">
+            <div class="paper">
+              <iframe #mailFrame class="paper__frame" title="The email" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                      [style.height.px]="frameHeight" [srcdoc]="frameDoc" (load)="onFrameLoad()"></iframe>
+            </div>
+          </div>
+        </section>
+
+        <section class="card clicks" *ngIf="started || archived" aria-labelledby="clicks-label">
+          <h3 class="label" id="clicks-label">Clicks by link <span class="label__sub">{{ clickSub }}</span></h3>
+          <div class="clicks__row" *ngFor="let row of clickRows">
+            <span class="clicks__label">{{ row.label }}</span>
+            <span class="clicks__bar"><span [style.width.%]="row.width"></span></span>
+            <strong>{{ row.count }}</strong>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right: controls -->
+      <div class="col">
+        <ng-container *ngIf="!archived">
+          <section class="card control">
+            <div class="toggle-row">
+              <div>
+                <h3 class="control__title">Drip</h3>
+                <p class="control__sentence">{{ sentence }}</p>
+              </div>
+              <button type="button" class="switch" role="switch" [attr.aria-checked]="isOn" aria-label="Drip" [attr.data-state]="switchState" (click)="onToggle()" [disabled]="busy">
+                <span class="switch__knob"></span>
+              </button>
+            </div>
+            <p class="warn" *ngIf="drip.blocker" role="alert">Not sending: {{ drip.blocker.message }}</p>
+            <p class="warn" *ngIf="inlineError" role="alert">{{ inlineError }}</p>
+
+            <div class="block" *ngIf="editableSetup">
+              <h4 class="label">Kind</h4>
+              <div class="seg seg--wide" role="radiogroup" aria-label="Kind">
+                <button type="button" role="radio" *ngFor="let kind of kinds" [class.is-on]="drip.kind === kind.value" [attr.aria-checked]="drip.kind === kind.value" (click)="setKind(kind.value)" [disabled]="busy">{{ kind.label }}</button>
+              </div>
+            </div>
+
+            <div class="block">
+              <h4 class="label">Send rate <span class="label__end">{{ perWeekdayText }}</span></h4>
+              <div class="rate">{{ rateText }}</div>
+              <input class="slider" type="range" min="0" [max]="rateMax" step="1" [ngModel]="rateIndex" (ngModelChange)="onRateInput($event)" (change)="onRateChange($any($event.target).value)" aria-label="Send rate" [disabled]="busy">
+              <div class="slider__ends"><span>1 a minute</span><span>1 a day</span></div>
+            </div>
+
+            <div class="block">
+              <h4 class="label">Audience</h4>
+              <ng-container *ngIf="editableSetup; else lockedTpl">
+                <div class="audiences" role="radiogroup" aria-label="Audience">
+                  <button type="button" role="radio" class="audience" *ngFor="let row of audienceRows" [class.is-on]="row.selected" [attr.aria-checked]="row.selected" (click)="chooseAudience(row.id)" [disabled]="busy">
+                    <span class="audience__dot"></span>
+                    <span class="audience__main"><strong>{{ row.name }}</strong><small>{{ row.source }}</small></span>
+                    <span class="audience__count">{{ row.count }}</span>
+                  </button>
+                  <button type="button" class="audience audience--new" (click)="openAudience()" [attr.aria-expanded]="audienceOpen">
+                    <app-inbox-icon name="plus" [size]="16"></app-inbox-icon>
+                    <span class="audience__main"><strong>New audience</strong><small>Search your contacts or Lead Vault</small></span>
+                  </button>
+                </div>
+
+                <div class="new-audience" *ngIf="audienceOpen">
+                  <div class="seg seg--wide" role="radiogroup" aria-label="From">
+                    <button type="button" role="radio" [class.is-on]="audienceForm.source === 'contacts'" (click)="setAudienceSource('contacts')">Contacts</button>
+                    <button type="button" role="radio" [class.is-on]="audienceForm.source === 'leadVault'" (click)="setAudienceSource('leadVault')">Lead Vault</button>
+                  </div>
+                  <div class="seg seg--wide" *ngIf="audienceForm.source === 'contacts'" role="radiogroup" aria-label="Find by">
+                    <button type="button" role="radio" [class.is-on]="audienceForm.mode === 'search'" (click)="setAudienceMode('search')">Describe them</button>
+                    <button type="button" role="radio" [class.is-on]="audienceForm.mode === 'category'" (click)="setAudienceMode('category')" [disabled]="!categories.length">By category</button>
+                  </div>
+                  <select class="field" *ngIf="audienceForm.source === 'contacts' && audienceForm.mode === 'category'" [(ngModel)]="audienceForm.query" (ngModelChange)="onAudienceQuery()" aria-label="Category">
+                    <option *ngFor="let category of categories" [value]="category.name">{{ category.name }} ({{ category.count }})</option>
+                  </select>
+                  <input class="field" *ngIf="audienceForm.source === 'leadVault' || audienceForm.mode === 'search'" type="text" [(ngModel)]="audienceForm.query" (ngModelChange)="onAudienceQuery()" (keydown.enter)="findAudience()"
+                         [placeholder]="audienceForm.source === 'leadVault' ? 'e.g. fashion brands in New York' : 'e.g. fashion brands'" aria-label="Who should get it">
+                  <button type="button" class="secondary" (click)="findAudience()" [disabled]="audienceBusy || !audienceForm.query.trim()">{{ audienceBusy && !audiencePreview ? 'Finding…' : 'Find people' }}</button>
+                  <div class="found" *ngIf="audiencePreview">
+                    <p><strong>{{ audiencePreview.count | number }} people</strong><span *ngIf="audiencePreview.sample.length">, like {{ audiencePreview.sample.join(', ') }}</span></p>
+                    <ng-container *ngIf="audiencePreview.count">
+                      <input class="field" type="text" [(ngModel)]="audienceName" maxlength="80" aria-label="Audience name" placeholder="Name this audience">
+                      <button type="button" class="primary" (click)="saveAudience()" [disabled]="audienceBusy || !audienceName.trim()">Save and use</button>
+                    </ng-container>
+                  </div>
+                  <p class="warn" *ngIf="audienceError" role="alert">{{ audienceError }}</p>
+                </div>
+              </ng-container>
+              <ng-template #lockedTpl>
+                <div class="locked"><app-inbox-icon name="users" [size]="18"></app-inbox-icon><strong>{{ lockedAudience }}</strong><span>Locked</span></div>
+              </ng-template>
+              <p class="note">Each person gets it once. Unsubscribes and bounces drop out automatically.</p>
+            </div>
+
+            <div class="block">
+              <h4 class="label">Schedule <span class="label__end">{{ scheduleDays }}</span></h4>
+              <div class="seg seg--wide" *ngIf="drip.status === 'ready'" role="radiogroup" aria-label="When it starts">
+                <button type="button" role="radio" [class.is-on]="drip.startMode !== 'date'" (click)="setStartMode('now')" [disabled]="busy">Start when I turn it on</button>
+                <button type="button" role="radio" [class.is-on]="drip.startMode === 'date'" (click)="setStartMode('date')" [disabled]="busy">Pick a start day</button>
+              </div>
+              <div class="dates">
+                <label class="date">
+                  <small>Starts</small>
+                  <input *ngIf="drip.status === 'scheduled' || (drip.status === 'ready' && drip.startMode === 'date'); else startFixed" type="date" [min]="startMin" [max]="startMax" [ngModel]="startValue" (change)="setStart($any($event.target).value)" [disabled]="busy">
+                  <ng-template #startFixed><strong>{{ startFixedText }}</strong></ng-template>
+                </label>
+                <label class="date">
+                  <small>Archives on</small>
+                  <input type="date" [min]="endMin" [max]="endMax" [ngModel]="endValue" (change)="setEnd($any($event.target).value)" [disabled]="busy">
+                </label>
+              </div>
+              <p class="note note--conflict" *ngIf="conflictNote; else plainNote">{{ conflictNote }}</p>
+              <ng-template #plainNote><p class="note">{{ scheduleNote }}</p></ng-template>
+            </div>
+
+            <p class="hours"><app-inbox-icon name="clock" [size]="18"></app-inbox-icon>Weekdays 9 am–5 pm in each person's time zone · SendGrid</p>
+          </section>
+
+          <section class="expiry" [attr.data-tint]="expiryTint">
+            <h3 class="expiry__title"><app-inbox-icon name="hourglass" [size]="18"></app-inbox-icon>{{ expiryTitleText }}</h3>
+            <ng-container *ngIf="started">
+              <div class="expiry__bar"><span [style.width.%]="expiryProgress"></span></div>
+              <p>{{ expirySentence }}</p>
+              <button type="button" class="linkish" (click)="askArchive()" [disabled]="busy">Archive now and free the slot</button>
+            </ng-container>
+          </section>
+
+          <section class="reach" *ngIf="reach">
+            <h3 class="label">Projected reach</h3>
+            <p>{{ reach }}</p>
+          </section>
+        </ng-container>
+
+        <section class="archived-panel" *ngIf="archived">
+          <h3><app-inbox-icon name="archive" [size]="20"></app-inbox-icon>{{ archivedOn }}</h3>
+          <p>{{ archivedText }}</p>
+          <button type="button" class="primary" (click)="duplicate()" [disabled]="busy"><app-inbox-icon name="copy" [size]="16"></app-inbox-icon>Duplicate as new drip</button>
+        </section>
+
+        <section class="card sofar">
+          <h3 class="label">So far <span class="label__end">{{ soFarEnd }}</span></h3>
+          <div class="sofar__grid">
+            <div class="tile" *ngFor="let tile of tiles"><strong>{{ tile.value }}</strong><span>{{ tile.label }}</span></div>
+          </div>
+          <p class="note">Opens are estimates; some mail apps load images automatically. Clicks are counted per link by SendGrid.</p>
+        </section>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<!-- Dialogs -->
+<div class="backdrop" *ngIf="dialog" (click)="closeDialog()">
+  <div class="dialog" role="dialog" aria-modal="true" (click)="$event.stopPropagation()" [ngSwitch]="dialog.type">
+    <ng-container *ngSwitchCase="'start'">
+      <ng-container *ngIf="dialog.type === 'start'">
+        <h2>{{ dialog.title }}</h2>
+        <p>{{ dialog.body }}</p>
+        <p>{{ dialog.note }}</p>
+        <div class="dialog__actions">
+          <button type="button" class="secondary" (click)="closeDialog()">Not yet</button>
+          <button type="button" class="primary" (click)="confirmStart()" [disabled]="busy">{{ dialog.action }}</button>
+        </div>
+      </ng-container>
+    </ng-container>
+    <ng-container *ngSwitchCase="'overlap'">
+      <ng-container *ngIf="dialog.type === 'overlap'">
+        <h2>Two drips already run on {{ dialog.conflict.date | date:'MMM d':'UTC' }}</h2>
+        <p>You can run 2 drips at a time, and a paused drip keeps its slot. Change this drip's dates, or free a slot:</p>
+        <div class="conflict" *ngFor="let other of dialog.conflict.drips">
+          <span class="conflict__main"><strong>{{ other.title }}</strong><small>{{ other.status === 'running' ? 'Sending' : other.status === 'paused' ? 'Paused' : 'Scheduled' }} · {{ other.startDate | date:'MMM d':'UTC' }} to {{ other.endDate | date:'MMM d':'UTC' }}</small></span>
+          <button type="button" class="conflict__action" (click)="freeSlot(other)" [disabled]="busy">
+            <app-inbox-icon [name]="other.status === 'scheduled' ? 'x' : 'archive'" [size]="16"></app-inbox-icon>{{ other.status === 'scheduled' ? 'Unschedule' : 'Archive' }}
+          </button>
+        </div>
+        <div class="dialog__actions">
+          <button type="button" class="secondary" (click)="closeDialog()">Change dates</button>
+        </div>
+      </ng-container>
+    </ng-container>
+    <ng-container *ngSwitchCase="'archive'">
+      <ng-container *ngIf="dialog.type === 'archive'">
+        <h2>Archive now?</h2>
+        <p>It stops sending and frees its slot. {{ dialog.queued | number }} {{ dialog.queued === 1 ? 'person' : 'people' }} in the queue won't get it. You can't restart it, but you can duplicate it.</p>
+        <div class="dialog__actions">
+          <button type="button" class="secondary" (click)="closeDialog()">Keep it</button>
+          <button type="button" class="primary primary--pink" (click)="confirmArchive()" [disabled]="busy">Archive</button>
+        </div>
+      </ng-container>
+    </ng-container>
+  </div>
+</div>
+
+<div class="toast" *ngIf="toast" role="status">{{ toast }}</div>

@@ -44,7 +44,7 @@ export class AppComponent implements OnInit {
   title = 'outreach';
 
   /** The signed-in workspace pages get the laptop shell's sidebar. */
-  private static readonly shellRoutes = ['/app', '/needs-you', '/signal-engine', '/inbox', '/inbox-access', '/compose-email', '/email-processor', '/maya-day', '/engagement', '/profile', '/get-started'];
+  private static readonly shellRoutes = ['/app', '/needs-you', '/signal-engine', '/inbox', '/inbox-access', '/compose-email', '/email-processor', '/maya-day', '/drips', '/engagement', '/profile', '/get-started'];
   showShell = false;
 
   async signOut (): Promise<void> {

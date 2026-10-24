@@ -11,6 +11,7 @@ export const PLATFORM_MENU_CONFIG: MenuAppConfig = {
     { label: 'Inbox', icon: 'inbox', route: '/inbox', keywords: 'mail replies' },
     { label: 'Signal Engine', icon: 'send', route: '/signal-engine', keywords: 'outbox sent plan' },
     { label: 'Catalyst', icon: 'bolt', route: '/email-processor', keywords: 'stale contacts batch' },
+    { label: 'Drips', icon: 'mail', route: '/drips', keywords: 'newsletter blog announcement drip campaign schedule' },
     { label: 'Email Composer', icon: 'pen', route: '/compose-email', keywords: 'write new email' },
     { label: 'Activity', icon: 'activity', route: '/maya-day', keywords: 'maya day' },
   ],
