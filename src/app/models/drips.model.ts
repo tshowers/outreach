@@ -143,7 +143,7 @@ export function dayOf ( iso: string | null | undefined, timezone: string ): stri
 export function percent ( part: number, whole: number ): string {
   if ( !whole ) return '0%';
   const value = ( part / whole ) * 100;
-  return `${ value >= 10 || value === 0 ? Math.round( value ) : value.toFixed( 1 ) }%`;
+  return `${ value >= 10 ? Math.round( value ) : Number( value.toFixed( 1 ) ) }%`;
 }
 
 export function countdown ( ms: number ): string {

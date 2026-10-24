@@ -99,8 +99,9 @@
                 <p class="catalyst-empty-state-text"> Catalyst analyzes your contacts and helps you decide who to reach out to next and what to say. </p>
                 <p class="catalyst-empty-state-subtext"> You do not have any contacts yet. </p>
                 <div class="catalyst-empty-state-actions mt-3">
-                    <button class="btn btn-primary" (click)="onClickRoute('/contact-list')">Go to Network</button>
-                    <button class="btn btn-outline-secondary" (click)="onClickRoute('/contact-import')">Import Contacts</button>
+                    <!-- Contacts live in the Network app; these pages aren't routes in Outreach. -->
+                    <a class="btn btn-primary" href="https://network.taliferro.tech/contact-list" target="_blank" rel="noopener">Go to Network</a>
+                    <a class="btn btn-outline-secondary" href="https://network.taliferro.tech/contact-import" target="_blank" rel="noopener">Import Contacts</a>
                 </div>
             </div>
         </div>

@@ -48,7 +48,7 @@ export class DripDetailComponent implements OnInit, OnDestroy {
   readonly rateMax = DRIP_RATES.length - 1;
   readonly kinds: { value: DripKind; label: string }[] = ( Object.keys( KIND_LABELS ) as DripKind[] ).map( ( value ) => ( { value, label: KIND_LABELS[value] } ) );
 
-  tenantId = '';
+  userId = '';
   dripId = '';
   loading = true;
   errorMessage = '';
@@ -117,11 +117,12 @@ export class DripDetailComponent implements OnInit, OnDestroy {
   ngOnInit (): void {
     this.subscriptions.push( this.route.paramMap.subscribe( ( params ) => {
       this.dripId = params.get( 'id' ) || '';
-      if ( this.tenantId ) void this.load();
+      if ( this.userId ) void this.load();
     } ) );
-    this.subscriptions.push( this.auth.getTenantId().subscribe( ( tenantId ) => {
-      if ( !tenantId || tenantId === this.tenantId ) return;
-      this.tenantId = tenantId;
+    // The server takes the workspace from the login token, so the signed-in user is all this waits for.
+    this.subscriptions.push( this.auth.getUserId().subscribe( ( userId ) => {
+      if ( !userId || userId === this.userId ) return;
+      this.userId = userId;
       void this.load();
     } ) );
     this.clock = setInterval( () => this.tickClock(), 1000 );

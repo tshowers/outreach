@@ -59,7 +59,7 @@ export class DripsComponent implements OnInit, OnDestroy {
 
   readonly emailCreatorUrl = EMAIL_CREATOR_URL;
   readonly maxDays = DRIP_MAX_DAYS;
-  tenantId = '';
+  userId = '';
   loading = true;
   errorMessage = '';
   slotLabel = '';
@@ -72,9 +72,10 @@ export class DripsComponent implements OnInit, OnDestroy {
   toast = '';
 
   ngOnInit (): void {
-    this.tenantSubscription = this.auth.getTenantId().subscribe( ( tenantId ) => {
-      if ( !tenantId || tenantId === this.tenantId ) return;
-      this.tenantId = tenantId;
+    // The server takes the workspace from the login token, so the signed-in user is all this waits for.
+    this.tenantSubscription = this.auth.getUserId().subscribe( ( userId ) => {
+      if ( !userId || userId === this.userId ) return;
+      this.userId = userId;
       void this.load();
     } );
     this.timer = setInterval( () => this.tickCountdowns(), 1000 );

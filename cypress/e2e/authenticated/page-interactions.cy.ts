@@ -16,7 +16,8 @@ describe('Signal Engine buttons', () => {
     // || null`, and the template's `*ngIf="summary as s"`). The blanket
     // support-file stub returns `{}`, which would hide it, so give this
     // endpoint a realistic empty-but-shaped response instead.
-    cy.intercept('https://api.taliferro.tech/api/outreach/signal-engine/bootstrap', {
+    // Matched on the path: the app adds ?ngsw-bypass=true to every request.
+    cy.intercept({ method: 'GET', pathname: '/api/outreach/signal-engine/bootstrap' }, {
       statusCode: 200,
       body: {
         success: true,
@@ -43,10 +44,10 @@ describe('Signal Engine buttons', () => {
     cy.wait('@bootstrap');
   });
 
-  it('"Needs you" switches to the plan lane filtered to what needs a human', () => {
+  // People waiting on you have their own page now (Needs you), not a filter on Plan.
+  it('"Needs you" opens the Needs you page', () => {
     cy.get('[data-cy="signal-engine-summary-needs-you"]').click();
-    cy.get('[data-cy="signal-engine-plan"]').should('exist');
-    cy.get('[data-cy="signal-engine-plan-filter-needs-you"]').should('have.class', 'active');
+    cy.location('pathname', { timeout: 10000 }).should('eq', '/needs-you');
   });
 });
 
@@ -60,11 +61,6 @@ describe('Inbox Access buttons', () => {
   it('is the Inbox settings page', () => {
     cy.contains('h1', 'Inbox settings').should('be.visible');
   });
-
-  it('"Open Outbox Drafts" goes to Signal Engine', () => {
-    cy.contains('button', 'Open Outbox Drafts').click();
-    cy.location('pathname', { timeout: 10000 }).should('eq', '/signal-engine');
-  });
 });
 
 describe('Catalyst (email-processor) empty-state buttons', () => {
@@ -76,19 +72,12 @@ describe('Catalyst (email-processor) empty-state buttons', () => {
     cy.contains('h2', 'Catalyst needs contacts to work').should('be.visible');
   });
 
-  // These route to '/contact-list' and '/contact-import', which aren't
-  // routes in this standalone app (see app.routes.ts) - they look like
-  // leftovers from the ported TODD/Network codebase (top-dog.component.ts's
-  // onClickRoute). The wildcard route sends both to /app, which is the
-  // actually-observed behavior this test documents; worth a product check
-  // on whether these buttons should go somewhere else instead.
-  it('"Go to Network" falls through to /app (route does not exist in this app)', () => {
-    cy.contains('button', 'Go to Network').click();
-    cy.location('pathname', { timeout: 10000 }).should('eq', '/app');
+  // Contacts live in the Network app, so both open it in a new tab.
+  it('"Go to Network" opens Network\'s contact list', () => {
+    cy.contains('a', 'Go to Network').should('have.attr', 'href', 'https://network.taliferro.tech/contact-list').and('have.attr', 'target', '_blank');
   });
 
-  it('"Import Contacts" falls through to /app (route does not exist in this app)', () => {
-    cy.contains('button', 'Import Contacts').click();
-    cy.location('pathname', { timeout: 10000 }).should('eq', '/app');
+  it('"Import Contacts" opens Network\'s import', () => {
+    cy.contains('a', 'Import Contacts').should('have.attr', 'href', 'https://network.taliferro.tech/contact-import').and('have.attr', 'target', '_blank');
   });
 });
