@@ -29,6 +29,7 @@ import { ComposerHandoff, OutreachApiService } from '../../../services/outreach-
 import { MomentumThread } from '../../../models/momentum-thread.model';
 import { OutreachAssistantSignalService } from '../../../services/outreach-assistant-signal.service';
 import { WriteActionDirective } from '../../../shared/write-access/write-action.directive';
+import { WriteAccessService } from '../../../services/write-access.service';
 
 export interface AssistantDraftPayload {
   subject?: string;
@@ -166,6 +167,7 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
   periodStartDate!: Date;
 
   private textOnly: string = '';
+  private readonly writeAccess = inject( WriteAccessService );
   private subscriptions: import( 'rxjs' ).Subscription[] = [];
   private validQueueSubscription!: import( 'rxjs' ).Subscription;
 
@@ -832,7 +834,14 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
       this.currentContactSubscription.unsubscribe();
 
     this.route.queryParams.pipe( take( 1 ) ).subscribe( params => {
-      const id = params['id'] || params['contactId'];
+      // Network's deep link: ?contactIds=a,b&source=network&draft=profile
+      // (todd-backend networkOnboardingEmails.service.js outreachComposeUrl).
+      const contactIds = String( params['contactIds'] || '' ).split( ',' ).map( ( v ) => v.trim() ).filter( Boolean ).slice( 0, 50 );
+      if ( contactIds.length > 1 ) {
+        void this.loadNetworkContacts( contactIds, params['draft'] === 'profile' );
+        return;
+      }
+      const id = params['id'] || params['contactId'] || contactIds[0];
       if ( id ) {
         this.dataSubscription = this.outreachApi.getOutreachContactById( id, {
           tenantId: this.tenantId,
@@ -844,6 +853,7 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
           if ( !this.selectedContact ) this.setupContacts();
           this.completeInitStep();
           this.publishPageContext();
+          if ( contact && params['draft'] === 'profile' ) void this.draftFromProfile( contact );
         } );
       } else {
         this.currentContactSubscription = this.contactService.currentContact.subscribe( contact => {
@@ -855,6 +865,64 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
         } );
       }
     } );
+  }
+
+  /**
+   * Several contacts from Network: they become the queue, so the existing
+   * campaign mode takes over (one email, sent to each).
+   */
+  private async loadNetworkContacts ( contactIds: string[], draft: boolean ): Promise<void> {
+    const auth = { tenantId: this.tenantId, userId: this.userId, userEmail: this.firebaseUser?.email || undefined };
+    const contacts = ( await Promise.all( contactIds.map( ( id ) =>
+      firstValueFrom( this.outreachApi.getOutreachContactById( id, auth ).pipe(
+        map( ( response ) => ( response?.data as Contact ) || null ),
+        catchError( () => of( null ) ),
+      ) ) ) ) ).filter( ( contact ): contact is Contact => !!contact );
+
+    if ( contacts.length ) {
+      if ( !String( this.emailForm.value.campaignName || '' ).trim() ) {
+        this.emailForm.patchValue( { campaignName: 'Network follow-up' } );
+      }
+      this.contactService.setQueue( contacts );
+    } else {
+      this.setupContacts();
+    }
+    this.completeInitStep();
+    this.publishPageContext();
+    if ( contacts.length && draft ) void this.draftFromProfile( contacts[0] );
+  }
+
+  /**
+   * draft=profile: a first email from the sender's profile, written to the
+   * first contact, while the editor holds no more than a greeting. Only with
+   * Outreach - drafting is TODD's work; without it the browse notice offers
+   * Outreach. Then the param is dropped so a reload doesn't draft again.
+   */
+  private async draftFromProfile ( contact: Contact ): Promise<void> {
+    try {
+      const state = await firstValueFrom( this.writeAccess.state( 'outreach' ) );
+      if ( state !== 'canWrite' ) return;
+      if ( !this.sender && this.tenantId && this.userId ) {
+        this.sender = ( await this.dataService.getContact( this.tenantId, this.userId ) ) || this.sender;
+      }
+      const draft = await firstValueFrom( this.emailService.generateEmailDraftFromEditor( {
+        userId: this.userId,
+        tenantId: this.tenantId,
+        subject: String( this.emailForm.value.subject || '' ),
+        selectedContact: contact,
+        sender: this.sender,
+        handoffSource: 'network',
+        draftIntent: 'fresh_outbound',
+        promptMode: 'cold_first_touch',
+      }, null ) );
+      const editorText = String( this.textOnly || this.emailForm.value.text || '' ).trim();
+      const greetingOnly = !editorText || /^hi\b[^.\n]*,?$/i.test( editorText );
+      if ( draft && greetingOnly ) this.applyAssistantDraft( { subject: draft.subject, body: draft.body } );
+    } catch ( error ) {
+      this.logger.warn( '[EmailCreate] Network profile draft failed', error );
+    } finally {
+      void this.router.navigate( [], { relativeTo: this.route, queryParams: { draft: null }, queryParamsHandling: 'merge', replaceUrl: true } );
+    }
   }
 
   postProcessContact ( contact: Contact ) {
