@@ -295,7 +295,8 @@ export class DripDetailComponent implements OnInit, OnDestroy {
     this.audienceError = '';
     this.audiencePreview = null;
     if ( this.audienceOpen && !this.categories.length ) {
-      this.categories = await this.api.categories().catch( () => [] );
+      const categories = await this.api.categories().catch( () => [] );
+      this.categories = categories.sort( ( a, b ) => a.name.localeCompare( b.name, undefined, { sensitivity: 'base' } ) );
     }
   }
 
