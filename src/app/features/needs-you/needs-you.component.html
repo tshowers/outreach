@@ -1,4 +1,4 @@
-<div class="needs-you__notice"><app-browse-notice surfaceLabel="Needs you"></app-browse-notice></div>
+<div class="needs-you__notice"><app-browse-notice what="Needs you"></app-browse-notice></div>
 <div class="needs-you todd-page" [class.needs-you--empty]="!loading && !items.length && !error">
   <!-- Cleared to zero (5d) -->
   <section class="zero" *ngIf="signedOut && !items.length">
