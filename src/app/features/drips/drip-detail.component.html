@@ -96,14 +96,14 @@
                   </button>
                   <button type="button" class="audience audience--new" (click)="openAudience()" [attr.aria-expanded]="audienceOpen">
                     <app-inbox-icon name="plus" [size]="16"></app-inbox-icon>
-                    <span class="audience__main"><strong>New audience</strong><small>Search your contacts or Lead Vault</small></span>
+                    <span class="audience__main"><strong>New audience</strong><small>Search your contacts, Lead Vault or both</small></span>
                   </button>
                 </div>
 
                 <div class="new-audience" *ngIf="audienceOpen">
-                  <div class="seg seg--wide" role="radiogroup" aria-label="From">
-                    <button type="button" role="radio" [class.is-on]="audienceForm.source === 'contacts'" (click)="setAudienceSource('contacts')">Contacts</button>
-                    <button type="button" role="radio" [class.is-on]="audienceForm.source === 'leadVault'" (click)="setAudienceSource('leadVault')">Lead Vault</button>
+                  <div class="seg seg--wide" role="group" aria-label="From">
+                    <button type="button" [class.is-on]="audienceUses('contacts')" [attr.aria-pressed]="audienceUses('contacts')" (click)="toggleAudienceSource('contacts')">Contacts</button>
+                    <button type="button" [class.is-on]="audienceUses('leadVault')" [attr.aria-pressed]="audienceUses('leadVault')" (click)="toggleAudienceSource('leadVault')">Lead Vault</button>
                   </div>
                   <div class="seg seg--wide" *ngIf="audienceForm.source === 'contacts'" role="radiogroup" aria-label="Find by">
                     <button type="button" role="radio" [class.is-on]="audienceForm.mode === 'search'" (click)="setAudienceMode('search')">Describe them</button>
@@ -112,8 +112,8 @@
                   <select class="field" *ngIf="audienceForm.source === 'contacts' && audienceForm.mode === 'category'" [(ngModel)]="audienceForm.query" (ngModelChange)="onAudienceQuery()" aria-label="Category">
                     <option *ngFor="let category of categories" [value]="category.name">{{ category.name }} ({{ category.count }})</option>
                   </select>
-                  <input class="field" *ngIf="audienceForm.source === 'leadVault' || audienceForm.mode === 'search'" type="text" [(ngModel)]="audienceForm.query" (ngModelChange)="onAudienceQuery()" (keydown.enter)="findAudience()"
-                         [placeholder]="audienceForm.source === 'leadVault' ? 'e.g. fashion brands in New York' : 'e.g. fashion brands'" aria-label="Who should get it">
+                  <input class="field" *ngIf="audienceForm.source !== 'contacts' || audienceForm.mode === 'search'" type="text" [(ngModel)]="audienceForm.query" (ngModelChange)="onAudienceQuery()" (keydown.enter)="findAudience()"
+                         [placeholder]="audienceForm.source !== 'contacts' ? 'e.g. fashion brands in New York' : 'e.g. fashion brands'" aria-label="Who should get it">
                   <button type="button" class="secondary" (click)="findAudience()" [disabled]="audienceBusy || !audienceForm.query.trim()">{{ audienceBusy && !audiencePreview ? 'Finding…' : 'Find people' }}</button>
                   <div class="found" *ngIf="audiencePreview">
                     <p><strong>{{ audiencePreview.count | number }} people</strong><span *ngIf="audiencePreview.sample.length">, like {{ audiencePreview.sample.join(', ') }}</span></p>

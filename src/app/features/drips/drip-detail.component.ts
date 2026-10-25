@@ -300,8 +300,19 @@ export class DripDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  setAudienceSource ( source: AudienceQuery['source'] ): void {
-    this.audienceForm = { source, mode: 'search', query: '' };
+  audienceUses ( from: 'contacts' | 'leadVault' ): boolean {
+    return this.audienceForm.source === from || this.audienceForm.source === 'both';
+  }
+
+  /** Contacts and Lead Vault switch on and off independently; one stays on. */
+  toggleAudienceSource ( from: 'contacts' | 'leadVault' ): void {
+    const contacts = from === 'contacts' ? !this.audienceUses( 'contacts' ) : this.audienceUses( 'contacts' );
+    const leadVault = from === 'leadVault' ? !this.audienceUses( 'leadVault' ) : this.audienceUses( 'leadVault' );
+    if ( !contacts && !leadVault ) return;
+    const source: AudienceQuery['source'] = contacts && leadVault ? 'both' : contacts ? 'contacts' : 'leadVault';
+    // A description carries over; a category only means something to Contacts.
+    const query = this.audienceForm.mode === 'search' ? this.audienceForm.query : '';
+    this.audienceForm = { source, mode: 'search', query };
     this.audiencePreview = null;
     this.audienceError = '';
   }

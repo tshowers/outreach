@@ -22,7 +22,7 @@ export interface DripPatch {
 }
 
 export interface AudienceQuery {
-  source: 'contacts' | 'leadVault';
+  source: 'contacts' | 'leadVault' | 'both';
   mode: 'search' | 'category';
   query: string;
   name?: string;

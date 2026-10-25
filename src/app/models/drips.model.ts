@@ -12,7 +12,7 @@ export type DripKind = 'newsletter' | 'blog' | 'announcement';
 export interface DripAudienceRef {
   id: string;
   name: string;
-  source: 'contacts' | 'leadVault';
+  source: 'contacts' | 'leadVault' | 'both';
   count: number;
   lockedAt?: string;
 }
@@ -236,7 +236,7 @@ export function audienceLine ( drip: Drip ): string {
 }
 
 export function sourceLabel ( source: DripAudienceRef['source'] ): string {
-  return source === 'leadVault' ? 'Lead Vault' : 'Contacts';
+  return source === 'both' ? 'Contacts + Lead Vault' : source === 'leadVault' ? 'Lead Vault' : 'Contacts';
 }
 
 /** Each link in the email: what it says, keyed by where it goes. */

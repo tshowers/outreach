@@ -252,6 +252,22 @@ describe( 'Outreach Drips', () => {
       cy.contains( '.new-audience .warn', 'Lead Vault Unlimited subscription required' );
     } );
 
+    it( 'Contacts and Lead Vault can be searched together, and one always stays on', () => {
+      cy.intercept( { method: 'POST', pathname: `${ API }/audiences/preview` }, ok( { count: 912, terms: [], sample: ['Zoe Lin'] } ) ).as( 'previewBoth' );
+      cy.contains( 'button', 'New audience' ).click();
+      cy.contains( '.new-audience .seg button', 'Contacts' ).should( 'have.attr', 'aria-pressed', 'true' );
+      cy.get( '.new-audience input.field' ).type( 'fashion brands' );
+      cy.contains( '.new-audience .seg button', 'Lead Vault' ).click().should( 'have.attr', 'aria-pressed', 'true' );
+      cy.contains( '.new-audience .seg button', 'By category' ).should( 'not.exist' );
+      cy.get( '.new-audience input.field' ).should( 'have.value', 'fashion brands' );
+      cy.contains( 'button', 'Find people' ).click();
+      cy.wait( '@previewBoth' ).its( 'request.body' ).should( 'deep.equal', { source: 'both', mode: 'search', query: 'fashion brands' } );
+      cy.contains( '.found', '912 people' );
+
+      cy.contains( '.new-audience .seg button', 'Contacts' ).click().should( 'have.attr', 'aria-pressed', 'false' );
+      cy.contains( '.new-audience .seg button', 'Lead Vault' ).click().should( 'have.attr', 'aria-pressed', 'true' );
+    } );
+
     it( 'a picked start day schedules it instead', () => {
       cy.contains( '.audience', 'Newsletter subscribers' ).click();
       cy.wait( '@patch' );
