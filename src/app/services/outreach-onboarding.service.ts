@@ -122,16 +122,14 @@ export class OutreachOnboardingService {
     switch ( step.id ) {
       case 'connectInbox': return '/inbox-access';
       case 'profile': return '/setup/profile';
-      case 'firstSend': return '/compose-email';
+      case 'firstSend': return '/setup/first-email';
       default: return '/app';
     }
   }
 
-  /** The first email opens the composer with Network's contacts selected and a draft from the profile. */
-  queryParamsFor ( step: OutreachStep ): Record<string, string> | null {
-    if ( step.id !== 'firstSend' ) return null;
-    const ids = this.handoff()?.contactIds || [];
-    return ids.length ? { contactIds: ids.join( ',' ), source: 'network', draft: 'profile' } : { draft: 'profile' };
+  /** No step needs query params: the first email reads Network's contacts from the handoff. */
+  queryParamsFor ( _step: OutreachStep ): Record<string, string> | null {
+    return null;
   }
 
   actionFor ( step: OutreachStep ): string {

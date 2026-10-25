@@ -70,7 +70,7 @@
           <h1>{{ connectingAddress || 'Your inbox' }} is ready</h1>
           <p>Outreach can send from this address and will read replies from now on.</p>
           <a *ngIf="nextIsProfile; else firstEmail" class="guided__primary" routerLink="/setup/profile" data-cy="guided-next">Next: your profile</a>
-          <ng-template #firstEmail><a class="guided__primary" routerLink="/compose-email" [queryParams]="firstEmailParams" data-cy="guided-next">See your first email</a></ng-template>
+          <ng-template #firstEmail><a class="guided__primary" routerLink="/setup/first-email" data-cy="guided-next">See your first email</a></ng-template>
         </div>
       </div>
 

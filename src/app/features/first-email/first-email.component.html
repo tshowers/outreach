@@ -1,0 +1,114 @@
+<main class="fe todd-page" data-cy="first-email">
+  <a class="fe-back" routerLink="/app">← Back</a>
+
+  @if (loading || (working && !batch)) {
+    <div class="fe-intro">
+      <span class="fe-tag"><span class="fe-dot" aria-hidden="true"></span>Maya is writing</span>
+      <h1>Your first email, written by Maya</h1>
+      <p>One personal email for each contact from Network. This takes a few seconds.</p>
+    </div>
+  } @else if (blocked === 'contacts') {
+    <div class="fe-intro">
+      <h1>Who should hear from you first?</h1>
+      <p>Pick people in Network and choose “Email in Outreach”, and Maya writes each of them a personal first email here. Or write one yourself in the composer.</p>
+      <div class="fe-row">
+        <a class="fe-btn fe-btn--primary" href="https://network.taliferro.tech/contact-list">Pick contacts in Network</a>
+        <a class="fe-btn" routerLink="/compose-email" [queryParams]="{ draft: 'profile' }">Open the composer</a>
+      </div>
+    </div>
+  } @else if (blocked === 'subscription') {
+    <div class="fe-intro">
+      <h1>Your first email, written by Maya</h1>
+      <p>Maya writes a personal email to each of your Network contacts from your profile. Writing and sending them needs Outreach.</p>
+      <app-browse-notice what="your first email"></app-browse-notice>
+    </div>
+  } @else if (batch) {
+    <header class="fe-intro">
+      @if (batch.status === 'sending') { <span class="fe-tag"><span class="fe-dot" aria-hidden="true"></span>Sending</span> }
+      <h1 data-cy="first-email-heading">{{ heading }}</h1>
+      <p>{{ subline }}</p>
+    </header>
+
+    @if (errorMessage) { <p class="fe-error" role="alert">{{ errorMessage }}</p> }
+
+    @if (batch.status === 'draft') {
+      @if (!inboxConnected) {
+        <p class="fe-warn">Connect your inbox first, so these go out from your own address. <a routerLink="/inbox-access">Connect your inbox</a></p>
+      }
+      <div class="fe-review">
+        <nav class="fe-people" aria-label="Recipients">
+          <span class="fe-people__count">{{ rows.length }} {{ rows.length === 1 ? 'recipient' : 'recipients' }} · each email is personal</span>
+          @for (row of rows; track row.contactId; let i = $index) {
+            <button type="button" class="fe-person" [class.is-on]="i === selected" (click)="selected = i" data-cy="first-email-person">
+              <strong>{{ row.name }}</strong><span>{{ row.company || row.email }}</span>
+            </button>
+          }
+        </nav>
+
+        @if (current; as row) {
+          <article class="fe-preview" data-cy="first-email-preview">
+            <dl class="fe-head">
+              <div><dt>From</dt><dd>{{ fromAddress }}</dd></div>
+              <div><dt>To</dt><dd>{{ row.name }} &lt;{{ row.email }}&gt;</dd></div>
+              <div><dt>Subject</dt><dd>{{ row.subject }}</dd></div>
+            </dl>
+            <div class="fe-body">
+              @for (p of paragraphs(row.body); track $index) { <p>{{ p }}</p> }
+            </div>
+            <footer class="fe-why"><strong>Why Maya wrote it this way</strong><span>{{ row.why }}</span></footer>
+            <button type="button" class="fe-link" appWriteAction="edit this email" (click)="editInComposer(row)">Edit this one in the composer</button>
+          </article>
+        }
+      </div>
+
+      @if (needsAddress) {
+        <section class="fe-address" aria-labelledby="fe-address-title" data-cy="first-email-address">
+          <h2 id="fe-address-title">Your mailing address</h2>
+          <p>Email law asks every business email to show where you're based. Outreach adds it to the small footer under each email, with an unsubscribe link.</p>
+          <div class="fe-address__grid">
+            @if (needsCompanyName) {
+              <label class="is-wide"><span>Company name</span><input [(ngModel)]="address.companyName" autocomplete="organization" /></label>
+            }
+            <label class="is-wide"><span>Street</span><input [(ngModel)]="address.streetAddress" autocomplete="street-address" data-cy="address-street" /></label>
+            <label><span>City</span><input [(ngModel)]="address.city" autocomplete="address-level2" data-cy="address-city" /></label>
+            <label><span>State</span><input [(ngModel)]="address.state" autocomplete="address-level1" /></label>
+            <label><span>ZIP</span><input [(ngModel)]="address.zip" autocomplete="postal-code" /></label>
+            <label><span>Country</span><input [(ngModel)]="address.country" autocomplete="country" /></label>
+          </div>
+          <button type="button" class="fe-btn" [disabled]="savingAddress || !address.streetAddress || !address.city" appWriteAction="save your address"
+                  (click)="saveAddress()" data-cy="address-save">{{ savingAddress ? 'Saving…' : 'Save address' }}</button>
+        </section>
+      }
+
+      <div class="fe-actions">
+        <button type="button" class="fe-btn fe-btn--primary" [disabled]="working || !inboxConnected || !rows.length || needsAddress" appWriteAction="send your first emails"
+                (click)="send()" data-cy="first-email-send">Send {{ rows.length }} from {{ fromAddress }}</button>
+        <button type="button" class="fe-btn" [disabled]="working" appWriteAction="rewrite these emails" (click)="toggleTone()" data-cy="first-email-tone">
+          {{ working ? 'Rewriting…' : batch.tone === 'softer' ? 'Back to first version' : 'Try a softer version' }}</button>
+        <span class="fe-note">Sent from your inbox, spaced a few minutes apart.</span>
+      </div>
+    } @else {
+      <div class="fe-bar" role="progressbar" [attr.aria-valuenow]="sentCount" aria-valuemin="0" [attr.aria-valuemax]="rows.length">
+        <span [style.width.%]="rows.length ? sentCount / rows.length * 100 : 0"></span>
+      </div>
+      <ol class="fe-sending" data-cy="first-email-rows">
+        @for (row of rows; track row.contactId) {
+          <li><div><strong>{{ row.name }}</strong><span>{{ row.email }}</span></div>
+            <span class="fe-status" [attr.data-status]="row.status">{{ rowLabel(row) }}</span></li>
+        }
+      </ol>
+      @if (batch.status === 'done') {
+        @if (failedCount) {
+          <p class="fe-warn">{{ failedCount }} {{ failedCount === 1 ? 'email didn’t' : 'emails didn’t' }} send. Check your inbox connection, then send {{ failedCount === 1 ? 'it' : 'them' }} from the composer.</p>
+        }
+        <div class="fe-next" data-cy="first-email-next">
+          <section class="fe-card fe-card--good">
+            <h2>What happens now</h2>
+            <p>Replies show up in Inbox, sorted by TODD. Anyone waiting on a decision goes to Needs you. People who don’t reply get a follow-up draft from Maya, usually within two days, for you to approve.</p>
+            <a class="fe-btn fe-btn--primary" routerLink="/inbox">Open Inbox</a>
+          </section>
+        </div>
+      }
+    }
+  }
+</main>

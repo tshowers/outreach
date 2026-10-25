@@ -45,7 +45,7 @@
     </ol>
 
     <footer class="sp-foot">
-      <a *ngIf="canContinue; else blocked" class="sp-btn sp-btn--primary" routerLink="/compose-email" [queryParams]="firstEmailParams" data-cy="setup-profile-next">See your first email</a>
+      <a *ngIf="canContinue; else blocked" class="sp-btn sp-btn--primary" routerLink="/setup/first-email" data-cy="setup-profile-next">See your first email</a>
       <ng-template #blocked><button type="button" class="sp-btn sp-btn--primary" disabled data-cy="setup-profile-next">See your first email</button></ng-template>
       <span>{{ footNote }}</span>
       <a *ngIf="!inboxConnected" routerLink="/inbox-access" class="sp-link">Connect your inbox</a>

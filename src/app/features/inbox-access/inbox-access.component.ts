@@ -213,11 +213,6 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
     return !this.setup.onboarding()?.steps.find( ( step ) => step.id === 'profile' )?.done;
   }
 
-  get firstEmailParams (): Record<string, string> | null {
-    const step = this.setup.onboarding()?.steps.find( ( s ) => s.id === 'firstSend' );
-    return step ? this.setup.queryParamsFor( step ) : { draft: 'profile' };
-  }
-
   choose ( id: ProviderChip ): void {
     this.chosen = id;
     this.mailboxAccess.mailboxForm.provider = this.chip.provider;

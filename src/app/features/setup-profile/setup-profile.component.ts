@@ -105,11 +105,6 @@ export class SetupProfileComponent implements OnInit {
     return 'Changes save to every TODD app.';
   }
 
-  get firstEmailParams (): Record<string, string> | null {
-    const step = this.setup.onboarding()?.steps.find( ( s ) => s.id === 'firstSend' );
-    return step ? this.setup.queryParamsFor( step ) : { draft: 'profile' };
-  }
-
   edit ( question: ProfileQuestion ): void {
     this.editing = question.field;
     this.draft = this.profile?.[question.field] || '';

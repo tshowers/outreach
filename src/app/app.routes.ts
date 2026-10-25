@@ -141,6 +141,12 @@ export const routes: Routes = [
       import( './features/email-processor/email-processor.component' ).then( ( m ) => m.EmailProcessorComponent ),
   },
   {
+    // First email: a draft per contact, then sent spaced out (design_handoff_outreach_onboarding 4).
+    path: 'setup/first-email',
+    loadComponent: () =>
+      import( './features/first-email/first-email.component' ).then( ( m ) => m.FirstEmailComponent ),
+  },
+  {
     // First-session profile check (design_handoff_outreach_onboarding 3).
     path: 'setup/profile',
     loadComponent: () =>
