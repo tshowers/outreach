@@ -1,0 +1,155 @@
+/* Drafts (design_handoff_outreach_mail 1e). The frame and pills are in shared/mail/mail-page.css. */
+.draft {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.draft__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.draft__who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.draft__name {
+  font-size: 17px;
+}
+
+.draft__who .muted,
+.draft__last {
+  font-size: 14px;
+}
+
+/* Angular drops the space between the name and the company. */
+.draft__name + .muted {
+  margin-left: 8px;
+}
+
+.draft__tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.draft__message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.draft__label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.draft__subject {
+  margin-bottom: 4px;
+  font-size: 17px;
+}
+
+.draft__body {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.draft__body.is-open {
+  display: block;
+  color: var(--text);
+}
+
+.draft__body :is(p, div) {
+  margin: 0 0 10px;
+}
+
+.draft__body:not(.is-open) :is(p, div) {
+  display: inline;
+  margin: 0;
+}
+
+.draft__body:not(.is-open) :is(p, div)::after {
+  content: " ";
+}
+
+.draft__sig {
+  margin: 0;
+  font-size: 14px;
+}
+
+.draft__more {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--t-blue-fg);
+  font: 700 14px var(--font);
+  cursor: pointer;
+}
+
+.draft__why {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 12px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.draft__note {
+  margin: 0;
+  font-size: 14px;
+}
+
+.draft__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.draft__send {
+  margin: -4px 0 0;
+  font-size: 14px;
+}
+
+.draft__rewriting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--t-violet);
+  color: var(--t-violet-fg);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .draft__why {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}

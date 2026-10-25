@@ -633,6 +633,18 @@ export class OutreachApiService {
     return this.http.post<{ success: boolean; message: string; data: any; }>( `${this.baseUrl}/outreach/momentum-threads/draft-assist`, { contactId, purpose: 'needs_you' }, { headers } );
   }
 
+  /** Outbox: send an approved email now instead of at its scheduled time. */
+  sendApprovedNow ( contactId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<MomentumThreadResponse> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.post<MomentumThreadResponse>( `${this.baseUrl}/outreach/momentum-threads/${encodeURIComponent( contactId )}/send-now`, {}, { headers } );
+  }
+
+  /** Outbox: pull an approved email back to Drafts; it won't send until approved again. */
+  returnApprovedToDrafts ( contactId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<MomentumThreadResponse> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.post<MomentumThreadResponse>( `${this.baseUrl}/outreach/momentum-threads/${encodeURIComponent( contactId )}/return-to-drafts`, {}, { headers } );
+  }
+
   dismissMomentumThreadFromPlan ( contactId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; message: string; data: { contactId: string; archived: boolean; }; }> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.post<{ success: boolean; message: string; data: { contactId: string; archived: boolean; }; }>( `${this.baseUrl}/outreach/momentum-threads/${encodeURIComponent( contactId )}/dismiss-from-plan`, {}, { headers } );

@@ -5,10 +5,64 @@
 /* Surfaces and text defer to the app's theme tokens (--todd-*), which
    already follow the light/dark toggle and the system setting. */
 .page {
-  max-width: 880px;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: 28px 36px 64px;
   color: var(--todd-text);
+}
+
+/* Activity title and the What Maya did / Maya's plan control (design_handoff_outreach_mail 1k). */
+.activity-head {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.activity-head h1 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.seg {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.seg button {
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.seg button.is-on {
+  background: var(--bg);
+  box-shadow: 0 1px 3px rgba(15, 17, 21, 0.08);
+}
+
+.seg button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.page-header .headline {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .page-header {
@@ -163,6 +217,6 @@
    start the page below it, as the inbox does. */
 @media (max-width: 899px) {
   .page {
-    padding-top: 72px;
+    padding: 72px 16px 48px;
   }
 }

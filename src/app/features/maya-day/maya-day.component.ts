@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { MayaDaySummary, OutreachApiService } from '../../services/outreach-api.service';
@@ -8,6 +8,10 @@ import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 import { ActivityAction, MOVES_TASKS_URL, activityAction, isMovesLimitReason } from '../../shared/utils/activity-action.util';
+import { MayaPlanComponent, PlanFilter } from './maya-plan.component';
+
+/** ?filter= values, including the old Signal Engine Plan ones (active, warm - now All). */
+const PLAN_FILTERS: Record<string, PlanFilter> = { all: 'all', 'needs-you': 'needs-you', hot: 'hot', stalled: 'stalled', active: 'all', warm: 'all', plan: 'all' };
 
 /**
  * Maya's day: what she planned at 6am, what she did, and what's waiting on
@@ -17,7 +21,7 @@ import { ActivityAction, MOVES_TASKS_URL, activityAction, isMovesLimitReason } f
 @Component( {
   selector: 'app-maya-day',
   standalone: true,
-  imports: [BrowseNoticeComponent, CommonModule, RouterModule, PreloaderComponent, RelativeTimePipe],
+  imports: [BrowseNoticeComponent, CommonModule, RouterModule, PreloaderComponent, RelativeTimePipe, MayaPlanComponent],
   templateUrl: './maya-day.component.html',
   styleUrls: ['./maya-day.component.css'],
 } )
@@ -31,7 +35,34 @@ export class MayaDayComponent implements OnInit, OnDestroy {
   loading = false;
   errorMessage = '';
 
+  private readonly route = inject( ActivatedRoute );
+  private readonly router = inject( Router );
+
+  /** What Maya did (the day's feed) or Maya's plan (design_handoff_outreach_mail 1k). */
+  tab: 'did' | 'plan' = 'did';
+  planFilter: PlanFilter = 'all';
+
+  setTab ( tab: 'did' | 'plan' ): void {
+    this.tab = tab;
+    this.syncUrl();
+  }
+
+  setPlanFilter ( filter: PlanFilter ): void {
+    this.planFilter = filter;
+    this.syncUrl();
+  }
+
+  /** Keeps the tab and filter in the URL, so Back and shared links land on them. */
+  private syncUrl (): void {
+    const queryParams = this.tab === 'plan' ? { tab: 'plan', filter: this.planFilter === 'all' ? null : this.planFilter } : { tab: null, filter: null };
+    void this.router.navigate( [], { relativeTo: this.route, queryParams, queryParamsHandling: 'merge', replaceUrl: true } );
+  }
+
   ngOnInit (): void {
+    const params = this.route.snapshot.queryParamMap;
+    const filter = PLAN_FILTERS[String( params.get( 'filter' ) || '' )];
+    if ( params.get( 'tab' ) === 'plan' || filter ) this.tab = 'plan';
+    if ( filter ) this.planFilter = filter;
     this.tenantSubscription = this.authService.getTenantId().subscribe( ( tenantId ) => {
       if ( !tenantId || tenantId === this.tenantId ) return;
       this.tenantId = tenantId;

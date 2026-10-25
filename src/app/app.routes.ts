@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 
 // Browse free, create with the app: no route needs sign-in. Writes are
 // gated per action (WriteActionDirective) and enforced by the server.
@@ -121,9 +122,34 @@ export const routes: Routes = [
       import( './features/needs-you/needs-you.component' ).then( ( m ) => m.NeedsYouComponent ),
   },
   {
+    // Signal Engine split into Drafts, Outbox, Sent and Activity's Maya's
+    // plan (design_handoff_outreach_mail); old links land on the new pages.
     path: 'signal-engine',
+    pathMatch: 'full',
+    redirectTo: ( { queryParams } ) => {
+      const router = inject( Router );
+      switch ( queryParams['tab'] ) {
+        case 'outbox': return router.createUrlTree( ['/outbox'] );
+        case 'sent': return router.createUrlTree( ['/sent'] );
+        case 'plan': return router.createUrlTree( ['/maya-day'], { queryParams: { tab: 'plan', ...( queryParams['filter'] ? { filter: queryParams['filter'] } : {} ) } } );
+        default: return router.createUrlTree( ['/drafts'] );
+      }
+    },
+  },
+  {
+    path: 'drafts',
     loadComponent: () =>
-      import( './features/signal-engine/signal-engine.component' ).then( ( m ) => m.SignalEngineComponent ),
+      import( './features/drafts/drafts.component' ).then( ( m ) => m.DraftsComponent ),
+  },
+  {
+    path: 'outbox',
+    loadComponent: () =>
+      import( './features/outbox/outbox.component' ).then( ( m ) => m.OutboxComponent ),
+  },
+  {
+    path: 'sent',
+    loadComponent: () =>
+      import( './features/sent/sent.component' ).then( ( m ) => m.SentComponent ),
   },
   {
     path: 'engagement',

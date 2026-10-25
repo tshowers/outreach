@@ -18,7 +18,9 @@ describe('Platform menu navigation', () => {
     { label: 'Home', route: '/app' },
     { label: 'Growth', route: '/app' },
     { label: 'Inbox', route: '/inbox' },
-    { label: 'Signal Engine', route: '/signal-engine' },
+    { label: 'Drafts', route: '/drafts' },
+    { label: 'Outbox', route: '/outbox' },
+    { label: 'Sent', route: '/sent' },
     { label: 'Catalyst', route: '/email-processor' },
     { label: 'Drips', route: '/drips' },
     { label: 'Email Composer', route: '/compose-email' },
@@ -43,5 +45,36 @@ describe('Platform menu navigation', () => {
     // state rather than any one intermediate URL.
     openMenu();
     cy.contains('.um-signin', 'Sign in', { timeout: 10000 }).should('exist');
+  });
+});
+
+// The sidebar (design_handoff_outreach_mail 1b): New email, then Mail and Maya groups.
+describe('Sidebar', () => {
+  beforeEach(() => {
+    cy.viewport(1280, 900);
+    cy.loginAsTestUser('/app');
+    cy.location('pathname', { timeout: 15000 }).should('eq', '/app');
+  });
+
+  it('lists Growth, Needs you, Mail and Maya in order', () => {
+    cy.get('.sidebar__group').then((groups) => {
+      expect([...groups].map((group) => group.textContent?.trim().toUpperCase())).to.deep.equal(['MAIL', 'MAYA']);
+    });
+    cy.get('.sidebar__item .sidebar__label').then((labels) => {
+      expect([...labels].map((label) => label.textContent?.trim())).to.deep.equal(['Growth', 'Needs you', 'Inbox', 'Drafts', 'Outbox', 'Sent', 'Activity', 'Drips', 'Catalyst']);
+    });
+  });
+
+  it('New email opens the composer', () => {
+    cy.get('[data-cy="sidebar-new-email"]').click();
+    cy.location('pathname', { timeout: 10000 }).should('eq', '/compose-email');
+  });
+
+  it('old Signal Engine links land on the new pages', () => {
+    cy.visit('/signal-engine?tab=outbox');
+    cy.location('pathname', { timeout: 10000 }).should('eq', '/outbox');
+    cy.visit('/signal-engine?tab=plan&filter=hot');
+    cy.location('search', { timeout: 10000 }).should('contain', 'tab=plan').and('contain', 'filter=hot');
+    cy.location('pathname').should('eq', '/maya-day');
   });
 });

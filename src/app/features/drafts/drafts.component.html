@@ -1,0 +1,90 @@
+<div class="page" data-cy="drafts">
+  <app-browse-notice what="Drafts"></app-browse-notice>
+
+  <header>
+    <h1>Drafts</h1>
+    <p class="subtitle" *ngIf="cards.length">
+      {{ cards.length }} {{ cards.length === 1 ? 'email' : 'emails' }} Maya wrote for you. Nothing sends until you approve it. Approved emails go to Outbox and send during the recipient's business hours.
+    </p>
+  </header>
+
+  <app-preloader [isLoading]="loading && !cards.length" message="Loading your drafts…" [autoHideAfterMs]="null"></app-preloader>
+  <p class="error" *ngIf="error" role="alert">{{ error }}</p>
+
+  <div class="empty" *ngIf="!loading && !error && !cards.length" data-cy="drafts-empty">
+    <strong>You're all caught up.</strong>
+    <span>Approved emails are in <a routerLink="/outbox">Outbox</a>. Maya will put new drafts here.</span>
+  </div>
+
+  <ng-container *ngIf="warm.length">
+    <div class="section-head">
+      <h2>Follow-ups to people who engaged</h2>
+      <span>{{ warm.length }} · review these first</span>
+    </div>
+    <ng-container *ngTemplateOutlet="list; context: { $implicit: warm }"></ng-container>
+  </ng-container>
+
+  <ng-container *ngIf="first.length">
+    <div class="section-head">
+      <h2>First emails</h2>
+      <span>{{ first.length }} new {{ first.length === 1 ? 'person' : 'people' }} Maya found</span>
+    </div>
+    <ng-container *ngTemplateOutlet="list; context: { $implicit: first }"></ng-container>
+  </ng-container>
+
+  <ng-template #list let-cards>
+    <article class="draft" *ngFor="let card of cards; trackBy: trackById" [attr.data-cy]="'draft-' + card.id">
+      <div class="draft__head">
+        <div class="draft__who">
+          <div><strong class="draft__name">{{ card.name }}</strong> <span class="muted" *ngIf="card.company">{{ card.company }}</span></div>
+          <span class="muted draft__last">{{ card.lastLine }}</span>
+        </div>
+        <div class="draft__tags">
+          <span class="tag">{{ card.kindPill }}</span>
+          <span class="tag" *ngIf="card.signalPill as signal" [attr.data-tint]="signal.tint">{{ signal.text }}</span>
+        </div>
+      </div>
+
+      <section class="draft__message" aria-label="The email">
+        <span class="draft__label">Subject</span>
+        <strong class="draft__subject">{{ card.subject }}</strong>
+        <div class="draft__body" [class.is-open]="expanded.has(card.id)" [innerHTML]="card.body || '<p>(no message yet)</p>'"></div>
+        <p class="muted draft__sig" *ngIf="expanded.has(card.id)">Your signature is added when it sends.</p>
+        <button type="button" class="draft__more" (click)="toggleExpanded(card)" [attr.aria-expanded]="expanded.has(card.id)">
+          {{ expanded.has(card.id) ? 'Show less' : 'Read full email' }}
+        </button>
+      </section>
+
+      <p class="draft__why" *ngIf="card.why"><strong>Why Maya wrote this</strong> <span class="muted">{{ card.why }}</span></p>
+
+      <p class="error" *ngIf="cardError.get(card.id) as err">{{ err }}</p>
+      <p class="muted draft__note" *ngIf="testNote.get(card.id) as note">{{ note }}</p>
+
+      <div class="draft__rewriting" *ngIf="card.rewriting; else actions" role="status">
+        <span class="spinner" aria-hidden="true"></span>
+        Maya is rewriting this with a different angle. About 20 seconds.
+      </div>
+
+      <ng-template #actions>
+        <div class="draft__actions">
+          <button type="button" class="pill pill--primary" appWriteAction="approve this draft" [disabled]="working.has(card.id)" (click)="approve(card)" [attr.data-cy]="'draft-approve-' + card.id">
+            <span class="spinner" *ngIf="working.get(card.id) === 'approve'" aria-hidden="true"></span>
+            {{ card.kind === 'reply' ? 'Approve & send' : 'Approve' }}
+          </button>
+          <button type="button" class="pill" appWriteAction="edit this email" [disabled]="working.has(card.id)" (click)="edit(card)">Edit</button>
+          <button type="button" class="pill" appWriteAction="have Maya rewrite this draft" [disabled]="working.has(card.id)" (click)="rewrite(card)" [attr.data-cy]="'draft-rewrite-' + card.id">Ask Maya to rewrite</button>
+          <button type="button" class="pill pill--square" [attr.aria-expanded]="moreOpen.has(card.id)" aria-label="More actions" (click)="toggleMore(card)">⋯</button>
+          <ng-container *ngIf="moreOpen.has(card.id)">
+            <button type="button" class="pill pill--ghost" appWriteAction="send yourself a test" [disabled]="working.has(card.id)" (click)="sendTest(card)">
+              {{ working.get(card.id) === 'test' ? 'Sending…' : 'Send test to me' }}
+            </button>
+            <button type="button" class="pill pill--ghost pill--danger" appWriteAction="discard this draft" [disabled]="working.has(card.id)" (click)="discard(card)" [attr.data-cy]="'draft-discard-' + card.id">Discard</button>
+          </ng-container>
+        </div>
+        <p class="muted draft__send">{{ sendLine(card) }}</p>
+      </ng-template>
+    </article>
+  </ng-template>
+
+  <app-mail-toast [toast]="toast" (closed)="toast = null" (action)="undoDiscard()"></app-mail-toast>
+</div>

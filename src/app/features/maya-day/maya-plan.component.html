@@ -1,0 +1,53 @@
+<div class="plan" data-cy="maya-plan">
+    <p class="intro">What Maya will do next for each person, and when. Anyone marked <strong>Needs you</strong> is waiting on you, and Maya won't act until you do.</p>
+
+    <div class="chips" role="group" aria-label="Who to show">
+        <button type="button" *ngFor="let chip of chips" class="chip" [class.is-on]="chip.id === filter" [attr.aria-pressed]="chip.id === filter" (click)="setFilter(chip.id)" [attr.data-cy]="'maya-plan-filter-' + chip.id">
+            {{ chip.label }} <span class="chip__count">{{ chip.count }}</span>
+        </button>
+    </div>
+
+    <app-preloader *ngIf="loading && !groups.length" [isLoading]="true" message="Loading Maya's plan…" [autoHideAfterMs]="null"></app-preloader>
+    <p class="error" *ngIf="error" role="alert">{{ error }}</p>
+    <p class="error" *ngIf="actionError" role="alert">{{ actionError }}</p>
+
+    <section class="group" *ngFor="let group of groups" [attr.data-cy]="'maya-plan-group-' + group.key">
+        <button type="button" class="group__head" (click)="toggle(group.key)" [attr.aria-expanded]="!closed[group.key]">
+            <h2>{{ group.title }} · {{ group.rows.length }}</h2>
+            <span class="group__hint">{{ group.hint }}</span>
+            <span class="group__toggle">{{ closed[group.key] ? 'Show' : 'Hide' }}</span>
+        </button>
+
+        <ng-container *ngIf="!closed[group.key]">
+            <div class="empty" *ngIf="!group.rows.length">No one here for this filter.</div>
+
+            <article class="row" *ngFor="let row of visibleRows(group); trackBy: trackRow" [class.row--you]="row.needsYou">
+                <div class="row__top">
+                    <strong class="row__name">{{ row.name }}</strong>
+                    <span class="row__company" *ngIf="row.company">{{ row.company }}</span>
+                    <span class="row__spacer"></span>
+                    <span class="tag tag--pink" *ngIf="row.needsYou">Needs you</span>
+                    <span class="tag tag--yellow" *ngIf="row.hot">Hot lead</span>
+                    <span class="tag tag--grey" *ngIf="row.stalled">Stalled</span>
+                    <span class="row__meta">{{ row.meta }}</span>
+                </div>
+                <div class="row__grid">
+                    <span class="row__label">Last</span>
+                    <span>{{ row.last }}<span class="row__subject" *ngIf="row.subject"> · "{{ row.subject }}"</span></span>
+                    <span class="row__label">Next</span>
+                    <span><strong>{{ row.nextWhen }}</strong> {{ row.next }}</span>
+                </div>
+                <div class="row__actions">
+                    <a *ngIf="row.action as action" class="btn btn--primary" [routerLink]="action.link" [queryParams]="action.queryParams || null">{{ action.label }}</a>
+                    <button type="button" class="btn" appWriteAction="change Maya's plan" [disabled]="pendingId === row.id" (click)="changePlan(row)">
+                        {{ pendingId === row.id ? 'Opening…' : 'Change plan' }}
+                    </button>
+                </div>
+            </article>
+
+            <button type="button" class="show-all" *ngIf="group.rows.length > cap && !showAll[group.key]" (click)="showAll[group.key] = true">
+                Show all {{ group.rows.length }}
+            </button>
+        </ng-container>
+    </section>
+</div>

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AssistantBoxHelperService } from './assistant-box-helper.service';
-import { EmailSentAssistantContext, EmailSentFollowUpCandidate } from '../features/signal-engine/email-sent/email-sent.component';
+import { EmailSentAssistantContext, EmailSentFollowUpCandidate } from '../models/email-sent-context.model';
 
 export interface LocalEmailSentResult {
     handled: boolean;

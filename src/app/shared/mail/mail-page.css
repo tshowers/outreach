@@ -1,0 +1,188 @@
+/* The mail pages' frame and controls (design_handoff_outreach_mail): Drafts and Outbox. */
+:host {
+  display: block;
+  font-family: var(--font);
+  color: var(--text);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 36px 64px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  max-width: 72ch;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 8px 0 -8px;
+}
+
+.section-head h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.section-head span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: 700 15px var(--font);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+
+.pill:hover:not(:disabled) {
+  background: var(--surface2);
+}
+
+.pill:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.pill:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+.pill--40 {
+  height: 40px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+
+.pill--primary {
+  background: var(--blue);
+  color: #fff;
+}
+
+.pill--primary:hover:not(:disabled) {
+  background: #1d4fd6;
+}
+
+.pill--surface {
+  background: var(--surface);
+}
+
+.pill--ghost {
+  background: transparent;
+}
+
+.pill--danger {
+  color: var(--danger);
+}
+
+.pill--danger:hover:not(:disabled) {
+  background: var(--t-pink);
+}
+
+.pill--square {
+  width: 44px;
+  padding: 0;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tag[data-tint="yellow"] { background: var(--t-yellow); color: var(--t-yellow-fg); }
+.tag[data-tint="green"] { background: var(--t-green); color: var(--t-green-fg); }
+
+.spinner {
+  display: inline-block;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: mail-spin .8s linear infinite;
+}
+
+@keyframes mail-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 2.4s; }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.empty strong {
+  font-size: 17px;
+}
+
+.empty span {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 20px 16px 48px;
+  }
+}

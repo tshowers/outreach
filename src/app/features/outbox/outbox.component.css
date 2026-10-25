@@ -1,0 +1,104 @@
+/* Outbox (design_handoff_outreach_mail 1g). The frame and pills are in shared/mail/mail-page.css. */
+.outbox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 18px 12px;
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.outbox__cols,
+.outbox__summary {
+  display: grid;
+  grid-template-columns: 1.1fr 1.6fr 0.9fr;
+  gap: 16px;
+}
+
+.outbox__cols {
+  padding: 12px 16px 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.outbox__row {
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.outbox__summary {
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--text);
+  font: 15px var(--font);
+  text-align: left;
+  cursor: pointer;
+}
+
+.outbox__summary:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.outbox__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.outbox__cell .muted {
+  font-size: 14px;
+}
+
+.outbox__sending {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--t-blue-fg);
+}
+
+.outbox__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.outbox__body {
+  max-width: 68ch;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.outbox__body :is(p, div) {
+  margin: 0 0 8px;
+}
+
+.outbox__note {
+  margin: 0;
+  font-size: 14px;
+}
+
+.outbox__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .outbox__cols {
+    display: none;
+  }
+
+  .outbox__summary {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

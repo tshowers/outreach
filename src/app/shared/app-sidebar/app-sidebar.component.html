@@ -4,18 +4,26 @@
     <span>Outreach</span>
   </a>
 
+  <a class="sidebar__new" routerLink="/compose-email" data-cy="sidebar-new-email">
+    <span class="sidebar__icon" [innerHTML]="plusIcon"></span>
+    New email
+  </a>
+
   <nav class="sidebar__nav">
-    <a *ngFor="let item of items"
-       class="sidebar__item"
-       [routerLink]="item.link"
-       [queryParams]="item.queryParams || null"
-       routerLinkActive="is-active"
-       [routerLinkActiveOptions]="item.exact ? { exact: true } : { paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
-       [attr.data-tint]="item.tint">
-      <span class="sidebar__icon" [innerHTML]="item.icon"></span>
-      <span class="sidebar__label">{{ item.label }}</span>
-      <span *ngIf="countFor(item) > 0" class="sidebar__badge">{{ countFor(item) }}</span>
-    </a>
+    <ng-container *ngFor="let group of groups">
+      <span *ngIf="group.label" class="sidebar__group">{{ group.label }}</span>
+      <a *ngFor="let item of group.items"
+         class="sidebar__item"
+         [routerLink]="item.link"
+         [queryParams]="item.queryParams || null"
+         routerLinkActive="is-active"
+         [routerLinkActiveOptions]="{ paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
+         [attr.data-tint]="item.tint">
+        <span class="sidebar__icon" [innerHTML]="item.icon"></span>
+        <span class="sidebar__label">{{ item.label }}</span>
+        <span *ngIf="countFor(item) > 0" class="sidebar__badge">{{ countFor(item) }}</span>
+      </a>
+    </ng-container>
   </nav>
 
   <div class="sidebar__footer">

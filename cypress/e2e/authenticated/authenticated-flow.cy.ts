@@ -5,7 +5,7 @@
 // (AuthCallbackComponent -> OutreachAuthService.signInWithCustomToken)
 // without ever touching real credentials or the production project.
 describe('Authenticated outreach flow', () => {
-  const protectedRoutes = ['/signal-engine', '/inbox', '/inbox-access', '/engagement', '/email-processor', '/compose-email'];
+  const protectedRoutes = ['/drafts', '/outbox', '/sent', '/inbox', '/inbox-access', '/engagement', '/email-processor', '/compose-email'];
 
   protectedRoutes.forEach((route) => {
     it(`reaches ${route} once signed in`, () => {

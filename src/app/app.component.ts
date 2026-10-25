@@ -1,7 +1,7 @@
 import { AsyncPipe, NgIf, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { map } from 'rxjs';
+import { combineLatest, map } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 
@@ -40,12 +40,14 @@ export class AppComponent implements OnInit {
   readonly userName$ = this.authService.getUser().pipe( map( user => user?.displayName || '' ) );
   readonly userEmail$ = this.authService.getUser().pipe( map( user => user?.email || '' ) );
   private readonly needsYouCount = inject( NeedsYouCountService );
-  readonly sidebarCounts$ = this.needsYouCount.count$.pipe( map( count => ( { '/needs-you': count } ) ) );
+  readonly sidebarCounts$ = combineLatest( [this.needsYouCount.count$, this.needsYouCount.mail$] ).pipe(
+    map( ( [count, mail] ) => ( { '/needs-you': count, '/drafts': mail.drafts, '/outbox': mail.outbox } ) )
+  );
 
   title = 'outreach';
 
   /** The signed-in workspace pages get the laptop shell's sidebar. */
-  private static readonly shellRoutes = ['/app', '/needs-you', '/signal-engine', '/inbox', '/inbox-access', '/compose-email', '/email-processor', '/maya-day', '/drips', '/engagement', '/profile', '/get-started'];
+  private static readonly shellRoutes = ['/app', '/needs-you', '/signal-engine', '/drafts', '/outbox', '/sent', '/inbox', '/inbox-access', '/compose-email', '/email-processor', '/maya-day', '/drips', '/engagement', '/profile', '/get-started'];
   showShell = false;
 
   async signOut (): Promise<void> {
@@ -182,7 +184,7 @@ export class AppComponent implements OnInit {
 
   private isEditingOutreach (): boolean {
     const route = this.router.url.split( '?' )[0];
-    return ['/compose-email', '/email-processor', '/signal-engine', '/inbox-access'].includes( route );
+    return ['/compose-email', '/email-processor', '/drafts', '/inbox-access'].includes( route );
   }
 
   private async activateAndReload ( version: string ): Promise<void> {

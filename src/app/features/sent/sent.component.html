@@ -1,0 +1,52 @@
+<div class="page" data-cy="sent">
+    <app-browse-notice what="Sent"></app-browse-notice>
+    <header class="page-header">
+        <div class="page-header__text">
+            <h1>Sent</h1>
+            <p class="subtitle" *ngIf="!loading || rows.length">{{ subtitle }}</p>
+        </div>
+        <label class="by">Sent by
+            <select [ngModel]="by" (ngModelChange)="setBy($event)" data-cy="sent-by">
+                <option *ngFor="let option of byOptions" [ngValue]="option.id">{{ option.label }}</option>
+            </select>
+        </label>
+    </header>
+
+    <app-preloader [isLoading]="loading && !rows.length" message="Loading sent emails…" [autoHideAfterMs]="null"></app-preloader>
+    <p class="error" *ngIf="error" role="alert">{{ error }}</p>
+
+    <section class="empty" *ngIf="!loading && !error && !groups.length">
+        <strong>Nothing sent in the last 30 days{{ by === 'all' ? '' : ' by this sender' }}.</strong>
+        <span>Approved emails show up here once they go out.</span>
+    </section>
+
+    <section class="group" *ngFor="let group of groups; trackBy: trackByGroup" [attr.data-cy]="'sent-group-' + group.id">
+        <div class="group__head" role="button" tabindex="0" (click)="toggle(group.id)" (keydown.enter)="toggle(group.id)" [attr.aria-expanded]="!collapsed.has(group.id)">
+            <h2>{{ group.title }} · {{ group.rows.length }}</h2>
+            <span class="group__hint">{{ group.hint }}</span>
+            <span class="group__toggle">{{ collapsed.has(group.id) ? 'Show' : 'Hide' }}</span>
+        </div>
+        <ng-container *ngIf="!collapsed.has(group.id)">
+            <article class="sent-row" *ngFor="let row of group.rows; trackBy: trackByRow" [attr.data-cy]="'sent-row-' + row.id">
+                <div class="sent-row__main">
+                    <div class="sent-row__who"><strong [title]="row.email">{{ row.name }}</strong><span *ngIf="row.company">{{ row.company }}</span></div>
+                    <span class="sent-row__subject">{{ row.subject }}</span>
+                    <span class="sent-row__meta">{{ row.meta }}</span>
+                </div>
+                <div class="sent-row__side">
+                    <span class="tag" [attr.data-group]="row.group">{{ row.activity }}</span>
+                    <ng-container *ngIf="row.group === 'engaged'; else nextStep">
+                        <ng-container [ngSwitch]="followUpState(row)">
+                            <span *ngSwitchCase="'drafting'" class="drafting"><span class="spinner" aria-hidden="true"></span>Maya is drafting…</span>
+                            <a *ngSwitchCase="'ready'" class="ready" routerLink="/drafts">Follow-up ready in Drafts →</a>
+                            <button *ngSwitchDefault type="button" class="pill pill--primary" appWriteAction="have Maya draft a follow-up" (click)="draftFollowUp(row)" [attr.data-cy]="'sent-follow-up-' + row.id">Have Maya draft a follow-up</button>
+                        </ng-container>
+                    </ng-container>
+                    <ng-template #nextStep><span class="next" *ngIf="row.next">{{ row.next }}</span></ng-template>
+                </div>
+            </article>
+        </ng-container>
+    </section>
+
+    <app-mail-toast [toast]="toast" (closed)="toast = null"></app-mail-toast>
+</div>

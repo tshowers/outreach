@@ -17,6 +17,11 @@
   box-sizing: border-box;
   background: var(--surface);
   font-family: var(--font);
+  overflow-y: auto;
+}
+
+.sidebar > * {
+  flex-shrink: 0;
 }
 
 .sidebar__brand {
@@ -33,6 +38,45 @@
 
 .sidebar__brand img {
   border-radius: 8px;
+}
+
+/* Replaces the Composer nav item (design_handoff_outreach_mail 1b). */
+.sidebar__new {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff !important;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color .15s ease;
+}
+
+.sidebar__new:hover {
+  background: #1d4fd6;
+}
+
+.sidebar__new .sidebar__icon {
+  color: #fff;
+}
+
+.sidebar__new:focus-visible,
+.sidebar__item:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.sidebar__group {
+  padding: 14px 12px 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
 .sidebar__nav {

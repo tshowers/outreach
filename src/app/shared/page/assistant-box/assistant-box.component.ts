@@ -10,7 +10,7 @@ import { AssistantBoxHelperService } from '../../../services/assistant-box-helpe
 import { AssistantIntentRunnerService } from '../../../services/assistant-intent-runner.service';
 import { AssistantComposerFlowService, ComposerAssistantResult, ComposerContactCandidate } from '../../../services/assistant-composer-flow.service';
 import { EmailSentAssistantService } from '../../../services/email-sent-assistant.service';
-import { EmailSentAssistantContext } from '../../../features/signal-engine/email-sent/email-sent.component';
+import { EmailSentAssistantContext } from '../../../models/email-sent-context.model';
 import { SystemRecoveryService } from '../../../services/system-recovery.service';
 import { OutreachAssistantSignalService, AssistantComposerContactPayload } from '../../../services/outreach-assistant-signal.service';
 import { AssistantUiService } from '../../../services/assistant-ui.service';

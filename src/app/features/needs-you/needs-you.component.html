@@ -12,7 +12,7 @@
     </span>
     <h1>Nobody's waiting on you</h1>
     <p>Maya is running {{ planCount }} conversation{{ planCount === 1 ? '' : 's' }} on her own. You'll see someone here as soon as they reply.</p>
-    <a class="pill pill--violet" routerLink="/signal-engine" [queryParams]="{ tab: 'plan' }">See Plan · {{ planCount }}</a>
+    <a class="pill pill--violet" routerLink="/maya-day" [queryParams]="{ tab: 'plan' }">See Maya's plan · {{ planCount }}</a>
   </section>
 
   <p class="note note--error" *ngIf="error">{{ error }}</p>

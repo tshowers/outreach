@@ -26,7 +26,7 @@ export function activityAction ( item: { category: string; title: string; body: 
     case 'catalyst':
       return { label: 'Open Catalyst', route: '/email-processor' };
     case 'sending_approved':
-      return { label: 'Open Outbox', route: '/signal-engine', queryParams: { tab: 'outbox' } };
+      return { label: 'Open Outbox', route: '/outbox' };
     default:
       return null;
   }

@@ -1,0 +1,60 @@
+<div class="page" data-cy="outbox">
+  <app-browse-notice what="Outbox"></app-browse-notice>
+
+  <header>
+    <h1>Outbox</h1>
+    <p class="subtitle">Approved and waiting for its send time. Open an email to send it now, edit it, or move it back to Drafts.</p>
+  </header>
+
+  <app-preloader [isLoading]="loading && !rows.length" message="Loading your Outbox…" [autoHideAfterMs]="null"></app-preloader>
+  <p class="error" *ngIf="error" role="alert">{{ error }}</p>
+
+  <div class="empty" *ngIf="!loading && !error && !rows.length" data-cy="outbox-empty">
+    <strong>Nothing waiting to send.</strong>
+    <span>Approve a draft in <a routerLink="/drafts">Drafts</a> and it lands here until its send time.</span>
+  </div>
+
+  <section class="outbox" *ngIf="rows.length" aria-label="Waiting to send">
+    <div class="outbox__cols" aria-hidden="true">
+      <span>To</span><span>Subject</span><span>Sends</span>
+    </div>
+
+    <article class="outbox__row" *ngFor="let row of rows; trackBy: trackById" [class.is-open]="openId === row.id" [attr.data-cy]="'outbox-' + row.id">
+      <button type="button" class="outbox__summary" (click)="toggle(row)" [attr.aria-expanded]="openId === row.id">
+        <span class="outbox__cell">
+          <strong>{{ row.name }}</strong>
+          <span class="muted" *ngIf="row.company">{{ row.company }}</span>
+        </span>
+        <span class="outbox__cell">
+          <span class="outbox__subject">{{ row.subject }}</span>
+          <span class="muted">{{ row.origin }}</span>
+        </span>
+        <span class="outbox__cell">
+          <ng-container *ngIf="row.sending; else waiting">
+            <strong class="outbox__sending"><span class="spinner" aria-hidden="true"></span> Sending now</strong>
+          </ng-container>
+          <ng-template #waiting>
+            <strong>{{ row.countdown }}</strong>
+            <span class="muted">{{ row.when.charAt(0).toUpperCase() + row.when.slice(1) }}</span>
+          </ng-template>
+        </span>
+      </button>
+
+      <div class="outbox__detail" *ngIf="openId === row.id">
+        <div class="outbox__body" [innerHTML]="row.body || '<p>(no message)</p>'"></div>
+        <p class="muted outbox__note">{{ timingNote(row) }}</p>
+        <p class="error" *ngIf="rowError.get(row.id) as err">{{ err }}</p>
+        <div class="outbox__actions">
+          <button type="button" class="pill pill--40 pill--primary" appWriteAction="send this email" [disabled]="working.has(row.id) || row.sending" (click)="sendNow(row)" [attr.data-cy]="'outbox-send-now-' + row.id">Send now</button>
+          <button type="button" class="pill pill--40 pill--surface" appWriteAction="edit this email" [disabled]="working.has(row.id) || row.sending" (click)="edit(row)">Edit</button>
+          <button type="button" class="pill pill--40 pill--surface" appWriteAction="move this back to Drafts" [disabled]="working.has(row.id) || row.sending" (click)="moveBack(row)" [attr.data-cy]="'outbox-move-back-' + row.id">
+            <span class="spinner" *ngIf="working.get(row.id) === 'back'" aria-hidden="true"></span>
+            Move back to Drafts
+          </button>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <app-mail-toast [toast]="toast" (closed)="toast = null"></app-mail-toast>
+</div>
