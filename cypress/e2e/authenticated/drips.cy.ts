@@ -98,8 +98,10 @@ function stubDripsApi () {
     if ( patch.audienceId ) {
       const audience = state.audiences.find( ( item ) => item.id === patch.audienceId );
       drip.audience = { id: audience.id, name: audience.name, source: audience.source, count: audience.count };
+      // The server paces it to the dates: ~21 weekdays × 480 minutes over the audience.
+      drip.rateMinutes = Math.max( 1, Math.min( 480, Math.floor( 21 * 480 / audience.count ) ) );
     }
-    ['kind', 'rateMinutes', 'startMode', 'startDate', 'endDate'].forEach( ( key ) => {
+    ['kind', 'startMode', 'startDate', 'endDate'].forEach( ( key ) => {
       if ( patch[key] !== undefined ) drip[key] = patch[key];
     } );
     if ( patch.startMode === 'now' ) drip.startDate = null;
@@ -198,7 +200,7 @@ describe( 'Outreach Drips', () => {
       cy.wait( '@detail' );
     } );
 
-    it( 'sets the kind and rate, builds a new audience, and starts', () => {
+    it( 'sets the kind, builds a new audience, and starts', () => {
       cy.contains( '.tag', 'Ready' );
       cy.contains( '.control__sentence', 'Off. Turning it on starts sending today.' );
       cy.get( '.switch' ).should( 'have.attr', 'data-state', 'off' );
@@ -207,10 +209,9 @@ describe( 'Outreach Drips', () => {
       cy.wait( '@patch' ).its( 'request.body' ).should( 'deep.equal', { kind: 'blog' } );
       cy.contains( '.tag', 'Blog post' );
 
-      cy.get( 'input.slider' ).invoke( 'val', 1 ).trigger( 'input' ).trigger( 'change' );
-      cy.wait( '@patch' ).its( 'request.body' ).should( 'deep.equal', { rateMinutes: 5 } );
-      cy.contains( '.rate', '1 every 5 minutes' );
-      cy.contains( '.label__end', 'about 96 a weekday' );
+      // No slider: the server paces it from the audience and the dates.
+      cy.get( 'input.slider' ).should( 'not.exist' );
+      cy.contains( '[data-cy="drip-send-rate"] .rate', 'Set by your audience' );
 
       // The switch won't start without an audience.
       cy.get( '.switch' ).click();
@@ -232,7 +233,7 @@ describe( 'Outreach Drips', () => {
       cy.get( '.switch' ).click();
       cy.get( '.dialog' ).within( () => {
         cy.contains( 'h2', 'Start this drip?' );
-        cy.contains( 'It sends 1 every 5 minutes to Fashion brands (477 people), weekdays 9 am–5 pm' );
+        cy.contains( 'It sends 1 every 21 minutes to Fashion brands (477 people), weekdays 9 am–5 pm' );
         cy.contains( 'button', 'Start drip' ).click();
       } );
       cy.wait( '@toggle' ).its( 'request.body' ).should( 'deep.equal', { on: true } );

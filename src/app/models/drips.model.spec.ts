@@ -22,6 +22,9 @@ describe( 'drips.model', () => {
     ] );
     expect( sendsPerWeekday( 15 ) ).toBe( 32 );
     expect( sendsPerWeekday( 1440 ) ).toBe( 1 );
+    // Paced rates can be any interval.
+    expect( [8, 75, 342, 480].map( rateLabel ) ).toEqual( ['1 every 8 minutes', '1 every 1 hr 15 min', '1 every 5 hr 42 min', '1 a weekday'] );
+    expect( sendsPerWeekday( 342 ) ).toBe( 1 );
   } );
 
   it( 'formats dates, percents and the countdown like the design', () => {
@@ -61,9 +64,12 @@ describe( 'drips.model', () => {
 
   it( 'projects reach from sends per weekday and the weekdays left', () => {
     const running = drip( { status: 'running', startDate: '2026-10-14', endDate: '2026-11-13', counters: { total: 1240, queued: 628, sent: 612, bounced: 0, unsubscribed: 0, skipped: 0, failed: 0 } } );
-    // 32 a weekday × round(21 × 5/7) = 480 more, short of the 628 left.
-    expect( projectedReach( running, '2026-10-23' ) ).toBe( 'Reaches about 1,092 of 1,240 people before it archives. Speed it up to reach everyone.' );
+    // 32 a weekday × 15 weekdays left (Oct 23 - Nov 12) = 480 more, short of the 628 left.
+    expect( projectedReach( running, '2026-10-23' ) ).toBe( 'Reaches about 1,092 of 1,240 people before it archives. Move the end day later to reach everyone.' );
     expect( projectedReach( { ...running, rateMinutes: 5 }, '2026-10-23' ) ).toMatch( /^Reaches all 1,240 people by about \w{3} \d+, then stops on its own\.$/ );
+    // A rate the server paced (21 weekdays × 480 min / 477 people = 1 every 21 min) reaches everyone.
+    const paced = drip( { audience: { id: 'a', name: 'A', source: 'contacts', count: 477 }, rateMinutes: 21 } );
+    expect( projectedReach( paced, '2026-10-23' ) ).toMatch( /^Reaches all 477 people by about \w{3} \d+, then stops on its own\.$/ );
   } );
 
   it( 'reads each link label from the email, skipping unsubscribe', () => {

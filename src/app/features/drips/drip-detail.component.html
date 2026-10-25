@@ -79,13 +79,6 @@
             </div>
 
             <div class="block">
-              <h4 class="label">Send rate <span class="label__end">{{ perWeekdayText }}</span></h4>
-              <div class="rate">{{ rateText }}</div>
-              <input class="slider" type="range" min="0" [max]="rateMax" step="1" [ngModel]="rateIndex" (ngModelChange)="onRateInput($event)" (change)="onRateChange($any($event.target).value)" aria-label="Send rate" [disabled]="busy">
-              <div class="slider__ends"><span>1 a minute</span><span>1 a day</span></div>
-            </div>
-
-            <div class="block">
               <h4 class="label">Audience</h4>
               <ng-container *ngIf="editableSetup; else lockedTpl">
                 <div class="audiences" role="radiogroup" aria-label="Audience">
@@ -150,6 +143,13 @@
               </div>
               <p class="note note--conflict" *ngIf="conflictNote; else plainNote">{{ conflictNote }}</p>
               <ng-template #plainNote><p class="note">{{ scheduleNote }}</p></ng-template>
+            </div>
+
+            <!-- Worked out from the audience and the dates, so everyone gets it by the end day (Ty, 2026-10-25). -->
+            <div class="block" data-cy="drip-send-rate">
+              <h4 class="label">Send rate <span class="label__end">{{ perWeekdayText }}</span></h4>
+              <div class="rate">{{ rateText }}</div>
+              <p class="note">{{ rateNote }}</p>
             </div>
 
             <p class="hours"><app-inbox-icon name="clock" [size]="18"></app-inbox-icon>Weekdays 9 am–5 pm in each person's time zone · SendGrid</p>

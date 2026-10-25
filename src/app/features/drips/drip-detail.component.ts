@@ -9,7 +9,7 @@ import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { AudienceQuery, DripPatch, DripsApiError, DripsApiService } from '../../services/drips-api.service';
 import { EMAIL_CREATOR_URL } from './drips.component';
 import {
-  DRIP_MAX_DAYS, DRIP_RATES, Drip, DripConflict, DripDetail, DripKind, KIND_LABELS, KIND_TINTS, STATUS_LABELS, STATUS_TINTS,
+  DRIP_MAX_DAYS, Drip, DripConflict, DripDetail, DripKind, KIND_LABELS, KIND_TINTS, STATUS_LABELS, STATUS_TINTS,
   addDays, archivedSentence, countdown, dayNumber, dayOf, daysBetween, daysLeft, dripWindow, emailLinks, expiryTitle,
   findConflict, heatColor, percent, projectedReach, rateLabel, sendsPerWeekday, shortDate, sourceLabel, statusSentence,
 } from '../../models/drips.model';
@@ -45,7 +45,6 @@ export class DripDetailComponent implements OnInit, OnDestroy {
 
   readonly emailCreatorUrl = EMAIL_CREATOR_URL;
   readonly maxDays = DRIP_MAX_DAYS;
-  readonly rateMax = DRIP_RATES.length - 1;
   readonly kinds: { value: DripKind; label: string }[] = ( Object.keys( KIND_LABELS ) as DripKind[] ).map( ( value ) => ( { value, label: KIND_LABELS[value] } ) );
 
   userId = '';
@@ -73,8 +72,8 @@ export class DripDetailComponent implements OnInit, OnDestroy {
   isOn = false;
   switchState: 'on' | 'scheduled' | 'off' = 'off';
   sentence = '';
-  rateIndex = 2;
   rateText = '';
+  rateNote = '';
   perWeekdayText = '';
   audienceRows: AudienceRow[] = [];
   lockedAudience = '';
@@ -251,16 +250,6 @@ export class DripDetailComponent implements OnInit, OnDestroy {
   }
 
   // ---- settings -------------------------------------------------------------
-
-  onRateInput ( index: number ): void {
-    const rate = DRIP_RATES[Number( index )] || DRIP_RATES[2];
-    this.rateText = rateLabel( rate );
-    this.perWeekdayText = `about ${ sendsPerWeekday( rate ) } a weekday`;
-  }
-
-  onRateChange ( index: number ): void {
-    void this.patch( { rateMinutes: DRIP_RATES[Number( index )] } );
-  }
 
   setKind ( kind: DripKind ): void {
     if ( kind !== this.drip?.kind ) void this.patch( { kind } );
@@ -476,8 +465,14 @@ export class DripDetailComponent implements OnInit, OnDestroy {
     this.sentence = statusSentence( drip, today );
     this.fromLine = drip.fromName || drip.fromEmail ? `From ${ [drip.fromName, drip.fromEmail].filter( Boolean ).join( ' · ' ) }` : 'From your Outreach sender';
 
-    this.rateIndex = Math.max( 0, DRIP_RATES.indexOf( drip.rateMinutes ) );
-    this.onRateInput( this.rateIndex );
+    // The server paces it: everyone left, spread over the weekday hours left.
+    const people = this.started ? drip.counters.queued : drip.audience?.count || 0;
+    this.rateText = people ? rateLabel( drip.rateMinutes ) : 'Set by your audience';
+    this.perWeekdayText = people ? `about ${ sendsPerWeekday( drip.rateMinutes ) } a weekday` : '';
+    const who = people === 1 ? 'the last person gets' : `all ${ people.toLocaleString( 'en-US' ) } ${ this.started ? 'left ' : '' }get`;
+    this.rateNote = this.archived ? ''
+      : !people ? 'Choose who gets it, and the pace is worked out so everyone has it by the end day.'
+      : `Paced so ${ who } it by ${ shortDate( addDays( window.end, -1 ) ) }. Change the dates to speed it up or slow it down. It archives once everyone has it, or on the end day.`;
 
     this.audienceRows = ( this.detail?.audiences || [] ).map( ( audience ) => ( {
       id: audience.id, name: audience.name, source: sourceLabel( audience.source ),

@@ -102,15 +102,20 @@ export const STATUS_TINTS: Record<DripStatus, string> = { starting: 'green', run
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+/** The pace in words - any interval, since the server works it out from the audience and dates. */
 export function rateLabel ( minutes: number ): string {
   if ( minutes === 1 ) return '1 a minute';
   if ( minutes === 60 ) return '1 an hour';
   if ( minutes === 1440 ) return '1 a day';
-  return minutes > 60 ? `1 every ${ minutes / 60 } hours` : `1 every ${ minutes } minutes`;
+  if ( minutes >= 480 ) return '1 a weekday';
+  if ( minutes < 60 ) return `1 every ${ minutes } minutes`;
+  const hours = Math.floor( minutes / 60 );
+  const rest = minutes % 60;
+  return rest ? `1 every ${ hours } hr ${ rest } min` : `1 every ${ hours } hours`;
 }
 
 export function sendsPerWeekday ( minutes: number ): number {
-  return minutes >= 1440 ? 1 : Math.floor( 480 / minutes );
+  return Math.max( 1, Math.floor( 480 / minutes ) );
 }
 
 export function addDays ( date: string, days: number ): string {
@@ -194,21 +199,25 @@ export function statusSentence ( drip: Drip, today: string ): string {
   }
 }
 
-/** How many it reaches before it archives. Capacity = sends per weekday × weekdays left. */
+/** How many it reaches before it archives. Capacity = sends per weekday × weekdays left. The server paces it to finish by the end day, so this is short only when even 1 a minute can't keep up. */
 export function projectedReach ( drip: Drip, today: string ): string {
   const total = drip.status === 'ready' || drip.status === 'scheduled' ? drip.audience?.count || 0 : drip.counters.total;
   if ( !total ) return '';
   const sent = drip.counters.sent;
   const remaining = drip.status === 'ready' || drip.status === 'scheduled' ? total : drip.counters.queued;
-  const perDay = sendsPerWeekday( drip.rateMinutes );
-  const capacity = perDay * Math.round( daysLeft( drip, today ) * 5 / 7 );
+  const window = dripWindow( drip, today );
+  const from = drip.status === 'running' || drip.status === 'paused' ? today : window.start;
+  // Sending minutes per weekday over the rate, the way the server paces it.
+  const perWeekday = 480 / Math.min( Math.max( 1, drip.rateMinutes ), 480 );
   const people = total.toLocaleString( 'en-US' );
-  if ( capacity >= remaining ) {
-    const from = drip.status === 'running' || drip.status === 'paused' ? today : dripWindow( drip, today ).start;
-    const by = addDays( from, Math.max( 0, Math.ceil( ( remaining / perDay ) * 7 / 5 ) - 1 ) );
-    return `Reaches all ${ people } people by about ${ shortDate( by ) }, then stops on its own.`;
+  let reached = 0;
+  for ( let day = from; day < window.end; day = addDays( day, 1 ) ) {
+    const weekday = new Date( `${ day }T12:00:00Z` ).getUTCDay();
+    if ( weekday === 0 || weekday === 6 ) continue;
+    reached += perWeekday;
+    if ( reached >= remaining ) return `Reaches all ${ people } people by about ${ shortDate( day ) }, then stops on its own.`;
   }
-  return `Reaches about ${ ( sent + capacity ).toLocaleString( 'en-US' ) } of ${ people } people before it archives. Speed it up to reach everyone.`;
+  return `Reaches about ${ ( sent + Math.floor( reached ) ).toLocaleString( 'en-US' ) } of ${ people } people before it archives. Move the end day later to reach everyone.`;
 }
 
 /** The expiry card's title. */
