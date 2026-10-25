@@ -52,14 +52,21 @@ describe('Signal Engine buttons', () => {
 });
 
 describe('Inbox Access buttons', () => {
-  beforeEach(() => {
+  // The inbox moved to /inbox (Outreach Inbox 2026); this page is settings only.
+  it('is the Inbox settings page once an inbox is connected', () => {
+    cy.intercept('GET', '**/api/outreach/mailboxes*', { statusCode: 200, body: { success: true, data: [
+      { id: 'm1', emailAddress: 'ada@analytical.co', provider: 'gmail', isPrimary: true, auth: { mode: 'oauth' }, imap: {}, smtp: {} },
+    ] } });
     cy.loginAsTestUser('/inbox-access');
     cy.location('pathname', { timeout: 15000 }).should('eq', '/inbox-access');
+    cy.contains('h1', 'Inbox settings').should('be.visible');
   });
 
-  // The inbox moved to /inbox (Outreach Inbox 2026); this page is settings only.
-  it('is the Inbox settings page', () => {
-    cy.contains('h1', 'Inbox settings').should('be.visible');
+  // With nothing connected it's the guided first connect (design_handoff_outreach_onboarding 2).
+  it('guides the first connect when no inbox is connected', () => {
+    cy.loginAsTestUser('/inbox-access');
+    cy.location('pathname', { timeout: 15000 }).should('eq', '/inbox-access');
+    cy.contains('h1', 'Connect the inbox you send from').should('be.visible');
   });
 });
 

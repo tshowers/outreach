@@ -63,10 +63,27 @@
   --site-accent-soft: var(--t-blue);
   --site-display: var(--font);
   --site-sans: var(--font);
+  /* From @taliferro/ui tokens.css - the onboarding screens share them with Network. */
+  --green: #22b35e;
+  --amber: #e09b12;
+  --t-amber: #fff1d6;
+  --t-amber-fg: #7a4f00;
+  --t-grey: #e4e7ed;
+  --t-grey-fg: #3d4350;
+  --shadow-md: 0 8px 24px rgba(15, 17, 21, .08);
+  --shadow-sm: 0 1px 3px rgba(15, 17, 21, .08);
 }
 
 html.dark {
   color-scheme: dark;
+  --green: #3dd27a;
+  --amber: #f2b33d;
+  --t-amber: #33260a;
+  --t-amber-fg: #ffd27a;
+  --t-grey: #242936;
+  --t-grey-fg: #c3c9d6;
+  --shadow-md: 0 0 0 1px #242936;
+  --shadow-sm: 0 0 0 1px #242936;
   --bg: #0c0e13;
   --surface: #171a22;
   --surface2: #242936;

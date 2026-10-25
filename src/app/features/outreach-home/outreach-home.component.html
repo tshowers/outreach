@@ -1,5 +1,33 @@
 <app-back-to-top></app-back-to-top>
-<div class="home todd-page" data-demo="outreach-sequences">
+
+<!-- First session (design_handoff_outreach_onboarding 1): three required steps, one optional. -->
+<section class="arrive todd-page" *ngIf="showArrive || showSetUp" [class.arrive--compact]="showSetUp" data-cy="arrive">
+  <div class="arrive__intro">
+    <span class="arrive__tag" *ngIf="handoffCount && !showSetUp" data-cy="arrive-handoff">{{ handoffCount }} {{ handoffCount === 1 ? 'contact' : 'contacts' }} from Network</span>
+    <h1 data-cy="arrive-title">{{ arriveTitle }}</h1>
+    <p>{{ arriveSub }}</p>
+  </div>
+  <app-browse-notice *ngIf="showArrive" what="Outreach"></app-browse-notice>
+  <ol class="arrive__steps">
+    <li class="arrive__step" *ngFor="let step of arriveSteps" [class.is-current]="isCurrentStep(step)" data-cy="arrive-step">
+      <span class="arrive__mark" [class.is-done]="step.done" [class.is-current]="isCurrentStep(step)" aria-hidden="true">{{ step.done ? '✓' : stepNumber(step) }}</span>
+      <div class="arrive__text">
+        <div class="arrive__title"><strong>{{ step.title }}</strong>
+          <span class="arrive__chip" [attr.data-kind]="step.done ? 'done' : step.required ? 'required' : 'optional'">{{ stepTag(step) }}</span></div>
+        <span>{{ stepWhy(step) }}</span>
+      </div>
+      <ng-container *ngIf="showsStepAction(step)">
+        <button *ngIf="step.id === 'bulkSending'; else stepLink" type="button" class="pill" appWriteAction="set bulk sending aside" (click)="dismissBulk()">Not now</button>
+        <ng-template #stepLink>
+          <a class="pill" [class.pill--dark]="isCurrentStep(step)" [routerLink]="setup.routeFor(step)" [queryParams]="setup.queryParamsFor(step)"
+             [attr.data-cy]="'arrive-action-' + step.id">{{ setup.actionFor(step) }}</a>
+        </ng-template>
+      </ng-container>
+    </li>
+  </ol>
+</section>
+
+<div class="home todd-page" *ngIf="!showArrive" data-demo="outreach-sequences">
   <div class="home__main">
     <header class="home__header">
       <h1>{{ greeting }}<ng-container *ngIf="userFirstName">, {{ userFirstName }}</ng-container></h1>
@@ -12,6 +40,11 @@
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
       <span>Outreach can't reach {{ brokenMailboxAddress }}. Reconnect it so Maya can keep sending.</span>
       <a class="pill pill--dark" routerLink="/inbox-access">Reconnect</a>
+    </div>
+
+    <div class="home__warning" *ngIf="noMailbox && !brokenMailboxAddress && !showSetUp" role="status" data-cy="home-no-mailbox">
+      <span>Connect your inbox so Outreach can send.</span>
+      <a class="pill pill--dark" routerLink="/inbox-access">Connect</a>
     </div>
 
     <section class="needs-you" aria-labelledby="needs-you-title">

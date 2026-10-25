@@ -20,6 +20,8 @@ import { buildCockpitDiagnosisRows, CockpitDiagnosisRowVm } from '../../shared/u
 import { MomentumThread } from '../../models/momentum-thread.model';
 import { isDraftToApprove, isNeedsYou } from '../../shared/utils/needs-you.util';
 import { NeedsYouCountService } from '../../services/needs-you-count.service';
+import { OutreachOnboardingService, OutreachStep } from '../../services/outreach-onboarding.service';
+import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 
 /**
  * Ported from features/email/pages/outreach-home/. Two real trims beyond
@@ -51,7 +53,7 @@ import { NeedsYouCountService } from '../../services/needs-you-count.service';
 @Component( {
   selector: 'app-outreach-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, BackToTopComponent, BrowseNoticeComponent],
+  imports: [CommonModule, RouterModule, BackToTopComponent, BrowseNoticeComponent, WriteActionDirective],
   templateUrl: './outreach-home.component.html',
   styleUrl: './outreach-home.component.css'
 } )
@@ -103,6 +105,9 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
   greeting = 'Welcome back';
   todayLabel = '';
   userFirstName = '';
+  readonly setup = inject( OutreachOnboardingService );
+  /** Signed in with no connected mailbox - nothing can send. */
+  noMailbox = false;
   needsYouRows: Array<{ id: string; initials: string; name: string; reason: string; age: string; }> = [];
   draftsCount = 0;
   pipeline = { activeThreads: 0, draftReady: 0, stalledWaiting: 0, hotLeads: 0, warmLeads: 0, queued: 0, sending: 0 };
@@ -203,6 +208,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.authService.getUserId().subscribe( userId => {
         this.userId = userId && userId !== 'user not logged in' ? userId : null;
+        if ( this.userId ) void this.setup.refresh();
         this.refreshTemplateState();
         this.publishPageContext();
       } )
@@ -229,6 +235,92 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
         momentumNeedsHumanCount: this.momentumNeedsHumanCount
       }
     } );
+  }
+
+  // ── First session (design_handoff_outreach_onboarding 1) ──────────────
+
+  /** Until the inbox, profile and first email are done, Home is Arrive. */
+  get showArrive (): boolean {
+    const state = this.setup.onboarding();
+    return !!this.userId && !!state && !state.requiredDone;
+  }
+
+  /** Set up, with bulk sending still to decide: a short card above the dashboard. */
+  get showSetUp (): boolean {
+    const state = this.setup.onboarding();
+    return !!this.userId && !!state && state.requiredDone && state.showChecklist;
+  }
+
+  get handoffCount (): number {
+    return this.setup.handoff()?.contactIds.length || 0;
+  }
+
+  private get arriveName (): string {
+    return this.setup.onboarding()?.firstName || this.userFirstName;
+  }
+
+  get arriveTitle (): string {
+    const name = this.arriveName ? `, ${this.arriveName}` : '';
+    if ( this.showSetUp ) return `You're set up${name}.`;
+    return this.handoffCount ? `Welcome to Outreach${name}. Your contacts are here.` : `Welcome to Outreach${name}.`;
+  }
+
+  get arriveSub (): string {
+    if ( this.showSetUp ) return 'Maya will draft follow-ups as replies come in. You approve before anything sends.';
+    return this.handoffCount
+      ? `Network sent over ${this.handoffCount} verified ${this.handoffCount === 1 ? 'contact' : 'contacts'}. Three quick steps and Maya can start emailing them for you.`
+      : 'Three quick steps and Maya can start emailing your contacts for you.';
+  }
+
+  /** Why each step matters, in the user's terms. */
+  stepWhy ( step: OutreachStep ): string {
+    switch ( step.id ) {
+      case 'connectInbox':
+        return 'Emails go out from your own address and replies come back here. Nothing sends without this.';
+      case 'profile':
+        if ( !step.done ) return 'Maya writes every email from your profile. Without it, drafts sound generic.';
+        return this.handoffCount
+          ? 'You filled it in on Network. Take a quick look, because Maya writes every email from it.'
+          : 'Maya writes every email from your profile. Take a quick look.';
+      case 'firstSend':
+        return this.handoffCount
+          ? `Maya drafts a first email to the ${this.handoffCount} ${this.handoffCount === 1 ? 'contact' : 'contacts'} from Network, from your profile. Read it, change anything, and send.`
+          : 'Maya drafts a first email from your profile. Read it, change anything, and send.';
+      default:
+        return this.setup.onboarding()?.bulkStatus === 'pending'
+          ? 'Your request is with the TODD team. One-to-one emails from your inbox keep working meanwhile.'
+          : 'Only needed for campaigns and drips. Uses SendGrid with your domain. About 10 minutes, then a short approval.';
+    }
+  }
+
+  stepTag ( step: OutreachStep ): string {
+    if ( step.done ) return 'Done';
+    if ( step.id === 'bulkSending' && this.setup.onboarding()?.bulkStatus === 'pending' ) return 'Waiting for approval';
+    return step.required ? 'Required' : 'Optional';
+  }
+
+  /** Arrive's rows: all four first time, just bulk sending once set up. */
+  get arriveSteps (): OutreachStep[] {
+    const steps = this.setup.onboarding()?.steps || [];
+    return this.showSetUp ? steps.filter( ( step ) => step.id === 'bulkSending' ) : steps;
+  }
+
+  stepNumber ( step: OutreachStep ): number {
+    return ( this.setup.onboarding()?.steps || [] ).indexOf( step ) + 1;
+  }
+
+  isCurrentStep ( step: OutreachStep ): boolean {
+    return this.setup.currentStepId() === step.id;
+  }
+
+  showsStepAction ( step: OutreachStep ): boolean {
+    if ( !step.available ) return false;
+    if ( step.id === 'bulkSending' ) return !step.done && this.setup.onboarding()?.bulkStatus === 'off';
+    return !step.done || step.id === 'profile';
+  }
+
+  dismissBulk (): void {
+    void this.setup.dismissBulk();
   }
 
   ngOnDestroy (): void {
@@ -606,6 +698,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
     }
     const broken = ( mailboxes?.data || [] ).find( box => box.lastSyncStatus === 'failed' && box.status !== 'disconnected' );
     this.brokenMailboxAddress = broken?.emailAddress || '';
+    this.noMailbox = !!mailboxes && !( mailboxes.data || [] ).some( box => box.status !== 'disconnected' );
   }
 
   /** Day groups, with the same event recorded twice merged into "×2". */

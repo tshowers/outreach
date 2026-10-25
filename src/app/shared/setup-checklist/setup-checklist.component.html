@@ -1,0 +1,38 @@
+@if (visible) {
+  @let onboarding = service.onboarding()!;
+  <button type="button" class="sc-pill" (click)="toggle()" [attr.aria-expanded]="isOpen()" aria-controls="setup-checklist" data-cy="setup-pill">
+    <span class="sc-count" aria-hidden="true">{{ onboarding.completedSteps }}</span>
+    <span class="sc-label">Setup<span class="sc-of"> · {{ onboarding.completedSteps }} of {{ onboarding.totalSteps }}</span></span>
+  </button>
+
+  @if (isOpen()) {
+    <section id="setup-checklist" class="sc-pop" aria-labelledby="sc-title" data-cy="setup-checklist">
+      <div class="sc-head">
+        <h2 id="sc-title">Get Outreach sending</h2>
+        <button type="button" class="sc-close" (click)="isOpen.set(false)" aria-label="Close">✕</button>
+      </div>
+      <div class="sc-bar" role="progressbar" [attr.aria-valuenow]="onboarding.completedSteps" aria-valuemin="0" [attr.aria-valuemax]="onboarding.totalSteps">
+        <span [style.width.%]="onboarding.completedSteps / onboarding.totalSteps * 100"></span>
+      </div>
+      <ol class="sc-steps">
+        @for (step of onboarding.steps; track step.id; let i = $index) {
+          <li class="sc-step" data-cy="setup-step">
+            <span class="sc-mark" [class.is-done]="step.done" [class.is-current]="isCurrent(step)" aria-hidden="true">{{ step.done ? '✓' : i + 1 }}</span>
+            <div class="sc-text">
+              <strong>{{ step.title }}</strong>
+              <span>{{ step.detail }}</span>
+            </div>
+            @if (showAction(step)) {
+              @if (step.id === 'bulkSending') {
+                <button type="button" class="sc-action" appWriteAction="set bulk sending aside" (click)="dismissBulk()">{{ service.actionFor(step) }}</button>
+              } @else {
+                <a class="sc-action" [routerLink]="service.routeFor(step)" [queryParams]="service.queryParamsFor(step)">{{ service.actionFor(step) }}</a>
+              }
+            }
+            <span class="visually-hidden">{{ step.done ? 'Done' : step.required ? 'Required' : 'Optional' }}</span>
+          </li>
+        }
+      </ol>
+    </section>
+  }
+}

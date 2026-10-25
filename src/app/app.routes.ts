@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 // Browse free, create with the app: no route needs sign-in. Writes are
 // gated per action (WriteActionDirective) and enforced by the server.
 import { landingRedirectGuard } from './services/landing-redirect.guard';
+import { networkArrivalGuard } from './services/network-arrival.guard';
 
 export const routes: Routes = [
   {
@@ -140,7 +141,14 @@ export const routes: Routes = [
       import( './features/email-processor/email-processor.component' ).then( ( m ) => m.EmailProcessorComponent ),
   },
   {
+    // First-session profile check (design_handoff_outreach_onboarding 3).
+    path: 'setup/profile',
+    loadComponent: () =>
+      import( './features/setup-profile/setup-profile.component' ).then( ( m ) => m.SetupProfileComponent ),
+  },
+  {
     path: 'compose-email',
+    canActivate: [networkArrivalGuard],
     loadComponent: () =>
       import( './features/email-composer-parent/email-composer-parent.component' ).then( ( m ) => m.EmailComposerParentComponent ),
   },

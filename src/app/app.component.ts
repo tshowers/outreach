@@ -14,10 +14,11 @@ import { WriteAccessPromptComponent } from './shared/write-access/write-access-p
 import { PlatformMenuComponent } from './shared/platform-menu/platform-menu.component';
 import { OutreachAssistantLauncherComponent } from './shared/page/assistant-box/outreach-assistant-launcher.component';
 import packageJson from '../../package.json';
+import { SetupChecklistComponent } from './shared/setup-checklist/setup-checklist.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastComponent, AppSidebarComponent, WriteAccessPromptComponent, PlatformMenuComponent, OutreachAssistantLauncherComponent, AsyncPipe, NgIf],
+  imports: [RouterOutlet, ToastComponent, AppSidebarComponent, WriteAccessPromptComponent, PlatformMenuComponent, OutreachAssistantLauncherComponent, SetupChecklistComponent, AsyncPipe, NgIf],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

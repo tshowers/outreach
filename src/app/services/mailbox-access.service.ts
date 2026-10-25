@@ -240,6 +240,37 @@ export class MailboxAccessService {
       });
   }
 
+  /**
+   * Connect inbox's guided flow (design_handoff_outreach_onboarding 2):
+   * test, say which checks passed, and save only when both did. Unlike
+   * testMailboxConnection/saveMailboxConnection it reports instead of
+   * toasting, so the page can show each check tick off.
+   */
+  async connectWithChecks(): Promise<{ ok: boolean; smtpVerified: boolean; imapVerified: boolean; message: string; }> {
+    if (!this.context?.tenantId || !this.context?.userId) {
+      return { ok: false, smtpVerified: false, imapVerified: false, message: 'Please sign in again.' };
+    }
+    this.isTestingMailbox = true;
+    try {
+      const test = await firstValueFrom(this.outreachApi.testMailboxConnection(this.buildMailboxPayload(), this.getMailboxRequestOptions()));
+      const checks = test?.data?.checks || { smtpVerified: false, imapVerified: false };
+      if (!checks.smtpVerified || !checks.imapVerified) {
+        return { ok: false, smtpVerified: !!checks.smtpVerified, imapVerified: !!checks.imapVerified, message: test?.message || '' };
+      }
+      this.isSavingMailbox = true;
+      await firstValueFrom(this.outreachApi.saveMailbox(this.buildMailboxPayload(), this.getMailboxRequestOptions()));
+      this.mailboxForm.secret = '';
+      this.loadMailboxConfigs();
+      return { ok: true, smtpVerified: true, imapVerified: true, message: '' };
+    } catch (error: any) {
+      const checks = error?.error?.data?.checks || {};
+      return { ok: false, smtpVerified: !!checks.smtpVerified, imapVerified: !!checks.imapVerified, message: error?.error?.message || error?.message || '' };
+    } finally {
+      this.isTestingMailbox = false;
+      this.isSavingMailbox = false;
+    }
+  }
+
   saveMailboxConnection(): void {
     if (!this.context?.tenantId || !this.context?.userId) return;
 

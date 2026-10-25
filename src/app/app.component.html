@@ -1,4 +1,5 @@
 <div class="app-global-actions" [class.app-global-actions--shell]="showShell">
+  <app-setup-checklist [isLoggedIn]="(isLoggedIn$ | async) ?? false" />
   <app-platform-menu #platformMenu [isAdmin]="(isAdmin$ | async) ?? false" [isLoggedIn]="(isLoggedIn$ | async) ?? false" [userName]="(userName$ | async) ?? ''" [userEmail]="(userEmail$ | async) ?? ''" (signOut)="signOut()"></app-platform-menu>
 </div>
 <div *ngIf="updateNotice" class="outreach-update-notice" role="status" aria-live="polite">

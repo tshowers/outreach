@@ -2,7 +2,7 @@
   <div class="inbox-access-shell">
     <app-browse-notice what="Inbox"></app-browse-notice>
     <section class="inbox-access-card">
-      <header class="inbox-head">
+      <header class="inbox-head" *ngIf="!showGuided">
         <div>
           <h1>Inbox settings</h1>
           <p>Connect the mailboxes you send outreach from. TODD watches their replies, sorts them and drafts your answers.</p>
@@ -12,8 +12,70 @@
         </div>
       </header>
 
+      <!-- First connect (design_handoff_outreach_onboarding 2): who hosts it, then one way in. -->
+      <div class="guided" *ngIf="showGuided" data-cy="inbox-guided">
+        <ng-container *ngIf="phase === 'enter' || phase === 'failed'">
+          <h1>Connect the inbox you send from</h1>
+          <p class="guided__lede">Your emails go out from your own address, so they look like they came from you. Outreach reads the replies and sorts them, and nothing is sent unless you approve it.</p>
+
+          <label class="guided__field">
+            <span>Email address</span>
+            <input type="email" autocomplete="email" [(ngModel)]="mailboxAccess.mailboxForm.emailAddress" (blur)="guessProvider()" data-cy="guided-email" />
+          </label>
+
+          <div class="guided__field">
+            <span id="guided-host">Who hosts it?</span>
+            <div class="guided__chips" role="radiogroup" aria-labelledby="guided-host">
+              <button *ngFor="let p of providerChips" type="button" class="guided__chip" role="radio" [class.is-on]="chosen === p.id"
+                      [attr.aria-checked]="chosen === p.id" (click)="choose(p.id)" [attr.data-cy]="'guided-chip-' + p.id">{{ p.label }}</button>
+            </div>
+            <small>{{ chip.note }}</small>
+          </div>
+
+          <p class="guided__failure" *ngIf="phase === 'failed'" role="alert" data-cy="guided-failure">{{ failure }}</p>
+
+          <ng-container *ngIf="chosen === 'google'; else passwordWay">
+            <button type="button" class="guided__primary" appWriteAction="connect an inbox" (click)="connectGoogle()" data-cy="guided-google">Continue with Google</button>
+            <small class="guided__note">Google asks you to approve once. TODD never sees your password, and you can remove access any time.</small>
+          </ng-container>
+          <ng-template #passwordWay>
+            <label class="guided__field">
+              <span>App password</span>
+              <input type="password" autocomplete="new-password" [(ngModel)]="mailboxAccess.mailboxForm.secret" data-cy="guided-password" />
+              <small>Your provider can create one for you. TODD stores it encrypted. Server settings are filled in automatically, and you can change them under Advanced.</small>
+            </label>
+            <button type="button" class="guided__link" (click)="mailboxAccess.mailboxForm.showAdvanced = !mailboxAccess.mailboxForm.showAdvanced">{{ mailboxAccess.mailboxNeedsAdvancedSettings ? 'Hide advanced' : 'Advanced' }}</button>
+            <div class="guided__advanced" *ngIf="mailboxAccess.mailboxNeedsAdvancedSettings">
+              <label><span>Receiving (IMAP) host</span><input type="text" [(ngModel)]="mailboxAccess.mailboxForm.imap.host" /></label>
+              <label><span>Port</span><input type="number" [(ngModel)]="mailboxAccess.mailboxForm.imap.port" /></label>
+              <label><span>Sending (SMTP) host</span><input type="text" [(ngModel)]="mailboxAccess.mailboxForm.smtp.host" /></label>
+              <label><span>Port</span><input type="number" [(ngModel)]="mailboxAccess.mailboxForm.smtp.port" /></label>
+            </div>
+            <button type="button" class="guided__primary" [disabled]="!mailboxAccess.mailboxForm.emailAddress || !mailboxAccess.mailboxForm.secret"
+                    appWriteAction="connect an inbox" (click)="connectWithPassword()" data-cy="guided-connect">Test and connect</button>
+          </ng-template>
+        </ng-container>
+
+        <ng-container *ngIf="phase === 'connecting'">
+          <span class="guided__tag"><span class="guided__dot" aria-hidden="true"></span>Connecting</span>
+          <h1>Connecting {{ connectingAddress }}</h1>
+          <ol class="guided__checks" data-cy="guided-checks">
+            <li [class.is-ok]="checks.signedIn"><span aria-hidden="true">{{ checks.signedIn ? '✓' : '' }}</span>Signed in with {{ providerName }}</li>
+            <li [class.is-ok]="checks.send"><span aria-hidden="true">{{ checks.send ? '✓' : '' }}</span>Can send from {{ connectingAddress }}</li>
+            <li [class.is-ok]="checks.read"><span aria-hidden="true">{{ checks.read ? '✓' : '' }}</span>Can read replies</li>
+          </ol>
+        </ng-container>
+
+        <div class="guided__done" *ngIf="phase === 'connected'" data-cy="guided-connected">
+          <h1>{{ connectingAddress || 'Your inbox' }} is ready</h1>
+          <p>Outreach can send from this address and will read replies from now on.</p>
+          <a *ngIf="nextIsProfile; else firstEmail" class="guided__primary" routerLink="/setup/profile" data-cy="guided-next">Next: your profile</a>
+          <ng-template #firstEmail><a class="guided__primary" routerLink="/compose-email" [queryParams]="firstEmailParams" data-cy="guided-next">See your first email</a></ng-template>
+        </div>
+      </div>
+
       <!-- Connected inboxes: pick one and its settings open right under it. -->
-      <div class="boxes" role="radiogroup" aria-label="Connected inboxes" *ngIf="mailboxAccess.mailboxConfigs.length">
+      <div class="boxes" role="radiogroup" aria-label="Connected inboxes" *ngIf="mailboxAccess.mailboxConfigs.length && !showGuided">
         <div class="eyebrow">Connected inboxes</div>
         <div class="box" *ngFor="let mailbox of mailboxAccess.mailboxConfigs" [class.is-selected]="isSelected(mailbox)">
           <button type="button" class="box__head" role="radio" [attr.aria-checked]="isSelected(mailbox)" (click)="selectMailbox(mailbox)">
@@ -41,11 +103,6 @@
         </div>
       </div>
 
-      <!-- Nothing connected yet: the connect form on its own. -->
-      <div class="boxes" *ngIf="!mailboxAccess.mailboxConfigs.length && !mailboxAccess.loadingMailboxes">
-        <div class="eyebrow">Connect your inbox</div>
-        <div class="box is-selected"><div class="box__body box__body--solo"><ng-container *ngTemplateOutlet="settingsPanel"></ng-container></div></div>
-      </div>
     </section>
   </div>
 </div>

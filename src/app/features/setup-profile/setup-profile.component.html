@@ -1,0 +1,54 @@
+<main class="sp todd-page" data-cy="setup-profile">
+  <a class="sp-back" routerLink="/app">← Back</a>
+  <header class="sp-intro">
+    <h1 data-cy="setup-profile-title">{{ heading }}</h1>
+    <p>TODD and Maya write every email from your profile. It's the same profile as in Network and the other TODD apps, so you only fill it in once.</p>
+  </header>
+
+  <p *ngIf="errorMessage" class="sp-error" role="alert">{{ errorMessage }}</p>
+
+  <ng-container *ngIf="profile">
+    <section class="sp-score" aria-label="How well TODD knows you">
+      <div class="sp-score__top"><span>How well TODD knows you</span><strong>{{ completion.completed }} of {{ completion.total }}</strong></div>
+      <div class="sp-bar" role="progressbar" [attr.aria-valuenow]="completion.completed" aria-valuemin="0" [attr.aria-valuemax]="completion.total">
+        <span [style.width.%]="completion.percent"></span>
+      </div>
+    </section>
+
+    <ol class="sp-rows">
+      <li class="sp-row" *ngFor="let q of questions" [class.is-editing]="editing === q.field" data-cy="setup-profile-row">
+        <span class="sp-dot" [class.is-ok]="answered(q)" aria-hidden="true">{{ answered(q) ? '✓' : '!' }}</span>
+        <div class="sp-row__body">
+          <div class="sp-row__head">
+            <strong>{{ labels[q.field] }}</strong>
+            <span class="sp-carried" *ngIf="isCarried(q)">From Network</span>
+            <button *ngIf="editing !== q.field" type="button" class="sp-link" (click)="edit(q)" [attr.data-cy]="'setup-profile-edit-' + q.field">Edit</button>
+          </div>
+          <p *ngIf="editing !== q.field" class="sp-value" [class.is-empty]="!answered(q)">{{ profile[q.field] || 'Not answered yet' }}</p>
+
+          <div *ngIf="editing === q.field" class="sp-editor">
+            <span class="sp-hint">{{ q.hint }}</span>
+            <div class="sp-chips" role="group" [attr.aria-label]="labels[q.field]">
+              <button *ngFor="let choice of q.choices" type="button" class="sp-chip" [class.is-selected]="pickedChoice === choice.label"
+                      [attr.aria-pressed]="pickedChoice === choice.label" (click)="pick(choice)" data-cy="setup-profile-choice">{{ choice.label }}</button>
+            </div>
+            <textarea class="sp-text" rows="3" placeholder="Write your own" [attr.aria-label]="labels[q.field]"
+                      [(ngModel)]="draft" (ngModelChange)="onType()" data-cy="setup-profile-text"></textarea>
+            <div class="sp-actions">
+              <button type="button" class="sp-btn sp-btn--primary" [disabled]="!draft.trim() || isSaving" appWriteAction="save your profile"
+                      (click)="save(q)" data-cy="setup-profile-save">{{ isSaving ? 'Saving…' : 'Save' }}</button>
+              <button *ngIf="answered(q)" type="button" class="sp-btn" (click)="cancel()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ol>
+
+    <footer class="sp-foot">
+      <a *ngIf="canContinue; else blocked" class="sp-btn sp-btn--primary" routerLink="/compose-email" [queryParams]="firstEmailParams" data-cy="setup-profile-next">See your first email</a>
+      <ng-template #blocked><button type="button" class="sp-btn sp-btn--primary" disabled data-cy="setup-profile-next">See your first email</button></ng-template>
+      <span>{{ footNote }}</span>
+      <a *ngIf="!inboxConnected" routerLink="/inbox-access" class="sp-link">Connect your inbox</a>
+    </footer>
+  </ng-container>
+</main>

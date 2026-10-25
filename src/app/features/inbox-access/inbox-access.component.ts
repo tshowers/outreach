@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { getAuth } from 'firebase/auth';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 
 import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { OutreachDataService } from '../../services/outreach-data.service';
@@ -15,6 +17,20 @@ import { DESIGN_PREVIEW_MAILBOX, isDesignPreview } from '../../shared/utils/desi
 import { mailboxConnectionLabel } from '../../shared/utils/mailbox-label';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
+import { OutreachOnboardingService } from '../../services/outreach-onboarding.service';
+import { environment } from '../../../environments/environment';
+
+type ProviderChip = 'google' | 'microsoft' | 'icloud' | 'yahoo' | 'other';
+
+/** Who hosts it (design_handoff_outreach_onboarding 2), and the form's provider for each. */
+const PROVIDER_CHIPS: Array<{ id: ProviderChip; label: string; provider: MailboxProviderId; note: string }> = [
+  { id: 'google', label: 'Google / Gmail', provider: 'gmail', note: 'Gmail and Google Workspace.' },
+  { id: 'microsoft', label: 'Microsoft 365 / Outlook', provider: 'outlook',
+    note: 'Microsoft sign-in is coming. For now, create an app password in your Microsoft account (Security → Advanced security options → App passwords) and paste it here.' },
+  { id: 'icloud', label: 'iCloud', provider: 'icloud', note: 'Needs an app-specific password from appleid.apple.com.' },
+  { id: 'yahoo', label: 'Yahoo', provider: 'yahoo', note: 'Needs an app password from your Yahoo account security page.' },
+  { id: 'other', label: 'Something else', provider: 'other_imap', note: 'Any mailbox that supports IMAP and SMTP.' },
+];
 
 /**
  * Inbox settings: connect, test and choose mailboxes. The inbox itself is
@@ -52,6 +68,17 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
   private userId = '';
   private tenantId = '';
   private userEmail = '';
+
+  // ── Guided first connect (design_handoff_outreach_onboarding 2) ────────
+  readonly setup = inject( OutreachOnboardingService );
+  private readonly http = inject( HttpClient );
+  readonly providerChips = PROVIDER_CHIPS;
+  chosen: ProviderChip = 'google';
+  /** enter → connecting → connected, or failed (back to enter on retry). */
+  phase: 'enter' | 'connecting' | 'connected' | 'failed' = 'enter';
+  checks = { signedIn: false, send: false, read: false };
+  failure = '';
+  private guessedFor = '';
   private companyName = '';
 
   private userSubscription?: Subscription;
@@ -91,6 +118,7 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
       ] as any;
       this.mailboxAccess.selectMailbox( this.mailboxAccess.mailboxConfigs[0] );
     }
+    this.readOAuthReturn();
     this.userSubscription = this.authService.getUser().subscribe( ( user ) => {
       if ( !user ) return;
 
@@ -163,6 +191,110 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
     return `Synced ${ Math.round( minutes / 1440 ) } d ago`;
   }
 
+  /** No inbox yet, or in the middle of connecting one: the guided panel instead of settings. */
+  get showGuided (): boolean {
+    return this.phase !== 'enter' || ( !this.mailboxAccess.mailboxConfigs.length && !this.mailboxAccess.loadingMailboxes );
+  }
+
+  get chip () {
+    return PROVIDER_CHIPS.find( ( chip ) => chip.id === this.chosen ) || PROVIDER_CHIPS[0];
+  }
+
+  get providerName (): string {
+    return this.chip.label.split( ' /' )[0];
+  }
+
+  /** The address this page is connecting, or the one that just connected. */
+  get connectingAddress (): string {
+    return this.mailboxAccess.mailboxForm.emailAddress || this.mailboxAccess.connectedMailbox?.emailAddress || '';
+  }
+
+  get nextIsProfile (): boolean {
+    return !this.setup.onboarding()?.steps.find( ( step ) => step.id === 'profile' )?.done;
+  }
+
+  get firstEmailParams (): Record<string, string> | null {
+    const step = this.setup.onboarding()?.steps.find( ( s ) => s.id === 'firstSend' );
+    return step ? this.setup.queryParamsFor( step ) : { draft: 'profile' };
+  }
+
+  choose ( id: ProviderChip ): void {
+    this.chosen = id;
+    this.mailboxAccess.mailboxForm.provider = this.chip.provider;
+    this.mailboxAccess.onMailboxProviderChange();
+  }
+
+  /** Preselect who hosts the address (MX lookup), once per address. */
+  async guessProvider (): Promise<void> {
+    const email = String( this.mailboxAccess.mailboxForm.emailAddress || '' ).trim().toLowerCase();
+    if ( !email.includes( '@' ) || email === this.guessedFor ) return;
+    this.guessedFor = email;
+    try {
+      const user = getAuth().currentUser;
+      if ( !user ) return;
+      const response = await firstValueFrom( this.http.get<{ data: { provider: ProviderChip } }>(
+        `${environment.backendURL}/outreach/provider-hint`,
+        { params: { email }, headers: { Authorization: `Bearer ${await user.getIdToken()}` } } ) );
+      if ( response?.data?.provider ) this.choose( response.data.provider );
+    } catch {
+      // Keep the current choice.
+    }
+  }
+
+  connectGoogle (): void {
+    this.mailboxAccess.connectGoogleMailbox();
+  }
+
+  async connectWithPassword (): Promise<void> {
+    this.phase = 'connecting';
+    this.failure = '';
+    this.checks = { signedIn: false, send: false, read: false };
+    // The form reloads its defaults when the mailbox list arrives; the chip the user picked wins.
+    if ( this.mailboxAccess.mailboxForm.provider !== this.chip.provider ) this.choose( this.chosen );
+    const result = await this.mailboxAccess.connectWithChecks();
+    // Tick them off in order, the way the connection was checked.
+    const pause = () => new Promise( ( resolve ) => setTimeout( resolve, 350 ) );
+    this.checks.signedIn = result.smtpVerified || result.imapVerified || result.ok;
+    await pause();
+    this.checks.send = result.smtpVerified;
+    await pause();
+    this.checks.read = result.imapVerified;
+    if ( result.ok ) {
+      this.phase = 'connected';
+      void this.setup.refresh();
+      return;
+    }
+    this.phase = 'failed';
+    this.failure = !this.checks.signedIn
+      ? `${this.providerName} didn't accept that password. Check it's an app password, not your normal one.${result.message ? ` (${result.message})` : ''}`
+      : !result.smtpVerified
+        ? `Outreach couldn't send from ${this.connectingAddress}. Check the sending (SMTP) server under Advanced.`
+        : `Outreach can send, but couldn't read replies. Check the receiving (IMAP) server under Advanced.`;
+  }
+
+  retry (): void {
+    this.phase = 'enter';
+    this.failure = '';
+  }
+
+  /** Back from Google's consent screen: ?mailboxConnect=1&mailboxConnectStatus=success|error. */
+  private readOAuthReturn (): void {
+    const params = this.route.snapshot.queryParamMap;
+    if ( params.get( 'mailboxConnect' ) !== '1' ) return;
+    this.chosen = 'google';
+    if ( params.get( 'mailboxConnectStatus' ) === 'success' ) {
+      this.checks = { signedIn: true, send: true, read: true };
+      this.phase = 'connected';
+      void this.setup.refresh();
+    } else {
+      this.phase = 'failed';
+      const message = params.get( 'mailboxMessage' ) || '';
+      this.failure = /not completed|denied|scope/i.test( message )
+        ? "Google didn't allow sending. Try again and tick \"Send email on your behalf\"."
+        : message || 'Google mailbox connection failed. Try again.';
+    }
+  }
+
   private syncMailboxContext (): void {
     if ( !this.userId || !this.tenantId ) return;
 
@@ -178,6 +310,9 @@ export class InboxAccessComponent implements OnInit, OnDestroy {
       preferredEmail: ( this.route.snapshot.queryParamMap.get( 'email' ) || '' ).trim().toLowerCase() || undefined,
       preferredProvider: ( this.route.snapshot.queryParamMap.get( 'provider' ) || undefined ) as MailboxProviderId | undefined,
     } );
+    // First connect: start from the TODD account's address and guess who hosts it.
+    if ( !this.mailboxAccess.mailboxForm.emailAddress && this.userEmail ) this.mailboxAccess.mailboxForm.emailAddress = this.userEmail;
+    void this.guessProvider();
 
     this.logger.info( 'Inbox access context ready', {
       tenantId: this.tenantId,

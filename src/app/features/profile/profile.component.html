@@ -35,7 +35,7 @@
           <div><dt>What your company does</dt><dd [class.is-empty]="!profile.companyDescription">{{ profile.companyDescription || 'Not set' }}</dd></div>
           <div><dt>Value proposition</dt><dd [class.is-empty]="!profile.valueProp">{{ profile.valueProp || 'Not set' }}</dd></div>
           <div><dt>Mission</dt><dd [class.is-empty]="!profile.companyGoal">{{ profile.companyGoal || 'Not set' }}</dd></div>
-          <div><dt>What Outreach should help you with</dt><dd [class.is-empty]="!profile.jobDescriptionForTODD">{{ profile.jobDescriptionForTODD || 'Not set' }}</dd></div>
+          <div><dt>What TODD should do for you each week</dt><dd [class.is-empty]="!profile.jobDescriptionForTODD">{{ profile.jobDescriptionForTODD || 'Not set' }}</dd></div>
         </dl>
       </section>
       <section class="pf-card">
@@ -99,7 +99,7 @@
                     [attr.data-cy]="'profile-text-' + field.key"></textarea>
         </div>
 
-        <label class="pf-field"><span>What should Outreach help you with?</span>
+        <label class="pf-field"><span>What should TODD do for you each week?</span>
           <textarea class="pf-input" rows="2" name="jobDescriptionForTODD"
                     placeholder="For example: hear what customers and my team really think."
                     [(ngModel)]="profile.jobDescriptionForTODD"></textarea></label>

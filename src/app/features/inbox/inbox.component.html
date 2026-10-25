@@ -41,13 +41,18 @@
     <div class="sheet sheet--note"><p>Loading your inbox…</p></div>
   } @else if (!mailbox.connectedMailbox) {
     <div class="sheet sheet--note">
-      <h2>Connect your inbox</h2>
-      <p>TODD reads the replies to your outreach, tells you who's waiting and drafts your answers.</p>
-      <a class="primary" routerLink="/inbox-access">Connect a mailbox</a>
+      <h2>Connect your inbox to see replies here</h2>
+      <p>Outreach reads replies from the inbox you send from, sorts them, and drafts your answers.</p>
+      <a class="primary" routerLink="/inbox-access">Connect</a>
     </div>
   } @else if (!days.length) {
-    <div class="sheet sheet--note">
-      <p>{{ mailbox.mailboxSyncStatus || 'No mail yet. Replies to your outreach will show up here.' }}</p>
+    <div class="sheet sheet--note" data-cy="inbox-no-replies">
+      @if (mailbox.mailboxSyncStatus) {
+        <p>{{ mailbox.mailboxSyncStatus }}</p>
+      } @else {
+        <h2>No replies yet</h2>
+        <p>When people reply, TODD sorts their emails into this list and drafts your answers. Anyone waiting on a decision also shows up in Needs you.</p>
+      }
     </div>
   } @else {
     <nav class="daybar" aria-label="Days">

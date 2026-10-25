@@ -5,7 +5,7 @@
   <section *ngIf="progress" id="your-progress" class="help-section help-progress" aria-labelledby="help-progress-title" data-cy="help-progress">
     <div class="help-section__heading">
       <p class="help-section-kicker">Your progress</p>
-      <h2 id="help-progress-title">{{ progress.allDone ? "You're all set" : 'Get the most out of Outreach' }}</h2>
+      <h2 id="help-progress-title">{{ progress.allDone ? "You're all set" : 'Get Outreach sending' }}</h2>
       <p>Each step checks itself off as you go.</p>
     </div>
     <div class="help-progress__meter" role="progressbar" [attr.aria-valuenow]="progress.completedSteps" aria-valuemin="0" [attr.aria-valuemax]="progress.totalSteps">
@@ -19,14 +19,11 @@
           <strong>{{ step.title }}</strong>
           <span>{{ step.detail }}</span>
         </div>
-        <a class="help-try-link" [routerLink]="gettingStarted.routeFor(step)">{{ gettingStarted.actionFor(step) }} <span aria-hidden="true">→</span></a>
-        <span class="visually-hidden">{{ step.done ? 'Done' : 'Not done' }}</span>
+        <a *ngIf="step.id !== 'bulkSending' && step.available && (!step.done || step.id === 'profile')" class="help-try-link"
+           [routerLink]="onboarding.routeFor(step)" [queryParams]="onboarding.queryParamsFor(step)">{{ onboarding.actionFor(step) }} <span aria-hidden="true">→</span></a>
+        <span class="visually-hidden">{{ step.done ? 'Done' : step.required ? 'Required' : 'Optional' }}</span>
       </li>
     </ol>
-    <label class="help-progress__toggle">
-      <input type="checkbox" [checked]="showAfterSignIn" (change)="toggleShowAfterSignIn($any($event.target).checked)" />
-      Show this after I sign in
-    </label>
   </section>
 
   <section class="help-section" aria-labelledby="help-first-title">
