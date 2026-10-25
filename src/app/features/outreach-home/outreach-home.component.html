@@ -67,12 +67,12 @@
     </section>
 
     <div class="tiles">
-      <a class="tile tile--violet" routerLink="/ios">
+      <a class="tile tile--violet" routerLink="/signal-engine" [queryParams]="{ tab: 'drafts' }" data-cy="tile-drafts">
         <span class="tile__top">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
           <b>{{ draftsCount }}</b>
         </span>
-        <strong>Drafts</strong><span>review them in the Outreach app</span>
+        <strong>Drafts</strong><span>review and approve Maya's drafts</span>
       </a>
       <a class="tile tile--blue" routerLink="/inbox">
         <span class="tile__top">
@@ -107,15 +107,16 @@
     <section class="pipeline" aria-label="Pipeline">
       <div class="pipeline__head">
         <span class="eyebrow">Pipeline</span>
-        <span class="pipeline__sending">Sending now <b>{{ pipeline.sending }}</b></span>
+        <a class="pipeline__sending" routerLink="/signal-engine" [queryParams]="{ tab: 'outbox' }">Sending now <b>{{ pipeline.sending }}</b></a>
       </div>
+      <!-- Each number opens the list it counts (Signal Engine). -->
       <div class="pipeline__grid">
-        <div><span class="dot dot--blue"></span><b>{{ pipeline.activeThreads }}</b><span>Active threads</span></div>
-        <div><span class="dot dot--violet"></span><b>{{ pipeline.draftReady }}</b><span>Draft ready</span></div>
-        <div><span class="dot dot--yellow"></span><b>{{ pipeline.stalledWaiting }}</b><span>Stalled</span></div>
-        <div><span class="dot dot--pink"></span><b>{{ pipeline.hotLeads }}</b><span>Hot leads</span></div>
-        <div><span class="dot dot--neutral"></span><b>{{ pipeline.warmLeads }}</b><span>Warm leads</span></div>
-        <div><span class="dot dot--cyan"></span><b>{{ pipeline.queued }}</b><span>Queued</span></div>
+        <a routerLink="/signal-engine" [queryParams]="{ tab: 'plan', filter: 'active' }" data-cy="pipeline-active"><span class="dot dot--blue"></span><b>{{ pipeline.activeThreads }}</b><span>Active threads</span></a>
+        <a routerLink="/signal-engine" [queryParams]="{ tab: 'drafts' }" data-cy="pipeline-drafts"><span class="dot dot--violet"></span><b>{{ pipeline.draftReady }}</b><span>Draft ready</span></a>
+        <a routerLink="/signal-engine" [queryParams]="{ tab: 'plan', filter: 'stalled' }" data-cy="pipeline-stalled"><span class="dot dot--yellow"></span><b>{{ pipeline.stalledWaiting }}</b><span>Stalled</span></a>
+        <a routerLink="/signal-engine" [queryParams]="{ tab: 'plan', filter: 'hot' }" data-cy="pipeline-hot"><span class="dot dot--pink"></span><b>{{ pipeline.hotLeads }}</b><span>Hot leads</span></a>
+        <a routerLink="/signal-engine" [queryParams]="{ tab: 'plan', filter: 'warm' }" data-cy="pipeline-warm"><span class="dot dot--neutral"></span><b>{{ pipeline.warmLeads }}</b><span>Warm leads</span></a>
+        <a routerLink="/signal-engine" [queryParams]="{ tab: 'outbox' }" data-cy="pipeline-queued"><span class="dot dot--cyan"></span><b>{{ pipeline.queued }}</b><span>Queued</span></a>
       </div>
     </section>
 
@@ -132,6 +133,12 @@
           <div>
             <strong>{{ row.title }}<ng-container *ngIf="row.count > 1"> ×{{ row.count }}</ng-container></strong>
             <span *ngIf="row.body">{{ row.body }}</span>
+            <ng-container *ngIf="row.action as action">
+              <a *ngIf="action.href; else internalAction" class="activity__action" [href]="action.href" target="_blank" rel="noopener">{{ action.label }} ↗</a>
+              <ng-template #internalAction>
+                <a class="activity__action" [routerLink]="action.route" [queryParams]="action.queryParams">{{ action.label }} →</a>
+              </ng-template>
+            </ng-container>
           </div>
         </div>
       </ng-container>

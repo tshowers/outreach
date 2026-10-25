@@ -7,6 +7,7 @@ import { MayaDaySummary, OutreachApiService } from '../../services/outreach-api.
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
+import { ActivityAction, MOVES_TASKS_URL, activityAction, isMovesLimitReason } from '../../shared/utils/activity-action.util';
 
 /**
  * Maya's day: what she planned at 6am, what she did, and what's waiting on
@@ -62,6 +63,17 @@ export class MayaDayComponent implements OnInit, OnDestroy {
     if ( s.startStatus === 'failed' ) return "Maya couldn't start today";
     if ( s.finishedAt ) return "Maya's done for today";
     return s.startStatus === 'started' ? 'Maya is working' : "Maya's day";
+  }
+
+  readonly movesUrl = MOVES_TASKS_URL;
+
+  /** Her start failed on the open-task limit: closing Moves is the fix. */
+  get blockedByMoves (): boolean {
+    return isMovesLimitReason( this.summary?.startReason );
+  }
+
+  actionFor ( item: { category: string; title: string; body: string; } ): ActivityAction | null {
+    return activityAction( item );
   }
 
   get dateLabel (): string {

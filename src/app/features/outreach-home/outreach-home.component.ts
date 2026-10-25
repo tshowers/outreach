@@ -22,6 +22,9 @@ import { isDraftToApprove, isNeedsYou } from '../../shared/utils/needs-you.util'
 import { NeedsYouCountService } from '../../services/needs-you-count.service';
 import { OutreachOnboardingService, OutreachStep } from '../../services/outreach-onboarding.service';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
+import { ActivityAction, activityAction } from '../../shared/utils/activity-action.util';
+
+type ActivityGroup = { title: string; rows: Array<{ title: string; body: string; count: number; tint: string; icon: string; action: ActivityAction | null; }>; };
 
 /**
  * Ported from features/email/pages/outreach-home/. Two real trims beyond
@@ -113,7 +116,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
   pipeline = { activeThreads: 0, draftReady: 0, stalledWaiting: 0, hotLeads: 0, warmLeads: 0, queued: 0, sending: 0 };
   brokenMailboxAddress = '';
   mayaDayLine = '';
-  activityGroups: Array<{ title: string; rows: Array<{ title: string; body: string; count: number; tint: string; icon: string; }>; }> = [];
+  activityGroups: ActivityGroup[] = [];
 
   private readonly guestGrowthSymptoms: BusinessSymptom[] = [
     {
@@ -710,7 +713,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
       maya: { tint: 'green', icon: '✦' },
       sending_approved: { tint: 'green', icon: '✓' }
     };
-    const groups: Array<{ title: string; rows: Array<{ title: string; body: string; count: number; tint: string; icon: string; }>; }> = [];
+    const groups: ActivityGroup[] = [];
     const today = new Date().toDateString();
     const yesterday = new Date( Date.now() - 86400000 ).toDateString();
     for ( const item of items ) {
@@ -727,7 +730,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
         existing.count += 1;
       } else {
         const look = icons[item.category] || { tint: 'neutral', icon: '•' };
-        group.rows.push( { title: item.title, body: item.body, count: 1, ...look } );
+        group.rows.push( { title: item.title, body: item.body, count: 1, ...look, action: activityAction( item ) } );
       }
     }
     return groups;

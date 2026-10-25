@@ -251,8 +251,9 @@
 }
 
 .pipeline__sending {
-  color: var(--muted);
+  color: var(--muted) !important;
   font-size: 12px;
+  text-decoration: none;
 }
 
 .pipeline__sending b {
@@ -265,11 +266,21 @@
   gap: 14px 10px;
 }
 
-.pipeline__grid div {
+.pipeline__grid a {
   display: grid;
   grid-template-columns: 12px auto;
   align-items: center;
   column-gap: 2px;
+  margin: -6px;
+  padding: 6px;
+  border-radius: 12px;
+  color: var(--text) !important;
+  text-decoration: none;
+}
+
+.pipeline__grid a:hover,
+.pipeline__grid a:focus-visible {
+  background: var(--bg);
 }
 
 .pipeline__grid b {
@@ -351,6 +362,13 @@
 
 .activity__row span {
   color: var(--muted);
+}
+
+.activity__action {
+  margin-top: 4px;
+  color: var(--blue-ink) !important;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .chip {

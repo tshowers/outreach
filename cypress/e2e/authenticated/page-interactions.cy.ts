@@ -34,9 +34,17 @@ describe('Signal Engine buttons', () => {
     cy.wait('@bootstrap');
   });
 
-  it('points drafts to the Outreach app instead of a Drafts tab', () => {
-    cy.get('[data-cy="signal-engine-drafts-in-app"]').should('exist');
-    cy.get('[data-cy="signal-engine-tab-drafts"]').should('not.exist');
+  // Drafts are reviewed on the web again while the iOS app is held in App Review.
+  it('opens on the Drafts tab', () => {
+    cy.get('[data-cy="signal-engine-tab-drafts"]').should('exist');
+    cy.get('[data-cy="signal-engine-drafts"]').should('exist');
+    cy.get('[data-cy="signal-engine-drafts-in-app"]').should('not.exist');
+  });
+
+  it('Plan filters switch the thread list', () => {
+    cy.get('[data-cy="signal-engine-tab-plan"]').click();
+    cy.get('[data-cy="signal-engine-plan-filter-stalled"]').click().should('have.class', 'active');
+    cy.get('[data-cy="signal-engine-plan"]').should('contain', 'No threads here right now.');
   });
 
   it('refresh re-fetches the bootstrap data', () => {

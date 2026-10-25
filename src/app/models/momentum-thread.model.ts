@@ -198,6 +198,9 @@ export interface MomentumThread {
     stage: MomentumStage;
 
     isMomentumActive: boolean;
+    /** Set by the server's bootstrap - what Growth's Hot/Warm leads count. */
+    isHotLeadActive?: boolean;
+    isWarmLeadActive?: boolean;
 
     touchCount: number;
     openCount: number;

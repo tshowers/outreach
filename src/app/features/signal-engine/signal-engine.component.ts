@@ -17,9 +17,30 @@ import { TabBarComponent, TabBarItem } from '../../shared/tab-bar/tab-bar.compon
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { ContactPreviewCardComponent } from '../../shared/contact-preview-card/contact-preview-card.component';
 import { BackToTopComponent } from '../../shared/back-to-top/back-to-top.component';
+import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
 
 type DraftKind = 'outbound' | 'reply' | 'none';
 type SignalLane = 'drafts' | 'outbox' | 'sent' | 'plan';
+/** Which threads the Plan tab lists - Growth's pipeline numbers link to these. */
+export type ThreadFilter = 'plan' | 'active' | 'stalled' | 'hot' | 'warm';
+
+const THREAD_FILTERS: Array<{ id: ThreadFilter; label: string; hint: string; }> = [
+  { id: 'plan', label: "Maya's plan", hint: 'Everything Maya is still handling herself: waiting, watching, drafting or rewriting.' },
+  { id: 'active', label: 'Active', hint: 'Every thread with outreach in motion, in any lane.' },
+  { id: 'stalled', label: 'Stalled', hint: 'Sent and waiting on a reply. Maya follows up on her own schedule; Edit one to step in yourself.' },
+  { id: 'hot', label: 'Hot leads', hint: 'Strong engagement in the last few days. Worth a personal touch.' },
+  { id: 'warm', label: 'Warm leads', hint: 'Lighter engagement in the last few days.' },
+];
+
+function matchesThreadFilter ( thread: MomentumThread, filter: ThreadFilter ): boolean {
+  switch ( filter ) {
+    case 'active': return thread.isMomentumActive === true;
+    case 'stalled': return thread.bucket === 'stalled' || thread.bucket === 'waiting';
+    case 'hot': return thread.isHotLeadActive === true;
+    case 'warm': return thread.isWarmLeadActive === true;
+    default: return thread.userLane === 'plan' && !isNeedsYou( thread );
+  }
+}
 
 /**
  * Ported from features/email/pages/signal-engine/. Swapped AuthService for
@@ -38,7 +59,7 @@ type SignalLane = 'drafts' | 'outbox' | 'sent' | 'plan';
 @Component( {
   selector: 'app-signal-engine',
   standalone: true,
-  imports: [CommonModule, RouterModule, WriteActionDirective, BrowseNoticeComponent, EmailSentComponent, TabBarComponent, PreloaderComponent, ContactPreviewCardComponent, BackToTopComponent],
+  imports: [CommonModule, RouterModule, WriteActionDirective, BrowseNoticeComponent, EmailSentComponent, TabBarComponent, PreloaderComponent, ContactPreviewCardComponent, BackToTopComponent, RelativeTimePipe],
   templateUrl: './signal-engine.component.html',
   styleUrl: './signal-engine.component.css',
 } )
@@ -50,7 +71,9 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   private readonly router = inject( Router );
   private readonly assistantBus = inject( OutreachAssistantSignalService );
 
-  activeLane: SignalLane = 'outbox';
+  activeLane: SignalLane = 'drafts';
+  threadFilter: ThreadFilter = 'plan';
+  readonly threadFilters = THREAD_FILTERS;
 
   private userSubscription: Subscription | null = null;
   private tenantSubscription: Subscription | null = null;
@@ -139,12 +162,17 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   ngOnInit (): void {
     const params = this.route.snapshot.queryParamMap;
     const restoreTab = String( params.get( 'tab' ) || '' ).trim() as SignalLane;
-    // Drafts moved to the Outreach iOS app; an old ?tab=drafts link lands on Outbox.
-    if ( restoreTab === 'outbox' || restoreTab === 'sent' || restoreTab === 'plan' ) {
+    // Drafts are back on the web while the iOS app is held in App Review (Ty, 2026-10-25).
+    if ( restoreTab === 'drafts' || restoreTab === 'outbox' || restoreTab === 'sent' || restoreTab === 'plan' ) {
       this.activeLane = restoreTab;
     }
+    const filter = String( params.get( 'filter' ) || '' ).trim() as ThreadFilter;
+    if ( THREAD_FILTERS.some( ( option ) => option.id === filter ) ) {
+      this.threadFilter = filter;
+      if ( !params.has( 'tab' ) ) this.activeLane = 'plan';
+    }
     this.pendingRestoreThreadId = params.get( 'threadId' ) || null;
-    if ( params.has( 'tab' ) || params.has( 'threadId' ) ) {
+    if ( params.has( 'tab' ) || params.has( 'threadId' ) || params.has( 'filter' ) ) {
       void this.router.navigate( [], { relativeTo: this.route, queryParams: {}, replaceUrl: true } );
     }
     this.recomputeSignalTabs();
@@ -194,6 +222,7 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
       ],
       summary: {
         activeLane: this.activeLane,
+        threadFilter: this.threadFilter,
         threadCount: this.threads.length,
         draftReady: this.summary?.draftReady ?? 0,
         needsHuman: this.summary?.needsHuman ?? 0,
@@ -244,8 +273,34 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
     this.queuedForRewriteCount = this.threads.filter( ( thread ) => !!thread.rewriteQueueState ).length;
     this.outboxThreads = this.threads.filter( ( thread ) => thread.userLane === 'outbox' );
     // Plan is what Maya is still handling herself; anything waiting on the
-    // user has its own Needs You page.
-    this.planThreads = this.threads.filter( ( thread ) => thread.userLane === 'plan' && !isNeedsYou( thread ) );
+    // user has its own Needs You page. The other filters list what Growth's
+    // pipeline numbers count, across every lane.
+    this.planThreads = this.threads.filter( ( thread ) => matchesThreadFilter( thread, this.threadFilter ) );
+    this.threadFilterCounts = THREAD_FILTERS.reduce( ( counts, option ) => {
+      counts[option.id] = this.threads.filter( ( thread ) => matchesThreadFilter( thread, option.id ) ).length;
+      return counts;
+    }, {} as Record<ThreadFilter, number> );
+  }
+
+  threadFilterCounts = {} as Record<ThreadFilter, number>;
+
+  get threadFilterHint (): string {
+    return THREAD_FILTERS.find( ( option ) => option.id === this.threadFilter )?.hint || '';
+  }
+
+  setThreadFilter ( filter: ThreadFilter ): void {
+    this.threadFilter = filter;
+    this.recomputeSignalTabs();
+    this.publishPageContext();
+  }
+
+  laneLabel ( thread: MomentumThread ): string {
+    switch ( thread.userLane ) {
+      case 'drafts': return 'Draft';
+      case 'outbox': return 'Outbox';
+      case 'sent': return 'Sent';
+      default: return isNeedsYou( thread ) ? 'Needs you' : '';
+    }
   }
 
   trackByThreadId ( _index: number, thread: MomentumThread ): string {
@@ -298,6 +353,7 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
   private recomputeSignalTabs (): void {
     this.recomputeThreadLanes();
     this.signalTabs = [
+      { id: 'drafts', label: 'Drafts', icon: 'pen-to-square', count: this.draftThreads.length, dataCy: 'signal-engine-tab-drafts', tooltip: 'What Maya drafted. Approve, edit, rewrite or discard.' },
       { id: 'outbox', label: 'Outbox', icon: 'layer-group', count: this.outboxThreads.length, dataCy: 'signal-engine-tab-outbox', tooltip: 'Approved drafts waiting to send. Sending runs weekdays only, 7am–11pm Pacific — items sit here over the weekend.' },
       { id: 'sent', label: 'Sent', icon: 'paper-plane', count: this.sentCount, dataCy: 'signal-engine-tab-sent' },
       { id: 'plan', label: 'Plan', icon: 'clipboard-list', count: this.planThreads.length, dataCy: 'signal-engine-tab-plan' }
@@ -598,7 +654,7 @@ export class SignalEngineComponent implements OnInit, OnDestroy {
     try {
       const returnTab = this.activeLane;
       const returnRoute = this.router.createUrlTree( ['/signal-engine'], {
-        queryParams: { tab: returnTab, threadId: thread.contactId }
+        queryParams: { tab: returnTab, threadId: thread.contactId, ...( returnTab === 'plan' && this.threadFilter !== 'plan' ? { filter: this.threadFilter } : {} ) }
       } ).toString();
       const draftKind = this.getDraftKind( thread ) === 'reply' ? 'reply' : 'outbound';
       const hasLiveDraft = this.getDraftKind( thread ) !== 'none';

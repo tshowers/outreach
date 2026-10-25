@@ -4,6 +4,9 @@
         <p class="eyebrow">{{ dateLabel || 'Today' }}</p>
         <h1>{{ headline || "Maya's day" }}</h1>
         <p class="subtitle" *ngIf="summary?.startStatus === 'failed'">{{ summary?.startReason }}</p>
+        <p class="links" *ngIf="summary?.startStatus === 'failed' && blockedByMoves">
+            <a [href]="movesUrl" target="_blank" rel="noopener" data-cy="maya-day-open-moves">Open Moves ↗</a>
+        </p>
     </header>
 
     <app-preloader *ngIf="loading && !summary"></app-preloader>
@@ -20,11 +23,10 @@
         <section class="panel waiting" *ngIf="s.needsYou || s.draftsWaiting || s.rewriting">
             <h2>Waiting on you</h2>
             <ul>
-                <li *ngIf="s.needsYou"><strong>{{ s.needsYou }}</strong> {{ s.needsYou === 1 ? 'person needs' : 'people need' }} you - replies and threads Maya handed back.</li>
-                <li *ngIf="s.draftsWaiting"><strong>{{ s.draftsWaiting }}</strong> {{ s.draftsWaiting === 1 ? 'draft is' : 'drafts are' }} waiting for your approval.</li>
+                <li *ngIf="s.needsYou"><strong>{{ s.needsYou }}</strong> {{ s.needsYou === 1 ? 'person needs' : 'people need' }} you - replies and threads Maya handed back. <a routerLink="/needs-you">Open Needs you</a></li>
+                <li *ngIf="s.draftsWaiting"><strong>{{ s.draftsWaiting }}</strong> {{ s.draftsWaiting === 1 ? 'draft is' : 'drafts are' }} waiting for your approval. <a routerLink="/signal-engine" [queryParams]="{ tab: 'drafts' }">Review drafts</a></li>
                 <li *ngIf="s.rewriting"><strong>{{ s.rewriting }}</strong> {{ s.rewriting === 1 ? 'draft is' : 'drafts are' }} being rewritten by Maya.</li>
             </ul>
-            <p class="hint">Review them in the Outreach app's Needs You and Drafts.</p>
         </section>
 
         <section class="panel" *ngIf="s.plannedActionCount">
@@ -43,6 +45,10 @@
                     <div>
                         <p class="title">{{ item.title }}</p>
                         <p class="body" *ngIf="item.body">{{ item.body }}</p>
+                        <p class="body" *ngIf="actionFor(item) as action">
+                            <a *ngIf="action.href; else internalAction" [href]="action.href" target="_blank" rel="noopener">{{ action.label }} ↗</a>
+                            <ng-template #internalAction><a [routerLink]="action.route" [queryParams]="action.queryParams">{{ action.label }}</a></ng-template>
+                        </p>
                         <p class="time">{{ item.createdAt | relativeTime }}</p>
                     </div>
                 </li>
