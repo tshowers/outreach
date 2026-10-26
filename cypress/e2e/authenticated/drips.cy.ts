@@ -7,7 +7,11 @@
 const API = '/api/outreach/drips';
 const idFrom = ( url: string, back = 0 ) => new URL( url ).pathname.split( '/' ).slice( -1 - back )[0];
 const DAY = 86400000;
-const iso = ( offsetDays: number ) => new Date( Date.now() + offsetDays * DAY ).toISOString().slice( 0, 10 );
+// Local calendar days, like the page's "today" - toISOString() is UTC and broke this every evening after 5 pm Pacific.
+const iso = ( offsetDays: number ) => {
+  const day = new Date( Date.now() + offsetDays * DAY );
+  return `${ day.getFullYear() }-${ String( day.getMonth() + 1 ).padStart( 2, '0' ) }-${ String( day.getDate() ).padStart( 2, '0' ) }`;
+};
 const TODAY = iso( 0 );
 
 const EMAIL_HTML = `
@@ -215,14 +219,16 @@ describe( 'Outreach Drips', () => {
 
       // The switch won't start without an audience.
       cy.get( '.switch' ).click();
-      cy.contains( '.warn', 'Choose who gets it first.' );
+      cy.contains( '.warn', 'Choose who gets it first: pick an audience above, or make a New audience and press Save and use.' );
 
       cy.contains( 'button', 'New audience' ).click();
       cy.wait( '@categories' );
+      cy.get( '[data-cy="audience-steps"]' ).should( 'contain.text', 'Step 1 of 2' );
       cy.get( '.new-audience input.field' ).first().type( 'fashion brands' );
       cy.contains( 'button', 'Find people' ).click();
       cy.wait( '@preview' ).its( 'request.body' ).should( 'deep.equal', { source: 'contacts', mode: 'search', query: 'fashion brands' } );
       cy.contains( '.found', '477 people' ).and( 'contain', 'Zoe Lin' );
+      cy.get( '[data-cy="audience-steps"]' ).should( 'contain.text', 'Step 2 of 2' ).and( 'contain.text', "this drip's audience" );
       cy.get( '.found input.field' ).clear().type( 'Fashion brands' );
       cy.contains( 'button', 'Save and use' ).click();
       cy.wait( '@createAudience' ).its( 'request.body' ).should( 'include', { name: 'Fashion brands', source: 'contacts' } );
