@@ -12,6 +12,8 @@
         </div>
       </header>
 
+      <app-sending-from *ngIf="!showGuided && mailboxAccess.mailboxConfigs.length"></app-sending-from>
+
       <!-- First connect (design_handoff_outreach_onboarding 2): who hosts it, then one way in. -->
       <div class="guided" *ngIf="showGuided" data-cy="inbox-guided">
         <ng-container *ngIf="phase === 'enter' || phase === 'failed'">

@@ -17,6 +17,7 @@ import { DESIGN_PREVIEW_MAILBOX, isDesignPreview } from '../../shared/utils/desi
 import { mailboxConnectionLabel } from '../../shared/utils/mailbox-label';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
+import { SendingFromComponent } from './sending-from.component';
 import { OutreachOnboardingService } from '../../services/outreach-onboarding.service';
 import { environment } from '../../../environments/environment';
 
@@ -48,7 +49,7 @@ const PROVIDER_CHIPS: Array<{ id: ProviderChip; label: string; provider: Mailbox
 @Component( {
   selector: 'app-inbox-access',
   standalone: true,
-  imports: [WriteActionDirective, BrowseNoticeComponent,
+  imports: [WriteActionDirective, BrowseNoticeComponent, SendingFromComponent,
     CommonModule,
     FormsModule,
     RouterLink,

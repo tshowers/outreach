@@ -133,7 +133,23 @@ describe('Inbox Access buttons', () => {
     ] } });
     cy.loginAsTestUser('/inbox-access');
     cy.location('pathname', { timeout: 15000 }).should('eq', '/inbox-access');
-    cy.contains('h1', 'Inbox settings').should('be.visible');
+    cy.contains('h1', 'Inbox settings', { timeout: 15000 }).should('be.visible');
+  });
+
+  // "Sending from" (2026-10-26): pick the From address; one SendGrid can't send as goes "via TODD".
+  it('shows which address mail is sent from, and switches it', () => {
+    cy.intercept('GET', '**/api/outreach/mailboxes*', { statusCode: 200, body: { success: true, data: [
+      { id: 'm1', emailAddress: 'ty@taliferro.tech', provider: 'gmail', isPrimary: true, auth: { mode: 'oauth' }, imap: {}, smtp: {} },
+    ] } });
+    const notReady = { sendsFrom: 'ty@taliferro.com', sendsFromStatus: 'not_ready', repliesTo: 'ty@taliferro.tech', relayFrom: 'outreach@taliferro.tech',
+      options: [{ email: 'ty@taliferro.com', status: 'not_ready' }, { email: 'ty@taliferro.tech', status: 'ready' }] };
+    cy.intercept({ method: 'GET', pathname: '/api/outreach/sending-settings' }, { statusCode: 200, body: { success: true, data: notReady } });
+    cy.intercept({ method: 'PUT', pathname: '/api/outreach/sending-settings' }, { statusCode: 200, body: { success: true, data: { ...notReady, sendsFrom: 'ty@taliferro.tech', sendsFromStatus: 'ready' } } }).as('setSendsFrom');
+    cy.loginAsTestUser('/inbox-access');
+    cy.get('[data-cy="sending-from-status"]').should('contain', 'Not set up for sending').and('contain', 'via TODD').and('contain', 'outreach@taliferro.tech');
+    cy.get('[data-cy="sending-from-select"]').select('ty@taliferro.tech');
+    cy.wait('@setSendsFrom').its('request.body').should('deep.equal', { sendsFrom: 'ty@taliferro.tech' });
+    cy.get('[data-cy="sending-from-status"]').should('contain', 'Ready to send').and('contain', 'ty@taliferro.tech');
   });
 
   // With nothing connected it's the guided first connect (design_handoff_outreach_onboarding 2).

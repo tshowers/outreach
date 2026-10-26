@@ -454,6 +454,17 @@ export interface OutreachProvisioningRequestPayload {
   sendgridSubuserUsername?: string;
 }
 
+/** "ready": SendGrid can send as it. "not_ready": mail goes "Name via TODD" from relayFrom, replies to it. */
+export type SendingStatus = 'ready' | 'not_ready' | 'unknown' | 'none';
+
+export interface SendingSettings {
+  sendsFrom: string;
+  sendsFromStatus: SendingStatus;
+  repliesTo: string;
+  relayFrom: string;
+  options: Array<{ email: string; status: SendingStatus; }>;
+}
+
 @Injectable( { providedIn: 'root' } )
 export class OutreachApiService {
   private baseUrl = `${environment.backendURL}`;
@@ -631,6 +642,17 @@ export class OutreachApiService {
   draftAssistMomentumReply ( contactId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; message: string; data: any; }> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.post<{ success: boolean; message: string; data: any; }>( `${this.baseUrl}/outreach/momentum-threads/draft-assist`, { contactId, purpose: 'needs_you' }, { headers } );
+  }
+
+  /** "Sends from" (Inbox settings): the From address for drips, Catalyst and Maya, and whether SendGrid can send as it. */
+  getSendingSettings ( opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; data: SendingSettings; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.get<{ success: boolean; data: SendingSettings; }>( `${this.baseUrl}/outreach/sending-settings`, { headers } );
+  }
+
+  setSendsFrom ( sendsFrom: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; data: SendingSettings; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.put<{ success: boolean; data: SendingSettings; }>( `${this.baseUrl}/outreach/sending-settings`, { sendsFrom }, { headers } );
   }
 
   /** Outbox: send an approved email now instead of at its scheduled time. */
