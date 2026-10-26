@@ -288,6 +288,76 @@
   font-size: 13px;
 }
 
+/* Start now / Pick a start, with a date and time. */
+.send__when {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.send__seg {
+  display: flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--bg);
+}
+
+.send__seg button {
+  flex: 1;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: 700 14px var(--font);
+  cursor: pointer;
+}
+
+.send__seg button.is-on {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.send__dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.send__dates label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.send__dates small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.send__dates input {
+  height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px var(--font);
+}
+
+.send__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.send__note--warn {
+  color: var(--danger);
+}
+
 .send__start,
 .send__stop {
   display: inline-flex;

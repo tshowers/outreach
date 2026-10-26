@@ -356,7 +356,49 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
     } );
   }
 
+  /** When the run's emails may start going out (Ty, 2026-10-25). Each still
+   * sends in the recipient's business hours, weekdays. */
+  startMode: 'now' | 'later' = 'now';
+  startDate = '';
+  startTime = '09:00';
+
+  get todayInputValue (): string {
+    const now = new Date();
+    return `${ now.getFullYear() }-${ String( now.getMonth() + 1 ).padStart( 2, '0' ) }-${ String( now.getDate() ).padStart( 2, '0' ) }`;
+  }
+
+  setStartMode ( mode: 'now' | 'later' ): void {
+    this.startMode = mode;
+    if ( mode === 'later' && !this.startDate ) {
+      const tomorrow = new Date( Date.now() + 86400000 );
+      this.startDate = `${ tomorrow.getFullYear() }-${ String( tomorrow.getMonth() + 1 ).padStart( 2, '0' ) }-${ String( tomorrow.getDate() ).padStart( 2, '0' ) }`;
+    }
+  }
+
+  /** The picked start, in this browser's time zone; null when sending now. */
+  get startAt (): Date | null {
+    if ( this.startMode !== 'later' || !this.startDate || !this.startTime ) return null;
+    const at = new Date( `${ this.startDate }T${ this.startTime }` );
+    return Number.isNaN( at.getTime() ) ? null : at;
+  }
+
+  get startProblem (): string {
+    if ( this.startMode !== 'later' ) return '';
+    const at = this.startAt;
+    if ( !at ) return 'Pick a start date and time.';
+    if ( at.getTime() <= Date.now() ) return 'Pick a start time in the future.';
+    return '';
+  }
+
+  get startNote (): string {
+    const at = this.startAt;
+    if ( this.startMode !== 'later' || !at || this.startProblem ) return '';
+    const when = at.toLocaleString( 'en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' } );
+    return `Nothing goes out before ${ when } your time. After that, each email sends on a weekday between 8:30 AM and 4:30 PM in the person's own time zone.`;
+  }
+
   async onStart (): Promise<void> {
+    if ( this.startProblem ) return;
     this.isloading = true;
 
     this.stopSending = false;
@@ -1027,6 +1069,9 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
         },
       };
       ( email as any ).mailingAddress = mailingAddress;
+      // A picked start: the server queues it for then or later (scheduleCatalystEmail).
+      const startAt = this.startAt;
+      if ( startAt && startAt.getTime() > Date.now() ) ( email as any ).notBefore = startAt.toISOString();
 
       this.pendingEmail = email;
       this.pendingContact = contact;
@@ -1087,6 +1132,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
     };
     delete ( testEmail as any ).catalystRunId;
     delete ( testEmail as any ).catalystRunName;
+    delete ( testEmail as any ).notBefore;
 
     this.isSendingTest = true;
 
@@ -1165,9 +1211,14 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
       this.userId
     ).subscribe( {
       next: ( response ) => {
+        const notBefore = ( sentEmail as any ).notBefore ? new Date( ( sentEmail as any ).notBefore ) : null;
         this.notificationService.show(
-          `Email sent to ${sentContact.firstName} ${sentContact.lastName}`,
-          sentEmail.to + " - " + JSON.stringify( response ),
+          notBefore
+            ? `Scheduled for ${sentContact.firstName} ${sentContact.lastName}`
+            : `Email sent to ${sentContact.firstName} ${sentContact.lastName}`,
+          notBefore
+            ? `${ sentEmail.to } - goes out after ${ notBefore.toLocaleString( 'en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' } ) }, in their business hours.`
+            : sentEmail.to + " - " + JSON.stringify( response ),
           "success"
         );
         this.batchSentCount += 1;
