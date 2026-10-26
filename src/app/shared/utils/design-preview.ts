@@ -28,8 +28,24 @@ export const DESIGN_PREVIEW_CONTACTS = [
   lastName: last,
   company: { name: company },
   emailAddresses: [{ emailAddress: `${ String( first ).toLowerCase() }${ copy }@example.com`, blocked: false }],
-  lastContacted: daysAgo( Number( days ) )
-} ) ) );
+  lastContacted: daysAgo( Number( days ) ),
+  ...( index === 0 ? { category: 'Fashion' } : {} )
+} ) ) ).concat( [
+  // Catalyst's Choose who groups: affiliates (two with no company), subscribers, and one emailed yesterday.
+  ['Ana', 'Ruiz', '', 20, { affiliate: true }],
+  ['Bo', 'Chen', '', 12, { type: 'affiliate' }],
+  ['Cy', 'Park', 'Park Studio', 30, { affiliate: true }],
+  ['Di', 'Okafor', 'Okafor Media', 15, { subscriber: true }],
+  ['Ed', 'Lund', '', 1, { subscriber: true }]
+].map( ( [first, last, company, days, extra]: any[], index ) => ( {
+  id: `preview-group-${ index }`,
+  firstName: first,
+  lastName: last,
+  ...( company ? { company: { name: company } } : {} ),
+  emailAddresses: [{ emailAddress: `${ String( first ).toLowerCase() }@example.com`, blocked: false }],
+  lastContacted: daysAgo( Number( days ) ),
+  ...extra
+} ) ) as any[] );
 
 export const DESIGN_PREVIEW_RUNS = [
   { id: 'r1', name: 'Stale Contacts · Sep 28', status: 'completed', sentCount: 985, openRate: 0.49, clickRate: 0.24, startedAt: '2026-09-28T20:01:09Z', completedAt: '2026-09-28T20:08:27Z' },

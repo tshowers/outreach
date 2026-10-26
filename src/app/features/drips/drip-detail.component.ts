@@ -6,7 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { InboxIconComponent } from '../inbox/inbox-icon.component';
 import { OutreachAuthService } from '../../services/outreach-auth.service';
-import { AudienceQuery, DripPatch, DripsApiError, DripsApiService } from '../../services/drips-api.service';
+import { AudienceQuery, DripCategory, DripPatch, DripsApiError, DripsApiService } from '../../services/drips-api.service';
 import { EMAIL_CREATOR_URL } from './drips.component';
 import {
   DRIP_MAX_DAYS, Drip, DripConflict, DripDetail, DripKind, KIND_LABELS, KIND_TINTS, STATUS_LABELS, STATUS_TINTS,
@@ -108,7 +108,7 @@ export class DripDetailComponent implements OnInit, OnDestroy {
   audienceOpen = false;
   audienceForm: AudienceQuery = { source: 'contacts', mode: 'search', query: '' };
   audienceName = '';
-  categories: { name: string; count: number }[] = [];
+  categories: DripCategory[] = [];
   audiencePreview: { count: number; sample: string[] } | null = null;
   audienceError = '';
   audienceBusy = false;
@@ -285,8 +285,24 @@ export class DripDetailComponent implements OnInit, OnDestroy {
     this.audiencePreview = null;
     if ( this.audienceOpen && !this.categories.length ) {
       const categories = await this.api.categories().catch( () => [] );
-      this.categories = categories.sort( ( a, b ) => a.name.localeCompare( b.name, undefined, { sensitivity: 'base' } ) );
+      // Groups keep their order up top; categories alphabetical below.
+      this.categories = [
+        ...categories.filter( ( item ) => item.group ),
+        ...categories.filter( ( item ) => !item.group ).sort( ( a, b ) => a.name.localeCompare( b.name, undefined, { sensitivity: 'base' } ) ),
+      ];
     }
+  }
+
+  categoryValue ( item: DripCategory | undefined ): string {
+    return item ? item.value || item.name : '';
+  }
+
+  get categoryGroups (): DripCategory[] {
+    return this.categories.filter( ( item ) => item.group );
+  }
+
+  get categoryValues (): DripCategory[] {
+    return this.categories.filter( ( item ) => !item.group );
   }
 
   audienceUses ( from: 'contacts' | 'leadVault' ): boolean {
@@ -307,7 +323,8 @@ export class DripDetailComponent implements OnInit, OnDestroy {
   }
 
   setAudienceMode ( mode: AudienceQuery['mode'] ): void {
-    this.audienceForm = { ...this.audienceForm, mode, query: mode === 'category' ? this.categories[0]?.name || '' : '' };
+    const first = this.categories.find( ( item ) => !item.group ) || this.categories[0];
+    this.audienceForm = { ...this.audienceForm, mode, query: mode === 'category' ? this.categoryValue( first ) : '' };
     this.audiencePreview = null;
   }
 
@@ -321,7 +338,10 @@ export class DripDetailComponent implements OnInit, OnDestroy {
     this.audienceError = '';
     try {
       this.audiencePreview = await this.api.previewAudience( this.audienceForm );
-      if ( !this.audienceName ) this.audienceName = this.audienceForm.query.trim().slice( 0, 60 );
+      if ( !this.audienceName ) {
+        const picked = this.audienceForm.mode === 'category' ? this.categories.find( ( item ) => this.categoryValue( item ) === this.audienceForm.query ) : null;
+        this.audienceName = ( picked?.name || this.audienceForm.query.trim() ).slice( 0, 60 );
+      }
     } catch ( error: any ) {
       this.audienceError = error?.message || 'Couldn\'t find anyone.';
     } finally {

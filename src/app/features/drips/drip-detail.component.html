@@ -103,7 +103,12 @@
                     <button type="button" role="radio" [class.is-on]="audienceForm.mode === 'category'" (click)="setAudienceMode('category')" [disabled]="!categories.length">By category</button>
                   </div>
                   <select class="field" *ngIf="audienceForm.source === 'contacts' && audienceForm.mode === 'category'" [(ngModel)]="audienceForm.query" (ngModelChange)="onAudienceQuery()" aria-label="Category">
-                    <option *ngFor="let category of categories" [value]="category.name">{{ category.name }} ({{ category.count }})</option>
+                    <optgroup label="Groups" *ngIf="categoryGroups.length">
+                      <option *ngFor="let category of categoryGroups" [value]="categoryValue(category)">{{ category.name }} ({{ category.count }})</option>
+                    </optgroup>
+                    <optgroup label="Categories" *ngIf="categoryValues.length">
+                      <option *ngFor="let category of categoryValues" [value]="categoryValue(category)">{{ category.name }} ({{ category.count }})</option>
+                    </optgroup>
                   </select>
                   <input class="field" *ngIf="audienceForm.source !== 'contacts' || audienceForm.mode === 'search'" type="text" [(ngModel)]="audienceForm.query" (ngModelChange)="onAudienceQuery()" (keydown.enter)="findAudience()"
                          [placeholder]="audienceForm.source !== 'contacts' ? 'e.g. fashion brands in New York' : 'e.g. fashion brands'" aria-label="Who should get it">

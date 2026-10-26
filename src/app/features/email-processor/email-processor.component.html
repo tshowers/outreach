@@ -34,7 +34,23 @@
     <div class="catalyst__grid" [class.catalyst__grid--previewing]="isPreviewing" [class.d-none]="!isLoading && !isCatalystHandoffMode && liteContacts && liteContacts.length === 0">
         <section class="choose" *ngIf="!isCatalystHandoffMode" aria-labelledby="choose-title">
             <span class="eyebrow">1 · Choose who</span>
-            <h2 id="choose-title">People you may have forgotten</h2>
+            <h2 id="choose-title">{{ audienceTitle }}</h2>
+            <!-- The stale queue, or a group, a category or a saved Drips audience (Ty, 2026-10-25). -->
+            <label class="choose__who">
+                <span class="visually-hidden">Who gets it</span>
+                <select [ngModel]="audienceKey" (ngModelChange)="onAudienceChange($event)" [disabled]="!!catalystAssistantContext?.isRunning || audienceLoading" data-cy="catalyst-audience">
+                    <option value="stale">Haven't heard from in a while</option>
+                    <optgroup label="Groups" *ngIf="audienceGroups.length">
+                        <option *ngFor="let option of audienceGroups" [value]="option.key">{{ option.name }} ({{ option.count }})</option>
+                    </optgroup>
+                    <optgroup label="Saved audiences" *ngIf="savedAudiences.length">
+                        <option *ngFor="let option of savedAudiences" [value]="option.key">{{ option.name }} ({{ option.count }})</option>
+                    </optgroup>
+                    <optgroup label="Categories" *ngIf="audienceCategories.length">
+                        <option *ngFor="let option of audienceCategories" [value]="option.key">{{ option.name }} ({{ option.count }})</option>
+                    </optgroup>
+                </select>
+            </label>
             <div class="choose__chips" role="radiogroup" aria-label="Batch size">
                 <button type="button" *ngFor="let size of batchSizes"
                         role="radio"
@@ -43,8 +59,17 @@
                         [disabled]="!!catalystAssistantContext?.isRunning"
                         (click)="onProcessingCountChange(size)">{{ size }}</button>
             </div>
-            <p class="choose__summary">
+            <p class="choose__summary" *ngIf="isStaleAudience; else audienceSummary">
                 {{ staleStats.eligible }} waiting · oldest gap {{ staleStats.oldest }} day{{ staleStats.oldest === 1 ? '' : 's' }} · {{ staleStats.urgent }} at 30+ days
+            </p>
+            <ng-template #audienceSummary>
+                <p class="choose__summary" data-cy="catalyst-audience-summary">
+                    {{ audienceLoading ? 'Loading…' : staleStats.eligible + ' can be emailed · longest wait first · anyone emailed in the last ' + recentDays + ' days is left out' }}
+                </p>
+            </ng-template>
+            <p class="choose__note" *ngIf="audienceNote">{{ audienceNote }}</p>
+            <p class="choose__note choose__note--warn" *ngIf="noCompanyInBatch" data-cy="catalyst-no-company-warning">
+                {{ noCompanyInBatch }} of these {{ noCompanyInBatch === 1 ? 'has' : 'have' }} no company. If your email uses {{ '{{company}}' }}, it will be blank for them.
             </p>
             <label class="choose__vault" *ngIf="contactsToPass.length">
                 <span>
@@ -55,14 +80,14 @@
             </label>
         </section>
 
-        <app-last-contact-chart class="catalyst__up-next" *ngIf="!isCatalystHandoffMode" [contacts]="liteContacts" [userId]="userId" [processingCount]="processingCount" (cohortReady)="onContactsReady($event)" (stats)="onStaleStats($event)"></app-last-contact-chart>
+        <app-last-contact-chart class="catalyst__up-next" *ngIf="!isCatalystHandoffMode" [contacts]="liteContacts" [userId]="userId" [processingCount]="processingCount" [audienceFilter]="audienceFilter" [requireCompany]="isStaleAudience" [skipRecentDays]="isStaleAudience ? 0 : recentDays" (cohortReady)="onContactsReady($event)" (stats)="onStaleStats($event)"></app-last-contact-chart>
 
         <div class="catalyst__send">
             <div class="alert alert-info small" role="status" *ngIf="emailCreatorTemplate" data-cy="email-creator-template-loaded">
                 Your design from Email Creator is loaded as the template. Each contact gets their own name and company; pick who gets it, preview a few, then start.
             </div>
             <div class="alert alert-warning small" role="alert" *ngIf="emailCreatorHandoffError">{{ emailCreatorHandoffError }}</div>
-            <app-emailer [initialTemplate]="emailCreatorTemplate" [contacts]="contactsToPass" [blockedDraftReason]="catalystBlockedDraftReason" [beforeQueueStart]="prepareCatalystQueueForStart" [runContext]="catalystRunContext" (assistantContextChange)="onAssistantContextChange($event)"></app-emailer>
+            <app-emailer [initialTemplate]="emailCreatorTemplate" [contacts]="contactsToPass" [blockedDraftReason]="catalystBlockedDraftReason" [beforeQueueStart]="prepareCatalystQueueForStart" [runContext]="catalystRunContext" [requireCompany]="isStaleAudience || isCatalystHandoffMode" (assistantContextChange)="onAssistantContextChange($event)"></app-emailer>
         </div>
     </div>
 

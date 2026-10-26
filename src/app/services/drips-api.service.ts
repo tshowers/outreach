@@ -5,6 +5,14 @@ import { environment } from '../../environments/environment';
 import { Drip, DripAudience, DripConflict, DripDetail } from '../models/drips.model';
 
 /** An error from the Drips API, with the overlap details when slots are full. */
+export interface DripCategory {
+  name: string;
+  /** What to search by: the category itself, or "group:no-company" and the like. */
+  value?: string;
+  count: number;
+  group?: boolean;
+}
+
 export class DripsApiError extends Error {
   constructor ( message: string, readonly status: number, readonly code: string | null, readonly conflict: DripConflict | null ) {
     super( message );
@@ -62,8 +70,14 @@ export class DripsApiService {
     return this.call( 'GET', '/audiences' );
   }
 
-  categories (): Promise<{ name: string; count: number }[]> {
+  /** Groups (No company, Subscribers, Affiliates, Resellers - value "group:<id>") first, then Category values. */
+  categories (): Promise<DripCategory[]> {
     return this.call( 'GET', '/audiences/categories' );
+  }
+
+  /** A saved audience's contact ids, for Catalyst; Lead Vault members are counted, not listed. */
+  audienceContacts ( id: string ): Promise<{ contactIds: string[]; leadVaultCount: number }> {
+    return this.call( 'GET', `/audiences/${ encodeURIComponent( id ) }/contacts` );
   }
 
   previewAudience ( query: AudienceQuery ): Promise<{ count: number; sample: string[]; terms: string[] }> {

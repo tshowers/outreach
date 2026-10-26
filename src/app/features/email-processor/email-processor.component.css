@@ -79,6 +79,34 @@
   font-size: 22px !important;
 }
 
+/* Choose who: the stale queue, a group, a category or a saved audience. */
+.choose__who select {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font: 700 15px var(--font);
+  cursor: pointer;
+}
+
+.choose__who select:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.choose__note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.choose__note--warn {
+  font-weight: 700;
+}
+
 .choose__chips {
   display: flex;
   flex-wrap: wrap;

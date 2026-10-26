@@ -85,6 +85,8 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
   @Input() blockedDraftReason = '';
   @Input() beforeQueueStart: (() => Promise<EmailerContactLite[] | null>) | null = null;
   @Input() runContext: CatalystRunContext | null = null;
+  /** The stale queue needs a company; a chosen audience (No company, a saved list) doesn't. */
+  @Input() requireCompany = true;
   /** A design handed over from Email Creator - opens Catalyst in template mode with it. */
   @Input() initialTemplate: { subject: string; html: string } | null = null;
   @Output() emailSent = new EventEmitter<string>();
@@ -511,7 +513,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
   private isQueueEligibleContact ( contact: EmailerContactLite | Contact | null | undefined ): boolean {
     const firstName = String( ( contact as any )?.firstName || '' ).trim();
     const companyName = this.getCompanyNameForQueue( contact );
-    return !!firstName && !!companyName;
+    return !!firstName && ( !!companyName || !this.requireCompany );
   }
 
   private clearPreviewState (): void {
@@ -754,7 +756,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
     }
 
     const source = String( this.runContext?.source || 'stale_queue' ).trim().toLowerCase();
-    const sourceLabel = source === 'blocked_handoff' ? 'Blocked Handoff' : 'Stale Contacts';
+    const sourceLabel = source === 'blocked_handoff' ? 'Blocked Handoff' : source === 'audience' ? 'Audience' : 'Stale Contacts';
     return `${sourceLabel} ${new Date().toISOString().slice( 0, 10 )}`;
   }
 

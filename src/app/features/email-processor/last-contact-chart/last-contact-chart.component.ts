@@ -16,6 +16,12 @@ export class LastContactChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() contacts!: EmailerContactLite[];
   @Input() userId!: string;
   @Input() processingCount: number = 25;
+  /** Catalyst's Choose who (Ty, 2026-10-25): only people this says yes to. Null is everyone - the stale queue. */
+  @Input() audienceFilter: ( ( contact: EmailerContactLite ) => boolean ) | null = null;
+  /** The stale queue only takes people with a company; a chosen audience doesn't need one. */
+  @Input() requireCompany = true;
+  /** Skip anyone emailed this recently, so a chosen audience doesn't double up on Maya's sends. */
+  @Input() skipRecentDays = 0;
   @Output() cohortReady = new EventEmitter<EmailerContactLite[]>();
   /** The figures Catalyst's "Choose who" card shows (design 4l). */
   @Output() stats = new EventEmitter<{ eligible: number; staged: number; oldest: number; urgent: number; }>();
@@ -111,7 +117,23 @@ export class LastContactChartComponent implements OnInit, OnDestroy, OnChanges {
   private isEmailerEligibleContact ( contact: EmailerContactLite | null | undefined ): boolean {
     const firstName = String( ( contact as any )?.firstName || '' ).trim();
     const companyName = this.getCompanyNameForQueue( contact );
-    return !!firstName && !!companyName;
+    return !!firstName && ( !!companyName || !this.requireCompany );
+  }
+
+  private lastContactedDate ( contact: EmailerContactLite ): Date | null {
+    const raw = ( contact as any ).lastContacted;
+    if ( raw && typeof raw === 'object' && 'seconds' in raw ) return new Date( raw.seconds * 1000 );
+    if ( typeof raw === 'string' && raw ) {
+      const date = new Date( raw );
+      return Number.isNaN( date.getTime() ) ? null : date;
+    }
+    return null;
+  }
+
+  private contactedRecently ( contact: EmailerContactLite, today: Date ): boolean {
+    if ( !this.skipRecentDays ) return false;
+    const last = this.lastContactedDate( contact );
+    return !!last && today.getTime() - last.getTime() < this.skipRecentDays * 86400000;
   }
 
   processLastContactData (): any[] {
@@ -123,7 +145,9 @@ export class LastContactChartComponent implements OnInit, OnDestroy, OnChanges {
     const processed = this.contacts
       .filter( contact => {
         if ( contact.id === this.userId ) return false;
+        if ( this.audienceFilter && !this.audienceFilter( contact ) ) return false;
         if ( !this.isEmailerEligibleContact( contact ) ) return false;
+        if ( this.contactedRecently( contact, today ) ) return false;
         return contact.emailAddresses && contact.emailAddresses.length > 0 && !contact.emailAddresses[0].blocked;
       } )
       .map( contact => {

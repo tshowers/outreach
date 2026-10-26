@@ -3,12 +3,12 @@
         <span class="eyebrow" id="up-next-title">2 · Up next</span>
         <span class="up-next__count">{{ queueReadyCount }} staged</span>
     </header>
-    <p class="up-next__empty" *ngIf="!upNext.length">Nobody's waiting. Catalyst lists contacts with a first name, a company and an email address.</p>
+    <p class="up-next__empty" *ngIf="!upNext.length">{{ audienceFilter ? "Nobody in this audience can be emailed right now. People emailed in the last " + skipRecentDays + " days are left out." : "Nobody's waiting. Catalyst lists contacts with a first name, a company and an email address." }}</p>
     <div class="up-next__row" *ngFor="let row of upNext">
         <span class="up-next__badge" aria-hidden="true">{{ row.initials }}</span>
         <span class="up-next__who">
             <strong>{{ row.name }}</strong>
-            <span>{{ row.company }}</span>
+            <span>{{ row.company || 'No company' }}</span>
         </span>
         <span class="up-next__days" [class.up-next__days--urgent]="row.days >= 30">{{ row.days }}d</span>
     </div>

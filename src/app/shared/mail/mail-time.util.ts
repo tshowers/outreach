@@ -43,7 +43,8 @@ export function countdownLabel ( date: Date, now = new Date() ): string {
   const minutes = Math.round( ms / 60000 );
   if ( minutes < 60 ) return `In ${ minutes } minute${ minutes === 1 ? '' : 's' }`;
   const days = Math.round( ( startOfDay( date ) - startOfDay( now ) ) / DAY_MS );
-  if ( days === 0 ) {
+  // "In 2 hours" at 11 PM, not "Tomorrow": hours read better for anything soon.
+  if ( days === 0 || minutes < 12 * 60 ) {
     const hours = Math.round( minutes / 60 );
     return `In ${ hours } hour${ hours === 1 ? '' : 's' }`;
   }

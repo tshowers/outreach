@@ -32,13 +32,17 @@ describe('Mail pages', () => {
 
   beforeEach(() => {
     // Matched on the path: the app adds ?ngsw-bypass=true to every request.
-    cy.intercept({ method: 'GET', pathname: '/api/outreach/signal-engine/bootstrap' }, {
-      statusCode: 200,
-      body: { success: true, message: '', data: { threads, summary: {}, generatedAt: new Date().toISOString() } },
+    // Like the server: once a draft is approved it leaves the list on the next load.
+    const approved = new Set<string>();
+    cy.intercept({ method: 'GET', pathname: '/api/outreach/signal-engine/bootstrap' }, (req) => {
+      req.reply({ statusCode: 200, body: { success: true, message: '', data: { threads: threads.filter((thread) => !approved.has(thread.contactId)), summary: {}, generatedAt: new Date().toISOString() } } });
     }).as('bootstrap');
     // The test user can write, so the write gate lets the buttons through.
     cy.intercept('GET', '**/api/account/summary*', { statusCode: 200, body: { success: true, data: { writeAccess: { outreach: true } } } });
-    cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/approve-draft' }, { statusCode: 200, body: { success: true, data: { scheduledAt: hours(20) } } }).as('approve');
+    cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/approve-draft' }, (req) => {
+      approved.add(String(req.url.split('/momentum-threads/')[1]).split('/')[0]);
+      req.reply({ statusCode: 200, body: { success: true, data: { scheduledAt: hours(20) } } });
+    }).as('approve');
     cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/reject-draft' }, { statusCode: 200, body: { success: true, data: {} } }).as('rewrite');
     cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/discard-draft' }, { statusCode: 200, body: { success: true, data: {} } }).as('discard');
     cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/send-now' }, { statusCode: 200, body: { success: true, data: {} } }).as('sendNow');

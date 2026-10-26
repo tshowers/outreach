@@ -28,6 +28,9 @@ import { OutreachPageActionsService } from '../../services/outreach-page-actions
 import { OutreachNotificationService } from '../../services/outreach-notification.service';
 import { OutreachApiService } from '../../services/outreach-api.service';
 import { buildOutreachPageActions } from '../../shared/utils/page-action-presets';
+import { DripsApiService } from '../../services/drips-api.service';
+import { CONTACT_GROUPS, categoriesOf, companyNameOf } from '../../shared/utils/contact-groups.util';
+
 import {
   CATALYST_HANDOFF_QUERY_PARAM,
   CATALYST_HANDOFF_SOURCE,
@@ -44,6 +47,15 @@ import {
   handoffCollectionPath,
   isHandoffExpired,
 } from '@taliferro/ui/handoff/handoff.model';
+
+/** Choose who's default: people not contacted in a while, stalest first. */
+const STALE_AUDIENCE = 'stale';
+
+interface AudienceOption {
+  key: string;
+  name: string;
+  count: number;
+}
 
 export type EmailerContactLite = Contact;
 
@@ -69,6 +81,7 @@ export type EmailerContactLite = Contact;
 export class EmailProcessorComponent extends TopDogComponent {
   private readonly pageActionsService = inject( OutreachPageActionsService );
   private readonly emailCreatorHandoff = inject( EmailCreatorHandoffService );
+  private readonly dripsApi = inject( DripsApiService );
   /** Design from Email Creator, handed to the emailer as its template. */
   emailCreatorTemplate: { subject: string; html: string } | null = null;
   emailCreatorHandoffError = '';
@@ -325,10 +338,95 @@ export class EmailProcessorComponent extends TopDogComponent {
   }
 
   get catalystRunContext () {
+    const chosen = this.pageMode !== 'blocked_handoff' && this.audienceKey !== STALE_AUDIENCE;
     return {
-      source: this.pageMode === 'blocked_handoff' ? 'blocked_handoff' : 'stale_queue',
+      source: this.pageMode === 'blocked_handoff' ? 'blocked_handoff' : chosen ? 'audience' : 'stale_queue',
+      // The run history names the audience: "Affiliates 2026-10-26".
+      ...( chosen ? { name: `${ this.audienceTitle } ${ new Date().toISOString().slice( 0, 10 ) }` } : {} ),
       includeLeadVaultContacts: this.includeLeadVaultContacts
     };
+  }
+
+  // ---- Choose who: the stale queue, a group, a category or a saved audience (Ty, 2026-10-25) ----
+
+  audienceKey = STALE_AUDIENCE;
+  audienceGroups: AudienceOption[] = [];
+  audienceCategories: AudienceOption[] = [];
+  savedAudiences: AudienceOption[] = [];
+  audienceFilter: ( ( contact: any ) => boolean ) | null = null;
+  audienceNote = '';
+  audienceLoading = false;
+  /** A chosen audience leaves out anyone emailed this recently. */
+  readonly recentDays = 3;
+  private audienceOptionsBuiltFor: unknown = null;
+
+  get isStaleAudience (): boolean {
+    return this.audienceKey === STALE_AUDIENCE;
+  }
+
+  get audienceTitle (): string {
+    if ( this.isStaleAudience ) return 'People you may have forgotten';
+    const all = [...this.audienceGroups, ...this.audienceCategories, ...this.savedAudiences];
+    return all.find( ( option ) => option.key === this.audienceKey )?.name || 'Your audience';
+  }
+
+  /** People in this batch with no company - a {{company}} in the email would be blank for them. */
+  get noCompanyInBatch (): number {
+    if ( this.isStaleAudience ) return 0;
+    return ( this.contactsToPass || [] ).filter( ( contact ) => !companyNameOf( contact ) ).length;
+  }
+
+  /** Counts from the contacts already loaded; saved audiences from Drips. */
+  private buildAudienceOptions (): void {
+    if ( this.audienceOptionsBuiltFor === this.liteContacts ) return;
+    this.audienceOptionsBuiltFor = this.liteContacts;
+    const emailable = ( this.liteContacts || [] ).filter( ( contact: any ) =>
+      String( contact?.firstName || '' ).trim() && !!contact?.emailAddresses?.length && !contact.emailAddresses[0].blocked );
+    this.audienceGroups = CONTACT_GROUPS.map( ( group ) => ( {
+      key: `group:${ group.id }`, name: group.name, count: emailable.filter( ( contact ) => group.test( contact ) ).length,
+    } ) );
+    const counts = new Map<string, number>();
+    emailable.forEach( ( contact ) => categoriesOf( contact ).forEach( ( value ) => counts.set( value, ( counts.get( value ) || 0 ) + 1 ) ) );
+    this.audienceCategories = [...counts]
+      .sort( ( a, b ) => b[1] - a[1] ).slice( 0, 100 )
+      .sort( ( a, b ) => a[0].localeCompare( b[0], undefined, { sensitivity: 'base' } ) )
+      .map( ( [name, count] ) => ( { key: `category:${ name }`, name, count } ) );
+    if ( !isDesignPreview() ) {
+      this.dripsApi.audiences()
+        .then( ( audiences ) => this.savedAudiences = audiences.map( ( audience ) => ( { key: `audience:${ audience.id }`, name: audience.name, count: audience.count } ) ) )
+        .catch( () => this.savedAudiences = [] );
+    }
+  }
+
+  async onAudienceChange ( key: string ): Promise<void> {
+    this.audienceKey = key;
+    this.audienceNote = '';
+    if ( key === STALE_AUDIENCE ) {
+      this.audienceFilter = null;
+      return;
+    }
+    const [kind, ...rest] = key.split( ':' );
+    const value = rest.join( ':' );
+    if ( kind === 'group' ) {
+      const group = CONTACT_GROUPS.find( ( item ) => item.id === value );
+      this.audienceFilter = group ? ( contact ) => group.test( contact ) : null;
+    } else if ( kind === 'category' ) {
+      const wanted = value.toLowerCase();
+      this.audienceFilter = ( contact ) => categoriesOf( contact ).some( ( item ) => item.toLowerCase() === wanted );
+    } else if ( kind === 'audience' ) {
+      this.audienceLoading = true;
+      try {
+        const { contactIds, leadVaultCount } = await this.dripsApi.audienceContacts( value );
+        const ids = new Set( contactIds );
+        this.audienceFilter = ( contact ) => ids.has( String( contact?.id || '' ) );
+        if ( leadVaultCount ) this.audienceNote = `${ leadVaultCount } Lead Vault ${ leadVaultCount === 1 ? 'person' : 'people' } in this audience can only be reached by a drip.`;
+      } catch {
+        this.audienceFilter = () => false;
+        this.audienceNote = "Couldn't load that audience. Try again.";
+      } finally {
+        this.audienceLoading = false;
+      }
+    }
   }
 
   formatCatalystRunRate ( value?: number ): string {
@@ -368,6 +466,7 @@ export class EmailProcessorComponent extends TopDogComponent {
 
   onStaleStats ( stats: { eligible: number; staged: number; oldest: number; urgent: number; } ): void {
     this.staleStats = stats;
+    this.buildAudienceOptions();
   }
 
   /** Run bar widths, 0-100. */
