@@ -174,7 +174,7 @@ export class DripDetailComponent implements OnInit, OnDestroy {
     } else if ( drip.status === 'scheduled' ) {
       void this.run( () => this.api.toggle( drip.id, false ), () => 'Schedule cancelled. It\'s back in Ready.' );
     } else if ( !drip.audience ) {
-      this.inlineError = 'Choose who gets it first.';
+      this.inlineError = 'Choose who gets it first: pick an audience above, or make a New audience and press Save and use.';
     } else {
       const window = dripWindow( drip, this.today );
       const conflict = findConflict( drip.id, window, this.detail?.others || [] );

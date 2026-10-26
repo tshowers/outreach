@@ -108,11 +108,14 @@
                   <input class="field" *ngIf="audienceForm.source !== 'contacts' || audienceForm.mode === 'search'" type="text" [(ngModel)]="audienceForm.query" (ngModelChange)="onAudienceQuery()" (keydown.enter)="findAudience()"
                          [placeholder]="audienceForm.source !== 'contacts' ? 'e.g. fashion brands in New York' : 'e.g. fashion brands'" aria-label="Who should get it">
                   <button type="button" class="secondary" (click)="findAudience()" [disabled]="audienceBusy || !audienceForm.query.trim()">{{ audienceBusy && !audiencePreview ? 'Finding…' : 'Find people' }}</button>
+                  <!-- Two steps people missed (Ty, 2026-10-25): choosing a category doesn't attach it yet. -->
+                  <p class="note" *ngIf="!audiencePreview" data-cy="audience-steps"><strong>Step 1 of 2:</strong> press Find people to see who's in it.</p>
                   <div class="found" *ngIf="audiencePreview">
                     <p><strong>{{ audiencePreview.count | number }} people</strong><span *ngIf="audiencePreview.sample.length">, like {{ audiencePreview.sample.join(', ') }}</span></p>
                     <ng-container *ngIf="audiencePreview.count">
                       <input class="field" type="text" [(ngModel)]="audienceName" maxlength="80" aria-label="Audience name" placeholder="Name this audience">
                       <button type="button" class="primary" (click)="saveAudience()" [disabled]="audienceBusy || !audienceName.trim()">Save and use</button>
+                      <p class="note" data-cy="audience-steps"><strong>Step 2 of 2:</strong> name them and press Save and use. That makes them this drip's audience, and you can pick them again for your next drip.</p>
                     </ng-container>
                   </div>
                   <p class="warn" *ngIf="audienceError" role="alert">{{ audienceError }}</p>
