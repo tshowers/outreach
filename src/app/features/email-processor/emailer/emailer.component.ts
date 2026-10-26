@@ -262,9 +262,19 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
 
   get templatePreviewHtml (): SafeHtml {
     // The user's own pasted HTML, shown in an iframe with sandbox="" - scripts,
-    // forms and navigation are all off.
-    return this.sanitizer.bypassSecurityTrustHtml( String( this.templateHtml || '' ) );
+    // forms and navigation are all off. Kept until the HTML changes: a new
+    // SafeHtml every check reset the iframe's srcdoc, which reloaded it and
+    // jumped the preview back to the top while scrolling.
+    const html = String( this.templateHtml || '' );
+    if ( html !== this.templatePreviewSource || !this.templatePreviewCache ) {
+      this.templatePreviewSource = html;
+      this.templatePreviewCache = this.sanitizer.bypassSecurityTrustHtml( html );
+    }
+    return this.templatePreviewCache;
   }
+
+  private templatePreviewSource = '';
+  private templatePreviewCache: SafeHtml | null = null;
 
   /** The batch size the Send column counts against. */
   get batchTotal (): number {
@@ -392,15 +402,41 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
     return '';
   }
 
-  get startNote (): string {
+  /** "Mon, Oct 26, 9:00 AM", or "" with no valid start. */
+  get startWhen (): string {
     const at = this.startAt;
     if ( this.startMode !== 'later' || !at || this.startProblem ) return '';
-    const when = at.toLocaleString( 'en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' } );
+    return at.toLocaleString( 'en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' } );
+  }
+
+  get startNote (): string {
+    const when = this.startWhen;
+    if ( !when ) return '';
     return `Nothing goes out before ${ when } your time. After that, each email sends on a weekday between 8:30 AM and 4:30 PM in the person's own time zone.`;
+  }
+
+  /**
+   * A scheduled run (Ty, 2026-10-25): you check the first email, then the
+   * rest are queued for the start time on their own - no per-email Send, and
+   * no Auto-send switch. Holds the switch's own setting to put back after.
+   */
+  scheduledRun = false;
+  private autoRunBeforeSchedule = false;
+
+  private endScheduledRun (): void {
+    if ( !this.scheduledRun ) return;
+    this.scheduledRun = false;
+    this.autoRun = this.autoRunBeforeSchedule;
   }
 
   async onStart (): Promise<void> {
     if ( this.startProblem ) return;
+    if ( this.startMode === 'later' ) {
+      this.autoRunBeforeSchedule = this.autoRun;
+      this.scheduledRun = true;
+      // The first email stops for a look; Send on it switches this on.
+      this.autoRun = false;
+    }
     this.isloading = true;
 
     this.stopSending = false;
@@ -684,6 +720,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
   }
 
   private markQueueComplete (): void {
+    this.endScheduledRun();
     this.isloading = false;
     this.bulkIsRunning = false;
     this.bulkCurrentContact = null;
@@ -1230,6 +1267,12 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
 
         this.clearPreviewState();
 
+        // Scheduled: the first email was checked, so queue the rest without stopping.
+        if ( this.scheduledRun && !this.autoRun ) {
+          this.autoRun = true;
+          this.autoRunPauseRequested = false;
+        }
+
         if ( pauseAfterThisSend ) {
           this.autoRun = false;
           this.autoRunPauseRequested = false;
@@ -1349,6 +1392,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
   }
 
   stopSendingEmails (): void {
+    this.endScheduledRun();
     this.isloading = false;
     this.stopSending = true;
     this.autoRunPauseRequested = false;

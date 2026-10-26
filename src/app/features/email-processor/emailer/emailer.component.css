@@ -564,3 +564,8 @@
   background: var(--bg);
   color: var(--text);
 }
+
+/* Bootstrap's .text-muted forces a dark grey that disappears in dark mode. */
+:host .text-muted {
+  color: var(--muted) !important;
+}

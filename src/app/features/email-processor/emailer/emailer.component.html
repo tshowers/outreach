@@ -43,10 +43,21 @@
       {{ isloading ? 'Starting…' : startMode === 'later' ? 'Schedule' : 'Start' }}
     </button>
     <button class="send__stop" type="button" *ngIf="isRunning || showPreview" (click)="stopSendingEmails()">Stop</button>
-    <label class="send__toggle">
-      <span>Auto-send while open</span>
-      <input type="checkbox" role="switch" [(ngModel)]="autoRun" (ngModelChange)="onAutoRunToggle()">
-    </label>
+    <!-- Auto-send is for Start now. A scheduled run checks the first email, then queues the rest itself. -->
+    <ng-container *ngIf="startMode !== 'later' && !scheduledRun; else scheduledNote">
+      <label class="send__toggle">
+        <span>Auto-send while open</span>
+        <input type="checkbox" role="switch" [(ngModel)]="autoRun" (ngModelChange)="onAutoRunToggle()">
+      </label>
+      <p class="send__note" data-cy="catalyst-auto-send-note">{{ autoRun
+        ? 'On: each email is sent as soon as it\'s drafted, without stopping for you to check it. Keep this page open until the count is done.'
+        : 'Off: Catalyst stops on each email so you can read it and press Send.' }}</p>
+    </ng-container>
+    <ng-template #scheduledNote>
+      <p class="send__note" data-cy="catalyst-schedule-note">{{ scheduledRun && autoRun
+        ? 'Queuing the rest for your start time. Keep this page open until the count is done - a few minutes.'
+        : "We'll show you the first email. After you send it, the rest are queued for " + ( startWhen || 'your start time' ) + ' automatically. Keep this page open until the count finishes - a few minutes.' }}</p>
+    </ng-template>
     <div class="send__links">
       <button type="button" appWriteAction="reload the queue" (click)="reloadQueue()" [disabled]="!canReloadQueue">Reload queue</button>
       <button type="button" appWriteAction="reload skipped contacts" (click)="loadSkippedQueue()" [disabled]="!canLoadSkippedQueue">Load skipped</button>
@@ -80,7 +91,7 @@
             <input class="form-check-input" type="checkbox" [(ngModel)]="useTemplate">
             <span class="form-check-label">Use pasted HTML template</span>
           </label>
-          <span class="text-muted small" *ngIf="useTemplate">Paste HTML below. TODD will fill Note: tokens may include hyphens like <code>{{'{{...}}'}}</code>. tokens.</span>
+          <span class="text-muted small" *ngIf="useTemplate">Paste HTML below. TODD fills in tokens like <code>{{'{{firstName}}'}}</code> for each contact.</span>
         </div>
         <div *ngIf="useTemplate" class="mt-2">
           <div class="mb-2">

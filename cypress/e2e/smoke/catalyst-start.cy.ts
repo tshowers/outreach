@@ -23,6 +23,12 @@ describe( 'Catalyst start date and time', () => {
     cy.get( '[data-cy="catalyst-start-time"]' ).should( 'have.value', '09:00' );
     cy.get( '[data-cy="catalyst-start-note"]' ).should( 'contain.text', 'Nothing goes out before' ).and( 'contain.text', '9:00 AM' );
     cy.get( '.send__start' ).should( 'contain.text', 'Schedule' );
+    // Scheduled: no Auto-send switch - the first email is checked, the rest queue themselves.
+    cy.get( '.send__toggle' ).should( 'not.exist' );
+    cy.get( '[data-cy="catalyst-schedule-note"]' ).should( 'contain.text', "We'll show you the first email" ).and( 'contain.text', 'are queued for' ).and( 'contain.text', '9:00 AM automatically' );
+    cy.get( '[data-cy="catalyst-start-now"]' ).click();
+    cy.get( '.send__toggle' ).should( 'exist' );
+    cy.get( '[data-cy="catalyst-auto-send-note"]' ).should( 'contain.text', 'Off: Catalyst stops on each email' );
   } );
 
   it( 'refuses a start in the past', () => {
