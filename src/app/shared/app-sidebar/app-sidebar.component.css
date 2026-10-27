@@ -136,8 +136,12 @@
 .sidebar__item[data-tint="yellow"] .sidebar__badge { background: var(--t-yellow); color: var(--t-yellow-fg); }
 
 .sidebar__footer {
+  /* Stays in view when a short window makes the sidebar scroll. */
+  position: sticky;
+  bottom: -24px;
   margin-top: auto;
-  padding: 0 4px;
+  padding: 8px 4px 24px;
+  background: var(--surface);
 }
 
 .sidebar__menu {

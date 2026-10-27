@@ -61,7 +61,7 @@ describe('Sidebar', () => {
       expect([...groups].map((group) => group.textContent?.trim().toUpperCase())).to.deep.equal(['MAIL', 'MAYA']);
     });
     cy.get('.sidebar__item .sidebar__label').then((labels) => {
-      expect([...labels].map((label) => label.textContent?.trim())).to.deep.equal(['Growth', 'Needs you', 'Inbox', 'Drafts', 'Outbox', 'Sent', 'Activity', 'Drips', 'Catalyst']);
+      expect([...labels].map((label) => label.textContent?.trim())).to.deep.equal(['Growth', 'Needs you', 'Inbox', 'Drafts', 'Outbox', 'Sent', 'Activity', 'Drips', 'Catalyst', 'Settings']);
     });
   });
 

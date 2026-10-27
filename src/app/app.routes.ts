@@ -137,6 +137,12 @@ export const routes: Routes = [
     },
   },
   {
+    // Control Maya from Outreach: auto-send, on/off, start hour, her limits.
+    path: 'maya-settings',
+    loadComponent: () =>
+      import( './features/maya-settings/maya-settings.component' ).then( ( m ) => m.MayaSettingsComponent ),
+  },
+  {
     path: 'drafts',
     loadComponent: () =>
       import( './features/drafts/drafts.component' ).then( ( m ) => m.DraftsComponent ),

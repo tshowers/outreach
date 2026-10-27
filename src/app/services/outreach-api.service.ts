@@ -465,6 +465,20 @@ export interface SendingSettings {
   options: Array<{ email: string; status: SendingStatus; }>;
 }
 
+/** Maya's drafts: you approve each ("off"), unreviewed ones send at noon, or they send as soon as written. */
+export type MayaAutoSendMode = 'off' | 'noon' | 'immediate';
+
+export interface MayaSettings {
+  enabled: boolean;
+  emailDraftingEnabled: boolean;
+  startHour: number;
+  timezone: string;
+  autoSendMode: MayaAutoSendMode;
+  autoSendSince: string;
+  openTasks: { count: number; limit: number; };
+  draftsWaiting: { count: number; limit: number; };
+}
+
 @Injectable( { providedIn: 'root' } )
 export class OutreachApiService {
   private baseUrl = `${environment.backendURL}`;
@@ -642,6 +656,23 @@ export class OutreachApiService {
   draftAssistMomentumReply ( contactId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; message: string; data: any; }> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.post<{ success: boolean; message: string; data: any; }>( `${this.baseUrl}/outreach/momentum-threads/draft-assist`, { contactId, purpose: 'needs_you' }, { headers } );
+  }
+
+  /** Outreach "Maya settings": auto-send, on/off, start hour, and her open-task / draft limits. */
+  getMayaSettings ( opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; data: MayaSettings; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.get<{ success: boolean; data: MayaSettings; }>( `${this.baseUrl}/outreach/maya-settings`, { headers } );
+  }
+
+  updateMayaSettings ( patch: Partial<Pick<MayaSettings, 'autoSendMode' | 'enabled' | 'emailDraftingEnabled' | 'startHour'>>, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; data: MayaSettings; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.put<{ success: boolean; data: MayaSettings; }>( `${this.baseUrl}/outreach/maya-settings`, patch, { headers } );
+  }
+
+  /** How often each address heard from us in the last 7 days, for Drafts (the contact cap). */
+  getRecentSends ( opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; data: { days: number; capDays: number; counts: Record<string, { count: number; lastSentAt: string; }>; }; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.get<{ success: boolean; data: { days: number; capDays: number; counts: Record<string, { count: number; lastSentAt: string; }>; }; }>( `${this.baseUrl}/outreach/drafts/recent-sends`, { headers } );
   }
 
   /** "Sends from" (Inbox settings): the From address for drips, Catalyst and Maya, and whether SendGrid can send as it. */

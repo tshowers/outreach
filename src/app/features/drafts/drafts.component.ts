@@ -30,6 +30,10 @@ interface DraftCard {
   warm: boolean;
   rewriting: boolean;
   rewritten: boolean;
+  /** Emails this address got in the last 7 days. */
+  sentThisWeek: number;
+  /** The contact cap holds it: emailed in the last few days, no reply since. "" when it can send. */
+  heldUntil: string;
 }
 
 const REWRITE_POLL_MS = 5000;
@@ -66,6 +70,12 @@ export class DraftsComponent implements OnInit, OnDestroy {
   cards: DraftCard[] = [];
   warm: DraftCard[] = [];
   first: DraftCard[] = [];
+  /** Drafts to people the contact cap is holding (todd-backend momentum.contact-cap.js). */
+  held: DraftCard[] = [];
+  confirmDiscardHeld = false;
+  discardingHeld = false;
+  private recentSends: Record<string, { count: number; lastSentAt: string; }> = {};
+  private capDays = 3;
   expanded = new Set<string>();
   moreOpen = new Set<string>();
   working = new Map<string, string>();
@@ -105,7 +115,14 @@ export class DraftsComponent implements OnInit, OnDestroy {
     if ( !this.tenantId ) return;
     if ( !quiet ) this.loading = true;
     try {
-      const response = await firstValueFrom( this.api.getSignalEngineBootstrap( this.opts ) );
+      const [response, recent] = await Promise.all( [
+        firstValueFrom( this.api.getSignalEngineBootstrap( this.opts ) ),
+        firstValueFrom( this.api.getRecentSends( this.opts ) ).catch( () => null ),
+      ] );
+      if ( recent?.data ) {
+        this.recentSends = recent.data.counts || {};
+        this.capDays = Number( recent.data.capDays ) || 3;
+      }
       const threads: MomentumThread[] = Array.isArray( response?.data?.threads ) ? response.data.threads : [];
       this.counts.setFromThreads( threads );
       this.build( threads );
@@ -138,8 +155,9 @@ export class DraftsComponent implements OnInit, OnDestroy {
     const score = ( card: DraftCard ) => ( card.thread.clickCount || 0 ) * 10 + ( card.thread.openCount || 0 );
     cards.sort( ( a, b ) => score( b ) - score( a ) || String( b.thread.lastUpdated || '' ).localeCompare( String( a.thread.lastUpdated || '' ) ) );
     this.cards = cards;
-    this.warm = cards.filter( ( card ) => card.warm );
-    this.first = cards.filter( ( card ) => !card.warm );
+    this.warm = cards.filter( ( card ) => card.warm && !card.heldUntil );
+    this.first = cards.filter( ( card ) => !card.warm && !card.heldUntil );
+    this.held = cards.filter( ( card ) => !!card.heldUntil );
     if ( this.rewriting.size ) this.schedulePoll();
   }
 
@@ -153,7 +171,12 @@ export class DraftsComponent implements OnInit, OnDestroy {
     const opens = Number( thread.openCount || 0 );
     const clicks = Number( thread.clickCount || 0 );
     const name = String( thread.contactName || thread.emailAddress || 'Unknown contact' ).trim();
-    const lastSent = thread.lastSentAt ? sinceLabel( thread.lastSentAt ) : '';
+    const recent = this.recentSends[String( thread.emailAddress || '' ).trim().toLowerCase()] || null;
+    const lastSentIso = [recent?.lastSentAt, thread.lastSentAt].filter( Boolean ).sort().pop() || '';
+    const lastSent = lastSentIso ? sinceLabel( lastSentIso ) : '';
+    const sentThisWeek = recent?.count || 0;
+    const heldUntil = this.heldUntil( thread, lastSentIso );
+    const first = firstName( name );
     return {
       thread,
       id,
@@ -164,14 +187,47 @@ export class DraftsComponent implements OnInit, OnDestroy {
       body: String( ( kind === 'reply' ? thread.replyDraftBody : thread.draftBody ) || '' ),
       why: String( ( kind === 'reply' ? thread.replyDraftRationale : '' ) || thread.strategySummary || thread.stopReason?.detail || '' ).trim(),
       lastLine: this.rewritten.has( id ) ? 'Rewritten by Maya just now.'
-        : lastSent ? `Your last email went out ${ lastSent }.`
-          : `Drafted ${ sinceLabel( thread.lastUpdated ) || 'recently' }. No emails yet.`,
+        : sentThisWeek > 1 ? `You emailed ${ first } ${ sentThisWeek } times this week, last ${ lastSent }.`
+          : lastSent ? `Your last email went out ${ lastSent }.`
+            : `Drafted ${ sinceLabel( thread.lastUpdated ) || 'recently' }. No emails yet.`,
       kindPill: kind === 'reply' ? 'Reply' : touches ? `Follow-up · email ${ touches + 1 }` : 'First email',
       signalPill: clicks ? { text: `Clicked ${ clicks }×`, tint: 'yellow' } : opens ? { text: `Opened ${ opens }×`, tint: 'green' } : null,
       warm: kind === 'reply' || clicks > 0 || opens > 0,
       rewriting,
       rewritten: this.rewritten.has( id ),
+      sentThisWeek,
+      heldUntil,
     };
+  }
+
+  /** The server's contact cap, mirrored so the page can show it: emailed within capDays, no reply since. */
+  private heldUntil ( thread: MomentumThread, lastSentIso: string ): string {
+    const last = Date.parse( lastSentIso || '' );
+    if ( !last ) return '';
+    const replied = Date.parse( String( ( thread as any ).latestReplyAt || '' ) ) || 0;
+    if ( replied > last ) return '';
+    const until = last + this.capDays * 86400000;
+    if ( until <= Date.now() ) return '';
+    return new Date( until ).toLocaleDateString( 'en-US', { weekday: 'short', month: 'short', day: 'numeric' } );
+  }
+
+  /** Clears every held draft at once, after a confirm. Maya writes a fresh one when the hold ends. */
+  async discardAllHeld (): Promise<void> {
+    if ( this.discardingHeld || !this.held.length ) return;
+    this.discardingHeld = true;
+    const held = [...this.held];
+    let failed = 0;
+    for ( const card of held ) {
+      try {
+        await firstValueFrom( this.api.discardMomentumDraft( card.id, this.opts ) );
+      } catch {
+        failed += 1;
+      }
+    }
+    this.discardingHeld = false;
+    this.confirmDiscardHeld = false;
+    this.toast = { text: failed ? `Discarded ${ held.length - failed } drafts. ${ failed } couldn't be discarded.` : `Discarded ${ held.length } drafts to people you emailed recently.` };
+    await this.load( true );
   }
 
   /** "If approved, sends …" - a reply goes at once; a new email waits for their business hours. */

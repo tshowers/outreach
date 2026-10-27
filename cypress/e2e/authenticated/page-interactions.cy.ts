@@ -15,7 +15,7 @@ describe('Mail pages', () => {
   const threads = [
     {
       id: 'theo', contactId: 'theo', contactName: 'Theodore Ricks-Freeman', companyName: 'The DC Voice', userLane: 'drafts',
-      touchCount: 4, openCount: 3, clickCount: 8, lastSentAt: hours(-30), lastUpdated: hours(-2),
+      touchCount: 4, openCount: 3, clickCount: 8, lastSentAt: hours(-80), lastUpdated: hours(-2),
       draftSubject: 'Re: Forwarding to Don', draftBody: '<p>Hi Theodore,</p><p>Did Don get a chance to see it?</p><p>Happy to work around your week.</p>',
       strategySummary: 'He clicked the link 8 times but has not replied.',
     },
@@ -23,6 +23,12 @@ describe('Mail pages', () => {
       id: 'willy', contactId: 'willy', contactName: 'Willy Gevers', companyName: 'Gevers Wealth', userLane: 'drafts',
       touchCount: 0, openCount: 0, clickCount: 0, lastUpdated: hours(-72),
       draftSubject: 'Quick chat about client acquisition', draftBody: '<p>Hi Willy, a quick question.</p>',
+    },
+    // The scanner loop of 2026-10-27: emailed 14 times today, never replied - held by the contact cap.
+    {
+      id: 'laurie', contactId: 'laurie', contactName: 'Laurie Klein', companyName: 'Kaizen Financial Advisors', emailAddress: 'laurie@kaizenfa.com', userLane: 'drafts',
+      touchCount: 14, openCount: 20, clickCount: 62, lastSentAt: hours(-1), lastUpdated: hours(-1),
+      replyDraftSubject: 'The follow-up you might be missing', replyDraftBody: '<p>Many businesses...</p>',
     },
     {
       id: 'brad', contactId: 'brad', contactName: 'Brad Aken', companyName: 'Agate Pass Investment', userLane: 'outbox', queueState: 'queued',
@@ -44,6 +50,7 @@ describe('Mail pages', () => {
       req.reply({ statusCode: 200, body: { success: true, data: { scheduledAt: hours(20) } } });
     }).as('approve');
     cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/reject-draft' }, { statusCode: 200, body: { success: true, data: {} } }).as('rewrite');
+    cy.intercept({ method: 'GET', pathname: '/api/outreach/drafts/recent-sends' }, { statusCode: 200, body: { success: true, data: { days: 7, capDays: 3, counts: { 'laurie@kaizenfa.com': { count: 14, lastSentAt: hours(-1) } } } } });
     cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/discard-draft' }, { statusCode: 200, body: { success: true, data: {} } }).as('discard');
     cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/send-now' }, { statusCode: 200, body: { success: true, data: {} } }).as('sendNow');
     cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/return-to-drafts' }, { statusCode: 200, body: { success: true, data: {} } }).as('moveBack');
@@ -56,8 +63,22 @@ describe('Mail pages', () => {
     cy.contains('.section-head h2', 'First emails');
     cy.get('[data-cy="draft-theo"]').should('contain', 'Follow-up · email 5').and('contain', 'Clicked 8×').and('contain', 'Why Maya wrote this');
     cy.get('[data-cy="draft-willy"]').should('contain', 'First email').and('contain', 'No emails yet.');
-    cy.contains('.sidebar__item', 'Drafts').find('.sidebar__badge').should('have.text', '2');
+    cy.contains('.sidebar__item', 'Drafts').find('.sidebar__badge').should('have.text', '3');
     cy.contains('.sidebar__item', 'Outbox').find('.sidebar__badge').should('have.text', '1');
+  });
+
+  it('holds drafts to people emailed in the last few days, and discards them all on confirm', () => {
+    cy.loginAsTestUser('/drafts');
+    cy.wait('@bootstrap', { timeout: 20000 });
+    cy.get('[data-cy="drafts-held"]').should('contain', 'Held: emailed recently');
+    cy.get('[data-cy="draft-laurie"]').should('contain', 'You emailed Laurie 14 times this week');
+    cy.get('[data-cy="draft-held-laurie"]').should('contain', 'Held until');
+    cy.get('[data-cy="draft-approve-laurie"]').should('be.disabled');
+    cy.get('[data-cy="draft-approve-willy"]').should('not.be.disabled');
+    cy.get('[data-cy="drafts-discard-held"]').click();
+    cy.get('[data-cy="drafts-discard-held-confirm"]').click();
+    cy.wait('@discard').its('request.url').should('contain', '/laurie/');
+    cy.contains('.mail-toast', 'Discarded 1 drafts to people you emailed recently.');
   });
 
   it('Read full email opens the whole message', () => {
@@ -122,6 +143,37 @@ describe('Mail pages', () => {
     cy.wait('@bootstrap', { timeout: 20000 });
     cy.get('[data-cy="maya-day-tab-plan"]').should('have.class', 'is-on');
     cy.contains('Theodore Ricks-Freeman');
+  });
+});
+
+// Maya settings (2026-10-27): when her emails send, on/off, and her limits.
+describe('Maya settings', () => {
+  const settings = { enabled: true, emailDraftingEnabled: true, startHour: 6, timezone: 'America/Los_Angeles', autoSendMode: 'off', autoSendSince: '',
+    openTasks: { count: 10, limit: 10 }, draftsWaiting: { count: 55, limit: 100 } };
+
+  beforeEach(() => {
+    cy.intercept('GET', '**/api/account/summary*', { statusCode: 200, body: { success: true, data: { writeAccess: { outreach: true } } } });
+    cy.intercept({ method: 'GET', pathname: '/api/outreach/maya-settings' }, { statusCode: 200, body: { success: true, data: settings } }).as('settings');
+    cy.intercept({ method: 'PUT', pathname: '/api/outreach/maya-settings' }, (req) => req.reply({ statusCode: 200, body: { success: true, data: { ...settings, ...req.body, autoSendSince: new Date().toISOString() } } })).as('save');
+  });
+
+  it('shows what will stop her, and sets when her emails send', () => {
+    cy.loginAsTestUser('/maya-settings');
+    cy.wait('@settings', { timeout: 20000 });
+    cy.get('[data-cy="maya-open-tasks"]').should('have.class', 'is-full').and('contain', "She won't plan a new day");
+    cy.get('[data-cy="maya-drafts-waiting"]').should('contain', '55');
+    cy.get('[data-cy="maya-mode-off"]').should('have.attr', 'aria-checked', 'true');
+    cy.get('[data-cy="maya-mode-noon"]').click();
+    cy.wait('@save').its('request.body').should('deep.equal', { autoSendMode: 'noon' });
+    cy.contains('.saved', 'It applies to drafts Maya writes from now on.');
+    cy.contains('.note', 'Only drafts Maya writes from then on send by themselves');
+  });
+
+  it('is in the sidebar under Maya, and Drafts links to it', () => {
+    cy.loginAsTestUser('/drafts');
+    cy.get('[data-cy="drafts-maya-settings"]', { timeout: 20000 }).click();
+    cy.location('pathname').should('eq', '/maya-settings');
+    cy.contains('.sidebar__item.is-active', 'Settings');
   });
 });
 

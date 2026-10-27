@@ -411,3 +411,32 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Recent runs: Resume / Stop on a run that never finished. */
+.run__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.run__action {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: 700 13px var(--font);
+  cursor: pointer;
+}
+
+.run__action--primary {
+  background: var(--blue);
+  color: #fff;
+}
+
+.run__action:disabled {
+  opacity: .5;
+  cursor: default;
+}

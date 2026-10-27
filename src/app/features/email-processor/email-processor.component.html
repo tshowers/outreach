@@ -59,6 +59,7 @@
                         [disabled]="!!catalystAssistantContext?.isRunning"
                         (click)="onProcessingCountChange(size)">{{ size }}</button>
             </div>
+            <p class="choose__note" *ngIf="catalystAssistantContext?.isRunning" data-cy="catalyst-audience-locked">A run is in progress. Press Stop below to choose different people.</p>
             <p class="choose__summary" *ngIf="isStaleAudience; else audienceSummary">
                 {{ staleStats.eligible }} waiting · oldest gap {{ staleStats.oldest }} day{{ staleStats.oldest === 1 ? '' : 's' }} · {{ staleStats.urgent }} at 30+ days
             </p>
@@ -111,6 +112,11 @@
             <span class="run__bar"><span class="run__fill run__fill--violet" [style.width.%]="ratePercent(run.clickRate)"></span></span>
             <span class="run__rate">{{ formatCatalystRunRate(run.clickRate) }}</span>
             <span class="run__status" [class.run__status--active]="run.status === 'active'">{{ run.status === 'active' ? 'Active' : 'Done' }}</span>
+            <!-- An unfinished run: pick it back up, or close it (Ty, 2026-10-27). -->
+            <span class="run__actions" *ngIf="run.status === 'active'">
+                <button type="button" class="run__action run__action--primary" *ngIf="run.contactIds?.length" [disabled]="!canResume(run)" (click)="resumeRun(run)" [attr.data-cy]="'catalyst-run-resume-' + run.id">Resume</button>
+                <button type="button" class="run__action" appWriteAction="stop this run" [disabled]="runWorking.has(run.id)" (click)="stopRun(run)" [attr.data-cy]="'catalyst-run-stop-' + run.id">{{ runWorking.has(run.id) ? 'Stopping…' : 'Stop' }}</button>
+            </span>
         </div>
     </section>
 

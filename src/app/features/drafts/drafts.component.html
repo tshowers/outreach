@@ -6,6 +6,7 @@
     <p class="subtitle" *ngIf="cards.length">
       {{ cards.length }} {{ cards.length === 1 ? 'email' : 'emails' }} Maya wrote for you. Nothing sends until you approve it. Approved emails go to Outbox and send during the recipient's business hours.
     </p>
+    <a class="drafts__settings" routerLink="/maya-settings" data-cy="drafts-maya-settings">Let Maya send on her own →</a>
   </header>
 
   <app-preloader [isLoading]="loading && !cards.length" message="Loading your drafts…" [autoHideAfterMs]="null"></app-preloader>
@@ -32,6 +33,27 @@
     <ng-container *ngTemplateOutlet="list; context: { $implicit: first }"></ng-container>
   </ng-container>
 
+  <!-- Held by the contact cap: emailed in the last few days with no reply (2026-10-27). -->
+  <ng-container *ngIf="held.length">
+    <div class="section-head" data-cy="drafts-held">
+      <h2>Held: emailed recently</h2>
+      <span>{{ held.length }} · they heard from you in the last few days and haven't replied, so these can't send yet</span>
+    </div>
+    <div class="held-bar">
+      <ng-container *ngIf="!confirmDiscardHeld; else confirmHeld">
+        <button type="button" class="pill pill--40 pill--danger" appWriteAction="discard these drafts" (click)="confirmDiscardHeld = true" data-cy="drafts-discard-held">Discard all {{ held.length }}</button>
+      </ng-container>
+      <ng-template #confirmHeld>
+        <span class="muted">Discard {{ held.length }} drafts? Maya writes new ones once the hold ends.</span>
+        <button type="button" class="pill pill--40 pill--danger" [disabled]="discardingHeld" (click)="discardAllHeld()" data-cy="drafts-discard-held-confirm">
+          <span class="spinner" *ngIf="discardingHeld" aria-hidden="true"></span> Yes, discard
+        </button>
+        <button type="button" class="pill pill--40" [disabled]="discardingHeld" (click)="confirmDiscardHeld = false">Cancel</button>
+      </ng-template>
+    </div>
+    <ng-container *ngTemplateOutlet="list; context: { $implicit: held }"></ng-container>
+  </ng-container>
+
   <ng-template #list let-cards>
     <article class="draft" *ngFor="let card of cards; trackBy: trackById" [attr.data-cy]="'draft-' + card.id">
       <div class="draft__head">
@@ -42,6 +64,7 @@
         <div class="draft__tags">
           <span class="tag">{{ card.kindPill }}</span>
           <span class="tag" *ngIf="card.signalPill as signal" [attr.data-tint]="signal.tint">{{ signal.text }}</span>
+          <span class="tag" *ngIf="card.heldUntil" data-tint="pink" [attr.data-cy]="'draft-held-' + card.id">Held until {{ card.heldUntil }}</span>
         </div>
       </div>
 
@@ -67,7 +90,7 @@
 
       <ng-template #actions>
         <div class="draft__actions">
-          <button type="button" class="pill pill--primary" appWriteAction="approve this draft" [disabled]="working.has(card.id)" (click)="approve(card)" [attr.data-cy]="'draft-approve-' + card.id">
+          <button type="button" class="pill pill--primary" appWriteAction="approve this draft" [disabled]="working.has(card.id) || !!card.heldUntil" [title]="card.heldUntil ? 'Held until ' + card.heldUntil + ' so ' + card.name + ' doesn\'t get too many emails.' : ''" (click)="approve(card)" [attr.data-cy]="'draft-approve-' + card.id">
             <span class="spinner" *ngIf="working.get(card.id) === 'approve'" aria-hidden="true"></span>
             {{ card.kind === 'reply' ? 'Approve & send' : 'Approve' }}
           </button>

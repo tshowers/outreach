@@ -37,4 +37,14 @@ describe( 'Catalyst Choose who', () => {
     cy.get( '[data-cy="catalyst-audience"]' ).select( 'group:resellers' );
     cy.contains( '.up-next__empty', 'Nobody in this audience can be emailed right now.' );
   } );
+
+  // Recent runs: an unfinished run can be picked back up (2026-10-27).
+  it( "Resume loads an unfinished run's people who haven't been emailed", () => {
+    cy.get( '[data-cy="catalyst-run-resume-r3"]' ).click();
+    cy.get( '[data-cy="catalyst-audience"]' ).should( 'have.value', 'run:r3' );
+    cy.contains( '#choose-title', 'No company · Oct 26 (not emailed yet)' );
+    // Ed Lund was emailed after the run started, so he's left out.
+    cy.contains( '.choose__note', "2 of 3 haven't been emailed yet" );
+    cy.get( '[data-cy="catalyst-run-stop-r3"]' ).should( 'exist' );
+  } );
 } );

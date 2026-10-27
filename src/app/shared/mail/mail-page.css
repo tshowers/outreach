@@ -143,6 +143,7 @@ h1 {
 
 .tag[data-tint="yellow"] { background: var(--t-yellow); color: var(--t-yellow-fg); }
 .tag[data-tint="green"] { background: var(--t-green); color: var(--t-green-fg); }
+.tag[data-tint="pink"] { background: var(--t-pink); color: var(--t-pink-fg); }
 
 .spinner {
   display: inline-block;

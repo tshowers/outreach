@@ -398,6 +398,58 @@ export class EmailProcessorComponent extends TopDogComponent {
     }
   }
 
+  // ---- Recent runs: Resume and Stop (Ty, 2026-10-27) ----
+
+  runWorking = new Set<string>();
+
+  /** An unfinished run's people who haven't been emailed since it started. */
+  private runRemaining ( run: CatalystRun ): Set<string> {
+    const started = Date.parse( String( run.startedAt || run.createdAt || '' ) ) || 0;
+    const ids = new Set( ( run.contactIds || [] ).map( String ) );
+    ( this.liteContacts || [] ).forEach( ( contact: any ) => {
+      if ( !ids.has( String( contact?.id ) ) ) return;
+      const raw = contact?.lastContacted;
+      const last = raw && typeof raw === 'object' && 'seconds' in raw ? raw.seconds * 1000 : Date.parse( String( raw || '' ) ) || 0;
+      if ( started && last > started ) ids.delete( String( contact.id ) );
+    } );
+    return ids;
+  }
+
+  canResume ( run: CatalystRun ): boolean {
+    return run.status === 'active' && !!run.contactIds?.length && !this.catalystAssistantContext?.isRunning;
+  }
+
+  /** Loads the run's people not emailed yet as the audience, ready to Start or Schedule. */
+  resumeRun ( run: CatalystRun ): void {
+    const remaining = this.runRemaining( run );
+    const key = `run:${ run.id }`;
+    this.savedAudiences = [
+      { key, name: `${ run.name || 'Catalyst run' } (not emailed yet)`, count: remaining.size },
+      ...this.savedAudiences.filter( ( option ) => !option.key.startsWith( 'run:' ) ),
+    ];
+    this.audienceKey = key;
+    this.audienceFilter = ( contact ) => remaining.has( String( contact?.id || '' ) );
+    this.audienceNote = `Resuming ${ run.name || 'this run' }: ${ remaining.size } of ${ run.contactIds?.length || 0 } haven't been emailed yet. Start or Schedule below when you're ready.`;
+    if ( typeof document !== 'undefined' ) document.getElementById( 'choose-title' )?.scrollIntoView( { behavior: 'smooth', block: 'start' } );
+  }
+
+  /** Closes a run that never finished, so it stops showing as Active. */
+  async stopRun ( run: CatalystRun ): Promise<void> {
+    if ( !this.tenantId || this.runWorking.has( run.id ) ) return;
+    this.runWorking.add( run.id );
+    try {
+      await firstValueFrom( this.outreachApi.finalizeCatalystRun( run.id, { status: 'stopped' }, {
+        tenantId: this.tenantId, userId: this.userId, userEmail: this.firebaseUser?.email || undefined,
+      } ) );
+      await this.loadCatalystRuns();
+    } catch ( error ) {
+      this.logger.error( 'Failed to stop Catalyst run', error );
+      this.catalystRunsError = "Couldn't stop that run. Try again.";
+    } finally {
+      this.runWorking.delete( run.id );
+    }
+  }
+
   async onAudienceChange ( key: string ): Promise<void> {
     this.audienceKey = key;
     this.audienceNote = '';
@@ -413,6 +465,9 @@ export class EmailProcessorComponent extends TopDogComponent {
     } else if ( kind === 'category' ) {
       const wanted = value.toLowerCase();
       this.audienceFilter = ( contact ) => categoriesOf( contact ).some( ( item ) => item.toLowerCase() === wanted );
+    } else if ( kind === 'run' ) {
+      const run = this.catalystRuns.find( ( item ) => item.id === value );
+      if ( run ) this.resumeRun( run );
     } else if ( kind === 'audience' ) {
       this.audienceLoading = true;
       try {
