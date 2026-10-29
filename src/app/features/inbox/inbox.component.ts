@@ -213,7 +213,7 @@ export class InboxComponent implements OnInit, OnDestroy {
 
   get handledLine (): string {
     const count = this.letters.filter( letter => !letter.needsAnswer && dayAge( letter.dayKey ) < 7 ).length;
-    return `TODD handled ${ count } this week`;
+    return `16Ahead handled ${ count } this week`;
   }
 
   get topic (): InboxCategory | null {
@@ -256,7 +256,7 @@ export class InboxComponent implements OnInit, OnDestroy {
     const answered = rows( 'answered' );
     return ( [
       { group: 'waiting', title: 'Waiting on you', sub: `${ waiting.length } ${ waiting.length === 1 ? 'person' : 'people' }`, rows: waiting },
-      { group: 'handled', title: 'TODD handled', sub: `${ handled.length } without you`, rows: handled },
+      { group: 'handled', title: '16Ahead handled', sub: `${ handled.length } without you`, rows: handled },
       { group: 'answered', title: 'Answered', sub: `${ answered.length }`, rows: answered },
     ] as Section[] ).filter( section => section.rows.length );
   }
@@ -469,7 +469,7 @@ export class InboxComponent implements OnInit, OnDestroy {
 
   quickAction ( letter: InboxLetter ): void {
     if ( letter.draft ) {
-      this.scheduleSend( letter, letter.draft, `Sent TODD's reply to ${ letter.name }` );
+      this.scheduleSend( letter, letter.draft, `Sent 16Ahead's reply to ${ letter.name }` );
       return;
     }
     const phone = letter.nextAction?.value || '';
@@ -505,7 +505,7 @@ export class InboxComponent implements OnInit, OnDestroy {
       if ( letter.draft ) {
         this.letterView?.setDraft( letter.draft );
       } else {
-        this.flash( { text: 'TODD needs this sender in your contacts to write a reply.' } );
+        this.flash( { text: '16Ahead needs this sender in your contacts to write a reply.' } );
       }
       return;
     }
@@ -514,7 +514,7 @@ export class InboxComponent implements OnInit, OnDestroy {
       const text = await this.mailbox.draftReplyWithTodd( letter.contactId );
       if ( this.openId === letter.id ) this.letterView?.setDraft( text );
     } catch ( error: any ) {
-      this.flash( { text: String( error?.message || "TODD couldn't write this one." ) } );
+      this.flash( { text: String( error?.message || "16Ahead couldn't write this one." ) } );
     } finally {
       this.rewriting = false;
     }

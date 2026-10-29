@@ -2,14 +2,14 @@
   <a class="sp-back" routerLink="/app">← Back</a>
   <header class="sp-intro">
     <h1 data-cy="setup-profile-title">{{ heading }}</h1>
-    <p>TODD and Maya write every email from your profile. It's the same profile as in Network and the other TODD apps, so you only fill it in once.</p>
+    <p>16Ahead and the Marketing Assistant write every email from your profile. It's the same profile as in Network and the other 16Ahead apps, so you only fill it in once.</p>
   </header>
 
   <p *ngIf="errorMessage" class="sp-error" role="alert">{{ errorMessage }}</p>
 
   <ng-container *ngIf="profile">
-    <section class="sp-score" aria-label="How well TODD knows you">
-      <div class="sp-score__top"><span>How well TODD knows you</span><strong>{{ completion.completed }} of {{ completion.total }}</strong></div>
+    <section class="sp-score" aria-label="How well 16Ahead knows you">
+      <div class="sp-score__top"><span>How well 16Ahead knows you</span><strong>{{ completion.completed }} of {{ completion.total }}</strong></div>
       <div class="sp-bar" role="progressbar" [attr.aria-valuenow]="completion.completed" aria-valuemin="0" [attr.aria-valuemax]="completion.total">
         <span [style.width.%]="completion.percent"></span>
       </div>

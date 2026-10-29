@@ -810,6 +810,8 @@ export class OutreachApiService {
       skippedCount?: number;
       removedCount?: number;
       contactIds?: string[];
+      templateSubject?: string;
+      templateHtml?: string;
       createdByUserId?: string;
       createdByUserEmail?: string;
     },
@@ -840,6 +842,12 @@ export class OutreachApiService {
       payload,
       { headers }
     );
+  }
+
+  /** Only runs that never sent an email can be deleted. */
+  deleteCatalystRun ( runId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; message: string; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.delete<{ success: boolean; message: string; }>( `${this.baseUrl}/outreach/catalyst-runs/${encodeURIComponent( runId )}`, { headers } );
   }
 }
 

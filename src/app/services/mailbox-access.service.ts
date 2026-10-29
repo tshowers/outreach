@@ -450,17 +450,17 @@ export class MailboxAccessService {
    * uses). Plain text; throws when TODD can't write one.
    */
   async draftReplyWithTodd(contactId: string): Promise<string> {
-    if (!contactId) throw new Error('TODD needs this sender in your contacts to write a reply.');
+    if (!contactId) throw new Error('16Ahead needs this sender in your contacts to write a reply.');
     let data: any = {};
     try {
       const response = await firstValueFrom(this.outreachApi.draftAssistMomentumReply(contactId, this.getMailboxRequestOptions()));
       data = response?.data || {};
     } catch (error: any) {
-      throw new Error(error?.error?.message || "TODD couldn't write this one. Try writing your own.");
+      throw new Error(error?.error?.message || "16Ahead couldn't write this one. Try writing your own.");
     }
     const body = String(data.replyDraftBody || data.draftBody || data.body || '');
     const text = this.convertReplyHtmlToText(body) || body.trim();
-    if (!text) throw new Error("TODD couldn't write this one. Try writing your own.");
+    if (!text) throw new Error("16Ahead couldn't write this one. Try writing your own.");
     return text;
   }
 

@@ -47,10 +47,10 @@ describe( 'Outreach first email', () => {
     cy.loginAsTestUser( '/setup/first-email' );
 
     cy.wait( '@create' ).its( 'request.body' ).should( 'deep.equal', { contactIds: ['c1', 'c2', 'c3'] } );
-    cy.get( '[data-cy="first-email-heading"]' ).should( 'have.text', 'Your first email, written by Maya' );
+    cy.get( '[data-cy="first-email-heading"]' ).should( 'have.text', 'Your first email, written by the Marketing Assistant' );
     cy.get( '[data-cy="first-email-person"]' ).should( 'have.length', 3 );
     cy.get( '[data-cy="first-email-preview"]' ).should( 'contain.text', 'ada@analytical.co' ).and( 'contain.text', 'Quick question, Sarah' )
-      .and( 'contain.text', 'Why Maya wrote it this way' );
+      .and( 'contain.text', 'Why the Marketing Assistant wrote it this way' );
     cy.get( '[data-cy="first-email-person"]' ).eq( 2 ).click();
     cy.get( '[data-cy="first-email-preview"]' ).should( 'contain.text', 'Priya Raman <c3@acme.com>' );
     cy.get( '[data-cy="first-email-send"]' ).should( 'contain.text', 'Send 3 from ada@analytical.co' );

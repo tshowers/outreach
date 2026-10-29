@@ -16,4 +16,4 @@ Disallow: /mobile-handoff
 Disallow: /unsubscribe-
 Disallow: /success
 
-Sitemap: https://outreach.taliferro.tech/sitemap.xml
+Sitemap: https://outreach.16ahead.com/sitemap.xml

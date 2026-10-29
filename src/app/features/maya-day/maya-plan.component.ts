@@ -40,10 +40,10 @@ interface PlanGroup {
 const GROUP_CAP = 50;
 const DAY_MS = 86400000;
 const NEXT_ACTION_WORDS: Record<string, string> = {
-  draft_followup: 'Maya drafts a follow-up for you to approve.',
-  send_followup: 'Maya sends the follow-up.',
-  wait: 'Maya watches for a response.',
-  pause: 'Maya pauses this one.',
+  draft_followup: 'The Marketing Assistant drafts a follow-up for you to approve.',
+  send_followup: 'Marketing Assistant sends the follow-up.',
+  wait: 'The Marketing Assistant watches for a response.',
+  pause: 'The Marketing Assistant pauses this one.',
   handoff_to_user: 'it comes to you.',
 };
 
@@ -98,7 +98,7 @@ export class MayaPlanComponent implements OnChanges {
       this.rows = threads.filter( isLive ).map( ( thread ) => toRow( thread, now ) );
       this.regroup();
     } catch ( error: any ) {
-      this.error = String( error?.error?.message || error?.message || "Unable to load Maya's plan." );
+      this.error = String( error?.error?.message || error?.message || "Unable to load the Marketing Assistant's plan." );
     } finally {
       this.loading = false;
     }
@@ -254,7 +254,7 @@ function toRow ( thread: MomentumThread, now: Date ): PlanRow {
   if ( needsYou && replyAt ) last = `${ first } replied ${ shortDate( replyAt, now ) }`;
   else if ( lane === 'outbox' ) last = touches ? 'You approved a follow-up' : 'You approved the first email';
   else if ( sentAt ) last = `${ touches <= 1 ? 'First email' : 'Follow-up' } sent ${ shortDate( sentAt, now ) }`;
-  else if ( lane === 'drafts' ) last = `Maya drafted a first email ${ thread.lastUpdated ? shortDate( parse( thread.lastUpdated ), now ) : '' }`.trim();
+  else if ( lane === 'drafts' ) last = `The Marketing Assistant drafted a first email ${ thread.lastUpdated ? shortDate( parse( thread.lastUpdated ), now ) : '' }`.trim();
   else last = 'Nothing sent yet';
   const subject = String( ( lane === 'drafts' || lane === 'outbox' ? thread.draftSubject : thread.lastSubject ) || thread.lastSubject || thread.draftSubject || '' ).trim();
 
@@ -275,7 +275,7 @@ function toRow ( thread: MomentumThread, now: Date ): PlanRow {
     nextWhen = at ? `${ dayLabel( at, now ) }:` : 'Not scheduled:';
     next = lane === 'outbox'
       ? ( touches ? 'the follow-up sends.' : 'the first email sends.' )
-      : String( thread.nextActionReason || NEXT_ACTION_WORDS[String( thread.nextActionType || '' )] || 'Maya watches for a response.' );
+      : String( thread.nextActionReason || NEXT_ACTION_WORDS[String( thread.nextActionType || '' )] || 'The Marketing Assistant watches for a response.' );
   }
 
   const action = lane === 'drafts' ? { label: 'Review draft', link: '/drafts' }

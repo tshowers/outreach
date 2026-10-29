@@ -84,6 +84,8 @@ export class EmailProcessorComponent extends TopDogComponent {
   private readonly dripsApi = inject( DripsApiService );
   /** Design from Email Creator, handed to the emailer as its template. */
   emailCreatorTemplate: { subject: string; html: string } | null = null;
+  /** The template a resumed run started with; wins over the Email Creator one. */
+  resumedTemplate: { subject: string; html: string } | null = null;
   emailCreatorHandoffError = '';
 
   liteContacts: Contact[] = [];
@@ -401,6 +403,8 @@ export class EmailProcessorComponent extends TopDogComponent {
   // ---- Recent runs: Resume and Stop (Ty, 2026-10-27) ----
 
   runWorking = new Set<string>();
+  /** The run whose Delete was pressed once and is waiting for "Yes, delete". */
+  confirmDeleteRunId = '';
 
   /** An unfinished run's people who haven't been emailed since it started. */
   private runRemaining ( run: CatalystRun ): Set<string> {
@@ -429,7 +433,9 @@ export class EmailProcessorComponent extends TopDogComponent {
     ];
     this.audienceKey = key;
     this.audienceFilter = ( contact ) => remaining.has( String( contact?.id || '' ) );
-    this.audienceNote = `Resuming ${ run.name || 'this run' }: ${ remaining.size } of ${ run.contactIds?.length || 0 } haven't been emailed yet. Start or Schedule below when you're ready.`;
+    const html = String( run.templateHtml || '' ).trim();
+    if ( html ) this.resumedTemplate = { subject: String( run.templateSubject || '' ), html };
+    this.audienceNote = `Resuming ${ run.name || 'this run' }: ${ remaining.size } of ${ run.contactIds?.length || 0 } haven't been emailed yet.${ html ? ' Its email is loaded below.' : '' } Start or Schedule below when you're ready.`;
     if ( typeof document !== 'undefined' ) document.getElementById( 'choose-title' )?.scrollIntoView( { behavior: 'smooth', block: 'start' } );
   }
 
@@ -446,6 +452,31 @@ export class EmailProcessorComponent extends TopDogComponent {
       this.logger.error( 'Failed to stop Catalyst run', error );
       this.catalystRunsError = "Couldn't stop that run. Try again.";
     } finally {
+      this.runWorking.delete( run.id );
+    }
+  }
+
+  /** A run that never sent an email can go; one with sends keeps its history. */
+  canDeleteRun ( run: CatalystRun ): boolean {
+    return !( run.sentCount || 0 ) && !run.sentEmailIds?.length && !this.catalystAssistantContext?.isRunning;
+  }
+
+  async deleteRun ( run: CatalystRun ): Promise<void> {
+    if ( !this.tenantId || this.runWorking.has( run.id ) || !this.canDeleteRun( run ) ) return;
+    this.runWorking.add( run.id );
+    this.catalystRunsError = '';
+    try {
+      await firstValueFrom( this.outreachApi.deleteCatalystRun( run.id, {
+        tenantId: this.tenantId, userId: this.userId, userEmail: this.firebaseUser?.email || undefined,
+      } ) );
+      this.catalystRuns = this.catalystRuns.filter( ( item ) => item.id !== run.id );
+      if ( this.audienceKey === `run:${ run.id }` ) await this.onAudienceChange( STALE_AUDIENCE );
+      this.savedAudiences = this.savedAudiences.filter( ( option ) => option.key !== `run:${ run.id }` );
+    } catch ( error: any ) {
+      this.logger.error( 'Failed to delete Catalyst run', error );
+      this.catalystRunsError = String( error?.error?.message || "Couldn't delete that run. Try again." );
+    } finally {
+      this.confirmDeleteRunId = '';
       this.runWorking.delete( run.id );
     }
   }
@@ -764,7 +795,7 @@ export class EmailProcessorComponent extends TopDogComponent {
         handoffKey: draftId,
         launchedAt: new Date( draft.createdAt ).toISOString(),
         contactIds,
-        launchLabel: 'Sent over from Maya',
+        launchLabel: 'Sent over from the Marketing Assistant',
         reasonLabel: payload.reasonLabel,
         reasonDetail: payload.reasonDetail,
         sourceContext: 'maya_concept',

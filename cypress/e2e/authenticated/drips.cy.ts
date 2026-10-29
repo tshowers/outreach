@@ -174,7 +174,7 @@ describe( 'Outreach Drips', () => {
       } );
 
       cy.contains( 'section', 'Scheduled' ).contains( '.row', 'Invite: RFP office hours webinar' ).should( 'contain', 'Starts' ).and( 'contain', 'archives' );
-      cy.contains( 'section', 'Ready to drip' ).contains( '.row', 'Announcement: TODD Docs free tier' ).should( 'contain', 'No audience yet · 1 every 30 minutes' );
+      cy.contains( 'section', 'Ready to drip' ).contains( '.row', 'Announcement: 16Ahead Docs free tier' ).should( 'contain', 'No audience yet · 1 every 30 minutes' );
       cy.contains( 'section', 'Archived' ).contains( '.row', 'September newsletter' ).should( 'contain', '1,240 sent' ).and( 'contain', '7% clicked' );
       cy.contains( 'a', 'New drip from Email Creator' ).should( 'have.attr', 'href' ).and( 'include', 'emails.taliferro.tech' );
     } );

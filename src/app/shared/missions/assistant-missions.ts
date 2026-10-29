@@ -58,7 +58,7 @@ export class AssistantMissionsService {
   template: `
     <div class="assistant-mission" data-cy="assistant-mission">
       <tm-mission-detail [missionId]="missionId()" [viewerId]="viewerId()" />
-      <a class="open" [href]="'https://moves.taliferro.tech/missions/' + missionId()" target="_blank" rel="noopener">Open in Moves ↗</a>
+      <a class="open" [href]="'https://moves.16ahead.com/missions/' + missionId()" target="_blank" rel="noopener">Open in Moves ↗</a>
     </div>
   `,
   styles: [`

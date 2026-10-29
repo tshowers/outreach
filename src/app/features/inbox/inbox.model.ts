@@ -177,7 +177,7 @@ function companyOf ( message: MailboxMessageListItem ): string {
 }
 
 function fallbackDid ( kind: LetterKind, message: MailboxMessageListItem ): string {
-  if ( String( message.responderDecision || '' ).toLowerCase() === 'responded' ) return 'TODD replied';
+  if ( String( message.responderDecision || '' ).toLowerCase() === 'responded' ) return '16Ahead replied';
   switch ( kind ) {
     case 'out_of_office': return 'Out of office. Nothing to answer';
     case 'bounce': return 'Address bounced';
@@ -325,7 +325,7 @@ export function askTodd ( query: string, letters: InboxLetter[] ): AskResult {
   } ).filter( item => item.score > 0 ).sort( ( a, b ) => b.score - a.score || b.letter.time - a.letter.time );
   const top = scored[0]?.letter || null;
   return {
-    answer: top ? ( top.toddSummary || top.ask ) : "TODD didn't find anything about that in the last two weeks.",
+    answer: top ? ( top.toddSummary || top.ask ) : "16Ahead didn't find anything about that in the last two weeks.",
     source: top,
     hits: scored.map( item => item.letter ),
   };

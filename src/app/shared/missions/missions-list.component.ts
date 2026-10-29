@@ -29,7 +29,7 @@ type Filter = 'all' | 'mine' | 'others';
       @if (!loaded()) {
         <p class="muted">Loading…</p>
       } @else if (!shown().length) {
-        <p class="muted" data-cy="missions-empty">{{ filter() === 'mine' ? 'Nothing is waiting on you.' : 'No Missions here yet. Ask TODD for something to get one started.' }}</p>
+        <p class="muted" data-cy="missions-empty">{{ filter() === 'mine' ? 'Nothing is waiting on you.' : 'No Missions here yet. Ask the General Assistant for something to get one started.' }}</p>
       } @else {
         <ol>
           @for (m of shown(); track m.id) {

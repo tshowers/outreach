@@ -63,17 +63,17 @@ export class EmailComposerParentComponent extends TopDogComponent implements OnI
     {
       label: 'Unopened',
       diagnosis: 'Subject likely missed',
-      action: 'TODD rewrites the subject around the contact and company context.'
+      action: '16Ahead rewrites the subject around the contact and company context.'
     },
     {
       label: 'Opened',
       diagnosis: 'Subject worked, body missed',
-      action: 'TODD keeps the subject logic and refactors the body with a simpler ask.'
+      action: '16Ahead keeps the subject logic and refactors the body with a simpler ask.'
     },
     {
       label: 'Clicked',
       diagnosis: 'Interest is specific',
-      action: 'TODD follows the clicked topic and makes the next step more direct.'
+      action: '16Ahead follows the clicked topic and makes the next step more direct.'
     }
   ];
 
@@ -293,7 +293,7 @@ export class EmailComposerParentComponent extends TopDogComponent implements OnI
   }
 
   get signalEngineSummary (): string {
-    return 'If Signal Engine is on, TODD keeps working after the first email goes out.';
+    return 'If Signal Engine is on, 16Ahead keeps working after the first email goes out.';
   }
 
   private publishPageContext (): void {

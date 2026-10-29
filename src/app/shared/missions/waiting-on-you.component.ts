@@ -24,7 +24,7 @@ interface Done { label: string; undo: boolean }
         <div class="empty" data-cy="waiting-empty">
           <b>Nothing is waiting on you.</b>
           <p>{{ inFlightText() }}</p>
-          @if (askLink()) { <a class="btn primary" [href]="askLink()">Ask TODD</a> }
+          @if (askLink()) { <a class="btn primary" [href]="askLink()">General Assistant</a> }
         </div>
       } @else if (items().length) {
         <p class="sub">Across {{ missions() }} Mission{{ missions() === 1 ? '' : 's' }} · about {{ minutes() }} minute{{ minutes() === 1 ? '' : 's' }} in all</p>
@@ -131,7 +131,7 @@ export class WaitingOnYouComponent implements OnInit {
   readonly remaining = computed( () => this.items().filter( ( item ) => !this.done()[this.key( item )] ).length );
   readonly inFlightText = computed( () => {
     const n = this.inFlight();
-    return n ? `TODD and Maya have ${n} Mission${n === 1 ? '' : 's'} in flight. New steps for you show up here.` : 'New steps for you show up here.';
+    return n ? `16Ahead and the Marketing Assistant have ${n} Mission${n === 1 ? '' : 's'} in flight. New steps for you show up here.` : 'New steps for you show up here.';
   } );
 
   ngOnInit (): void {
@@ -174,7 +174,7 @@ export class WaitingOnYouComponent implements OnInit {
 
   sendBackTo ( item: WaitingItem ): string {
     const source = item.inputs[item.inputs.length - 1];
-    return source && source.tool && ( source.tool.startsWith( 'email.' ) || source.tool.startsWith( 'maya.' ) || source.tool.startsWith( 'image.' ) || source.tool.startsWith( 'social.' ) ) ? 'Maya' : 'TODD';
+    return source && source.tool && ( source.tool.startsWith( 'email.' ) || source.tool.startsWith( 'maya.' ) || source.tool.startsWith( 'image.' ) || source.tool.startsWith( 'social.' ) ) ? 'the Marketing Assistant' : 'the General Assistant';
   }
 
   openNote ( item: WaitingItem ): void {
@@ -187,7 +187,7 @@ export class WaitingOnYouComponent implements OnInit {
     const k = this.key( item );
     const note = this.note();
     if ( type === 'approve' ) {
-      const sends = this.sendBackTo( item ) === 'Maya' ? 'TODD is sending it now.' : 'TODD is on it.';
+      const sends = this.sendBackTo( item ) === 'the Marketing Assistant' ? '16Ahead is sending it now.' : '16Ahead is on it.';
       this.done.update( ( all ) => ( { ...all, [k]: { label: `Approved. ${sends}`, undo: true } } ) );
       this.pendingUndo.set( k, setTimeout( () => {
         this.pendingUndo.delete( k );

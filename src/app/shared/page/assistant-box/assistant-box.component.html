@@ -39,7 +39,7 @@
       <div *ngSwitchCase="'composerContactChoices'" class="inline-card">
         <div class="field">
           <label>Possible contacts</label>
-          <div class="muted">Pick the right person and TODD will draft the email for that contact.</div>
+          <div class="muted">Pick the right person and 16Ahead will draft the email for that contact.</div>
         </div>
         <div class="field" *ngFor="let candidate of inl.payload.candidates">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
@@ -63,7 +63,7 @@
   <div class="assistant-confirm" *ngIf="showConfirmPrompt && pendingAction">
     <div class="assistant-confirm__copy">
       <strong>Proceed with this action?</strong>
-      <span>TODD has prepared the next move and is waiting for your approval.</span>
+      <span>16Ahead has prepared the next move and is waiting for your approval.</span>
     </div>
     <div class="assistant-confirm__actions">
       <button type="button" class="btn-todd" (click)="confirmAction()">Apply</button>

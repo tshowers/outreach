@@ -231,7 +231,7 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
   }
 
   why ( item: MomentumThread ): string {
-    if ( isDraftToApprove( item ) ) return String( item.approvalReason || 'TODD drafted this first email. Nothing sends until you approve it.' );
+    if ( isDraftToApprove( item ) ) return String( item.approvalReason || '16Ahead drafted this first email. Nothing sends until you approve it.' );
     return whyItsHere( item );
   }
 
@@ -299,10 +299,10 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
       const draft = response?.data || {};
       const subject = String( draft.replyDraftSubject || draft.draftSubject || draft.subject || '' );
       const body = String( draft.replyDraftBody || draft.draftBody || draft.body || '' );
-      if ( !body.trim() ) throw new Error( "Maya couldn't write this one. Try writing your own." );
+      if ( !body.trim() ) throw new Error( "The Marketing Assistant couldn't write this one. Try writing your own." );
       if ( this.selectedId === item.contactId ) this.openDraft( subject || `Re: ${ item.lastSubject || '' }`, this.htmlToText( body ) );
     } catch ( error: any ) {
-      this.notice = String( error?.error?.message || error?.message || "Maya couldn't write this one." );
+      this.notice = String( error?.error?.message || error?.message || "The Marketing Assistant couldn't write this one." );
     } finally {
       this.working = null;
     }

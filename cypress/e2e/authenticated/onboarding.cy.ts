@@ -144,7 +144,7 @@ describe( 'Outreach onboarding', () => {
     cy.get( '[data-cy="setup-profile-title"]', { timeout: 15000 } ).should( 'have.text', 'Finish your profile' );
     cy.get( '[data-cy="setup-profile-row"]' ).first().should( 'contain.text', 'What your company does' ).and( 'contain.text', 'From Network' );
     cy.get( '[data-cy="setup-profile-row"]' ).eq( 1 ).should( 'have.class', 'is-editing' );
-    cy.get( '[data-cy="setup-profile-row"]' ).eq( 2 ).should( 'contain.text', 'What TODD should do for you each week' );
+    cy.get( '[data-cy="setup-profile-row"]' ).eq( 2 ).should( 'contain.text', 'What 16Ahead should do for you each week' );
     cy.get( '[data-cy="setup-profile-next"]' ).should( 'be.disabled' );
     cy.contains( '3 left. About a minute.' );
     cy.screenshot( 'onboarding/profile-check', { capture: 'viewport' } );
@@ -152,7 +152,7 @@ describe( 'Outreach onboarding', () => {
     cy.contains( '[data-cy="setup-profile-choice"]', 'Personal service' ).click();
     cy.get( '[data-cy="setup-profile-save"]' ).click();
     cy.wait( '@save' ).its( 'request.body.profile.valueProp' ).should( 'contain', 'personal service' );
-    cy.contains( 'Saved to your TODD profile' );
+    cy.contains( 'Saved to your 16Ahead profile' );
     cy.get( '[data-cy="setup-profile-row"]' ).eq( 2 ).should( 'have.class', 'is-editing' );
   } );
 

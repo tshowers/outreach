@@ -8,7 +8,7 @@ export interface ActivityAction {
 }
 
 /** Moves holds Maya's open tasks; the planner stops at 10 (mayaCreationGuard.service.js). */
-export const MOVES_TASKS_URL = 'https://moves.taliferro.tech/app';
+export const MOVES_TASKS_URL = 'https://moves.16ahead.com/app';
 
 /** True when Maya's start failed on her open-task limit - closing Moves clears it. */
 export function isMovesLimitReason ( text: string | undefined ): boolean {

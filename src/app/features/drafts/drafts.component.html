@@ -4,9 +4,9 @@
   <header>
     <h1>Drafts</h1>
     <p class="subtitle" *ngIf="cards.length">
-      {{ cards.length }} {{ cards.length === 1 ? 'email' : 'emails' }} Maya wrote for you. Nothing sends until you approve it. Approved emails go to Outbox and send during the recipient's business hours.
+      {{ cards.length }} {{ cards.length === 1 ? 'email' : 'emails' }} Marketing Assistant wrote for you. Nothing sends until you approve it. Approved emails go to Outbox and send during the recipient's business hours.
     </p>
-    <a class="drafts__settings" routerLink="/maya-settings" data-cy="drafts-maya-settings">Let Maya send on her own →</a>
+    <a class="drafts__settings" routerLink="/maya-settings" data-cy="drafts-maya-settings">Let the Marketing Assistant send on its own →</a>
   </header>
 
   <app-preloader [isLoading]="loading && !cards.length" message="Loading your drafts…" [autoHideAfterMs]="null"></app-preloader>
@@ -14,7 +14,7 @@
 
   <div class="empty" *ngIf="!loading && !error && !cards.length" data-cy="drafts-empty">
     <strong>You're all caught up.</strong>
-    <span>Approved emails are in <a routerLink="/outbox">Outbox</a>. Maya will put new drafts here.</span>
+    <span>Approved emails are in <a routerLink="/outbox">Outbox</a>. The Marketing Assistant will put new drafts here.</span>
   </div>
 
   <ng-container *ngIf="warm.length">
@@ -28,7 +28,7 @@
   <ng-container *ngIf="first.length">
     <div class="section-head">
       <h2>First emails</h2>
-      <span>{{ first.length }} new {{ first.length === 1 ? 'person' : 'people' }} Maya found</span>
+      <span>{{ first.length }} new {{ first.length === 1 ? 'person' : 'people' }} Marketing Assistant found</span>
     </div>
     <ng-container *ngTemplateOutlet="list; context: { $implicit: first }"></ng-container>
   </ng-container>
@@ -44,7 +44,7 @@
         <button type="button" class="pill pill--40 pill--danger" appWriteAction="discard these drafts" (click)="confirmDiscardHeld = true" data-cy="drafts-discard-held">Discard all {{ held.length }}</button>
       </ng-container>
       <ng-template #confirmHeld>
-        <span class="muted">Discard {{ held.length }} drafts? Maya writes new ones once the hold ends.</span>
+        <span class="muted">Discard {{ held.length }} drafts? The Marketing Assistant writes new ones once the hold ends.</span>
         <button type="button" class="pill pill--40 pill--danger" [disabled]="discardingHeld" (click)="discardAllHeld()" data-cy="drafts-discard-held-confirm">
           <span class="spinner" *ngIf="discardingHeld" aria-hidden="true"></span> Yes, discard
         </button>
@@ -78,14 +78,14 @@
         </button>
       </section>
 
-      <p class="draft__why" *ngIf="card.why"><strong>Why Maya wrote this</strong> <span class="muted">{{ card.why }}</span></p>
+      <p class="draft__why" *ngIf="card.why"><strong>Why the Marketing Assistant wrote this</strong> <span class="muted">{{ card.why }}</span></p>
 
       <p class="error" *ngIf="cardError.get(card.id) as err">{{ err }}</p>
       <p class="muted draft__note" *ngIf="testNote.get(card.id) as note">{{ note }}</p>
 
       <div class="draft__rewriting" *ngIf="card.rewriting; else actions" role="status">
         <span class="spinner" aria-hidden="true"></span>
-        Maya is rewriting this with a different angle. About 20 seconds.
+        The Marketing Assistant is rewriting this with a different angle. About 20 seconds.
       </div>
 
       <ng-template #actions>
@@ -95,7 +95,7 @@
             {{ card.kind === 'reply' ? 'Approve & send' : 'Approve' }}
           </button>
           <button type="button" class="pill" appWriteAction="edit this email" [disabled]="working.has(card.id)" (click)="edit(card)">Edit</button>
-          <button type="button" class="pill" appWriteAction="have Maya rewrite this draft" [disabled]="working.has(card.id)" (click)="rewrite(card)" [attr.data-cy]="'draft-rewrite-' + card.id">Ask Maya to rewrite</button>
+          <button type="button" class="pill" appWriteAction="have the Marketing Assistant rewrite this draft" [disabled]="working.has(card.id)" (click)="rewrite(card)" [attr.data-cy]="'draft-rewrite-' + card.id">Ask the Marketing Assistant to rewrite</button>
           <button type="button" class="pill pill--square" [attr.aria-expanded]="moreOpen.has(card.id)" aria-label="More actions" (click)="toggleMore(card)">⋯</button>
           <ng-container *ngIf="moreOpen.has(card.id)">
             <button type="button" class="pill pill--ghost" appWriteAction="send yourself a test" [disabled]="working.has(card.id)" (click)="sendTest(card)">

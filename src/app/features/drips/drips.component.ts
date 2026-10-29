@@ -10,7 +10,7 @@ import {
   audienceLine, countdown, dayNumber, dayOf, percent, shortDate,
 } from '../../models/drips.model';
 
-export const EMAIL_CREATOR_URL = 'https://emails.taliferro.tech';
+export const EMAIL_CREATOR_URL = 'https://emails.16ahead.com';
 
 interface SlotCard {
   id: string;

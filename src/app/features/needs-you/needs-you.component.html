@@ -3,7 +3,7 @@
   <!-- Cleared to zero (5d) -->
   <section class="zero" *ngIf="signedOut && !items.length">
     <h1>Needs you</h1>
-    <p>When someone replies, or Maya needs a decision from you, they show up here. Sign in to see yours.</p>
+    <p>When someone replies, or the Marketing Assistant needs a decision from you, they show up here. Sign in to see yours.</p>
   </section>
 
   <section class="zero" *ngIf="!signedOut && !loading && !items.length && !error">
@@ -11,8 +11,8 @@
       <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
     </span>
     <h1>Nobody's waiting on you</h1>
-    <p>Maya is running {{ planCount }} conversation{{ planCount === 1 ? '' : 's' }} on her own. You'll see someone here as soon as they reply.</p>
-    <a class="pill pill--violet" routerLink="/maya-day" [queryParams]="{ tab: 'plan' }">See Maya's plan · {{ planCount }}</a>
+    <p>The Marketing Assistant is running {{ planCount }} conversation{{ planCount === 1 ? '' : 's' }} on its own. You'll see someone here as soon as they reply.</p>
+    <a class="pill pill--violet" routerLink="/maya-day" [queryParams]="{ tab: 'plan' }">See the Marketing Assistant's plan · {{ planCount }}</a>
   </section>
 
   <p class="note note--error" *ngIf="error">{{ error }}</p>
@@ -60,7 +60,7 @@
             <span class="row__top"><strong>{{ item.contactName || item.emailAddress }}</strong><span>{{ age(item.latestReplyAt) }}</span></span>
             <span class="row__pills">
               <span class="tag" [attr.data-tint]="tint(item)">{{ kindLabel(item) }}</span>
-              <span class="tag" data-tint="green" *ngIf="hasMayaReply(item)">Maya drafted</span>
+              <span class="tag" data-tint="green" *ngIf="hasMayaReply(item)">The Marketing Assistant drafted</span>
             </span>
             <span class="row__preview">{{ preview(item) }}</span>
           </span>
@@ -123,14 +123,14 @@
           <span class="eyebrow">{{ kind(item) === 'automated' ? 'The email' : 'What ' + firstName(item) + ' said' }}</span>
           <p class="said__bubble">{{ reply(item) }}</p>
           <div class="said__foot">
-            <span class="said__read" *ngIf="item.replySummary">✦ Maya's read: {{ item.replySummary }}</span>
+            <span class="said__read" *ngIf="item.replySummary">✦ the Marketing Assistant's read: {{ item.replySummary }}</span>
             <button type="button" class="link" *ngIf="item.latestReplyText && item.latestReplyText.trim() !== reply(item)" (click)="showOriginal = !showOriginal">{{ showOriginal ? 'Hide original' : 'Original' }}</button>
           </div>
           <pre class="said__original" *ngIf="showOriginal">{{ item.latestReplyText }}</pre>
         </section>
 
         <section class="draft" *ngIf="draftOpen">
-          <span class="eyebrow">{{ isDraft(item) ? 'First email · edit here' : hasMayaReply(item) && draftBody ? "Maya's reply · edit here" : 'Your reply' }}</span>
+          <span class="eyebrow">{{ isDraft(item) ? 'First email · edit here' : hasMayaReply(item) && draftBody ? "The Marketing Assistant's reply · edit here" : 'Your reply' }}</span>
           <div class="draft__card">
             <input type="text" [(ngModel)]="draftSubject" aria-label="Subject">
             <textarea [(ngModel)]="draftBody" [attr.rows]="isDraft(item) ? 10 : 6" placeholder="Keep it short and human." aria-label="Reply"></textarea>
@@ -154,12 +154,12 @@
         <ng-container [ngSwitch]="draftOpen ? 'send' : action(item)">
           <button *ngSwitchCase="'send'" type="button" appWriteAction="send this reply" class="pill pill--primary pill--big" (click)="send(item)" [disabled]="!draftBody.trim() || !!working">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
-            {{ working === 'send' ? 'Sending…' : (hasMayaReply(item) ? "Send Maya's reply" : 'Send reply') }} <kbd>⌘↵</kbd>
+            {{ working === 'send' ? 'Sending…' : (hasMayaReply(item) ? "Send the Marketing Assistant's reply" : 'Send reply') }} <kbd>⌘↵</kbd>
           </button>
-          <button *ngSwitchCase="'help_write'" type="button" appWriteAction="have Maya write a reply" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ {{ working === 'help' ? 'Maya is writing…' : 'Help me write it' }}</button>
+          <button *ngSwitchCase="'help_write'" type="button" appWriteAction="have the Marketing Assistant write a reply" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ {{ working === 'help' ? 'The Marketing Assistant is writing…' : 'Help me write it' }}</button>
           <a *ngSwitchCase="'connect_inbox'" class="pill pill--primary pill--big" routerLink="/inbox-access">Connect inbox</a>
           <button *ngSwitchCase="'mark_done'" type="button" appWriteAction="mark this done" class="pill pill--primary pill--big" (click)="markDone([item])">✓ Mark as done</button>
-          <button *ngSwitchDefault type="button" appWriteAction="have Maya write a reply" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ Help me write it</button>
+          <button *ngSwitchDefault type="button" appWriteAction="have the Marketing Assistant write a reply" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ Help me write it</button>
         </ng-container>
         <button type="button" class="pill pill--big" *ngIf="!draftOpen || hasMayaReply(item)" (click)="writeOwn(item)">Write my own <kbd>W</kbd></button>
         <a class="pill pill--big" *ngIf="kind(item) === 'out_of_office' && outOfOffice(item).alternateEmail" [href]="'mailto:' + outOfOffice(item).alternateEmail">Email {{ outOfOffice(item).alternate }}</a>

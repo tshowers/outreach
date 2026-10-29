@@ -923,16 +923,16 @@ export class EmailEditorComponent
         this.textContentChange.emit( this.convertHtmlToText( this._htmlContent ) );
       } else {
         this.notificationService.show(
-          'Maya Draft Not Ready',
-          'Maya could not produce a specific enough draft from the current contact and offer context.',
+          'Marketing Assistant Draft Not Ready',
+          'The Marketing Assistant could not produce a specific enough draft from the current contact and offer context.',
           'warning'
         );
       }
     } catch ( err: any ) {
       this.logger.error( 'generateMayaEmailContent failed:', err );
       this.notificationService.show(
-        'Maya Draft Failure',
-        err?.message || 'Unable to generate a Maya draft right now.',
+        'Marketing Assistant Draft Failure',
+        err?.message || 'Unable to generate a Marketing Assistant draft right now.',
         'error'
       );
     } finally {

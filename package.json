@@ -1,6 +1,6 @@
 {
   "name": "outreach",
-  "version": "2026.10.27-build.5",
+  "version": "2026.10.27-build.8",
   "scripts": {
     "ng": "ng",
     "generate-version": "node scripts/generate-version.js",

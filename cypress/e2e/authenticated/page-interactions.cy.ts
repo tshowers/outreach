@@ -61,7 +61,7 @@ describe('Mail pages', () => {
     cy.wait('@bootstrap', { timeout: 20000 });
     cy.contains('.section-head h2', 'Follow-ups to people who engaged').parent().should('contain', '1');
     cy.contains('.section-head h2', 'First emails');
-    cy.get('[data-cy="draft-theo"]').should('contain', 'Follow-up · email 5').and('contain', 'Clicked 8×').and('contain', 'Why Maya wrote this');
+    cy.get('[data-cy="draft-theo"]').should('contain', 'Follow-up · email 5').and('contain', 'Clicked 8×').and('contain', 'Why the Marketing Assistant wrote this');
     cy.get('[data-cy="draft-willy"]').should('contain', 'First email').and('contain', 'No emails yet.');
     cy.contains('.sidebar__item', 'Drafts').find('.sidebar__badge').should('have.text', '3');
     cy.contains('.sidebar__item', 'Outbox').find('.sidebar__badge').should('have.text', '1');
@@ -105,7 +105,7 @@ describe('Mail pages', () => {
     cy.wait('@bootstrap', { timeout: 20000 });
     cy.get('[data-cy="draft-rewrite-theo"]').click();
     cy.wait('@rewrite').its('request.body').should('deep.include', { draftKind: 'outbound' });
-    cy.get('[data-cy="draft-theo"]').should('contain', 'Maya is rewriting this with a different angle.');
+    cy.get('[data-cy="draft-theo"]').should('contain', 'The Marketing Assistant is rewriting this with a different angle.');
   });
 
   it('Discard can be undone', () => {
@@ -165,8 +165,8 @@ describe('Maya settings', () => {
     cy.get('[data-cy="maya-mode-off"]').should('have.attr', 'aria-checked', 'true');
     cy.get('[data-cy="maya-mode-noon"]').click();
     cy.wait('@save').its('request.body').should('deep.equal', { autoSendMode: 'noon' });
-    cy.contains('.saved', 'It applies to drafts Maya writes from now on.');
-    cy.contains('.note', 'Only drafts Maya writes from then on send by themselves');
+    cy.contains('.saved', 'It applies to drafts the Marketing Assistant writes from now on.');
+    cy.contains('.note', 'Only drafts the Marketing Assistant writes from then on send by themselves');
   });
 
   it('is in the sidebar under Maya, and Drafts links to it', () => {
@@ -198,7 +198,7 @@ describe('Inbox Access buttons', () => {
     cy.intercept({ method: 'GET', pathname: '/api/outreach/sending-settings' }, { statusCode: 200, body: { success: true, data: notReady } });
     cy.intercept({ method: 'PUT', pathname: '/api/outreach/sending-settings' }, { statusCode: 200, body: { success: true, data: { ...notReady, sendsFrom: 'ty@taliferro.tech', sendsFromStatus: 'ready' } } }).as('setSendsFrom');
     cy.loginAsTestUser('/inbox-access');
-    cy.get('[data-cy="sending-from-status"]').should('contain', 'Not set up for sending').and('contain', 'via TODD').and('contain', 'outreach@taliferro.tech');
+    cy.get('[data-cy="sending-from-status"]').should('contain', 'Not set up for sending').and('contain', 'via 16Ahead').and('contain', 'outreach@taliferro.tech');
     cy.get('[data-cy="sending-from-select"]').select('ty@taliferro.tech');
     cy.wait('@setSendsFrom').its('request.body').should('deep.equal', { sendsFrom: 'ty@taliferro.tech' });
     cy.get('[data-cy="sending-from-status"]').should('contain', 'Ready to send').and('contain', 'ty@taliferro.tech');
@@ -223,10 +223,10 @@ describe('Catalyst (email-processor) empty-state buttons', () => {
 
   // Contacts live in the Network app, so both open it in a new tab.
   it('"Go to Network" opens Network\'s contact list', () => {
-    cy.contains('a', 'Go to Network').should('have.attr', 'href', 'https://network.taliferro.tech/contact-list').and('have.attr', 'target', '_blank');
+    cy.contains('a', 'Go to Network').should('have.attr', 'href', 'https://network.16ahead.com/contact-list').and('have.attr', 'target', '_blank');
   });
 
   it('"Import Contacts" opens Network\'s import', () => {
-    cy.contains('a', 'Import Contacts').should('have.attr', 'href', 'https://network.taliferro.tech/contact-import').and('have.attr', 'target', '_blank');
+    cy.contains('a', 'Import Contacts').should('have.attr', 'href', 'https://network.16ahead.com/contact-import').and('have.attr', 'target', '_blank');
   });
 });

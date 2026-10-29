@@ -127,7 +127,7 @@ export class PlaybooksComponent implements OnInit {
   }
 
   ownersLine ( p: Playbook ): string {
-    return [p.owners.todd ? `${p.owners.todd} by TODD` : '', p.owners.maya ? `${p.owners.maya} by Maya` : '', p.owners.person ? `${p.owners.person} by you` : ''].filter( Boolean ).join( ' · ' );
+    return [p.owners.todd ? `${p.owners.todd} by 16Ahead` : '', p.owners.maya ? `${p.owners.maya} by the Marketing Assistant` : '', p.owners.person ? `${p.owners.person} by you` : ''].filter( Boolean ).join( ' · ' );
   }
 
 }

@@ -174,12 +174,12 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
       tone: 'neutral',
       icon: 'fa-solid fa-compass',
       title: 'Outreach drafts the next email for you',
-      message: 'TODD writes thoughtful, individual messages and keeps every follow-up connected to the last conversation, instead of running a generic sequence. Sign in to see it work with your own data.',
+      message: '16Ahead writes thoughtful, individual messages and keeps every follow-up connected to the last conversation, instead of running a generic sequence. Sign in to see it work with your own data.',
       whyItMatters: "A mail-merge blast gets ignored - Outreach is what keeps every message actually relevant to the person receiving it.",
       bullets: [
-        'Compose an email directly, or let TODD draft one from a description.',
-        'TODD flags which sent emails deserve a follow-up right now.',
-        'Ask this chat how Outreach works, or what TODD actually does.',
+        'Compose an email directly, or let 16Ahead draft one from a description.',
+        '16Ahead flags which sent emails deserve a follow-up right now.',
+        'Ask this chat how Outreach works, or what 16Ahead actually does.',
       ],
     };
   }
@@ -210,7 +210,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
         tone: 'attention',
         icon: 'fa-solid fa-triangle-exclamation',
         title: `${momentumNeedsHumanCount} thread${momentumNeedsHumanCount === 1 ? ' needs' : 's need'} a human reply`,
-        message: 'These are conversations TODD can’t safely continue alone. Open Signal Engine to review and respond.',
+        message: 'These are conversations 16Ahead can’t safely continue alone. Open Signal Engine to review and respond.',
         whyItMatters: 'A thread waiting on a human reply is the highest-value thing to clear - the other person is actively engaged.',
         bullets: [],
         nextStage: 'Signal Engine',
@@ -236,7 +236,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
       tone: engagementRate >= 20 ? 'ready' : 'progress',
       icon: engagementRate >= 20 ? 'fa-solid fa-circle-check' : 'fa-solid fa-hourglass-half',
       title: draftedTodayCount > 0 ? `${draftedTodayCount} draft${draftedTodayCount === 1 ? '' : 's'} ready today` : 'Ready for the next email',
-      message: 'Compose directly, or ask TODD to draft an email to someone specific.',
+      message: 'Compose directly, or ask 16Ahead to draft an email to someone specific.',
       whyItMatters: 'Consistent, individual outreach is what builds engagement over time - one well-timed email beats a batch send.',
       bullets: [],
     };
@@ -256,8 +256,8 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
         tone: 'attention',
         icon: 'fa-solid fa-triangle-exclamation',
         title: 'Who is this email going to?',
-        message: 'Select a recipient, or tell TODD their name and it will look them up.',
-        whyItMatters: 'TODD drafts around the specific recipient - their role, company, and history - not a generic template.',
+        message: 'Select a recipient, or tell 16Ahead their name and it will look them up.',
+        whyItMatters: '16Ahead drafts around the specific recipient - their role, company, and history - not a generic template.',
         bullets: [],
       };
     }
@@ -269,7 +269,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
         tone: 'progress',
         icon: 'fa-solid fa-hourglass-half',
         title: 'Ready to draft',
-        message: 'Tell TODD what this email should say, or ask it to write a first draft from scratch.',
+        message: 'Tell 16Ahead what this email should say, or ask it to write a first draft from scratch.',
         whyItMatters: 'A recipient without a message isn’t an email yet - this is the actual work of the page.',
         bullets: [],
       };
@@ -281,7 +281,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
       tone: 'ready',
       icon: 'fa-solid fa-circle-check',
       title: 'This draft is ready to send',
-      message: 'Ask TODD to tighten, soften, or rewrite any part of it before you send.',
+      message: 'Ask the General Assistant to tighten, soften, or rewrite any part of it before you send.',
       whyItMatters: 'A second pass on tone and length is often what separates a reply from a delete.',
       bullets: [],
     };
@@ -304,7 +304,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
           tone: 'attention',
           icon: 'fa-solid fa-triangle-exclamation',
           title: `${followUpNowCount} recipient${followUpNowCount === 1 ? '' : 's'} ready for follow-up`,
-          message: 'Ask TODD "who should I follow up with" for the list, or "what’s working" for the top subject lines.',
+          message: 'General Assistant "who should I follow up with" for the list, or "what’s working" for the top subject lines.',
           whyItMatters: 'A timely follow-up on an opened email converts far better than a cold second touch.',
           bullets: [],
         };
@@ -316,7 +316,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
         tone: openRate >= 30 ? 'ready' : 'progress',
         icon: 'fa-solid fa-chart-line',
         title: `${openRate}% open rate`,
-        message: 'Ask TODD "what’s working" or "who’s engaged" to dig into performance.',
+        message: 'General Assistant "what’s working" or "who’s engaged" to dig into performance.',
         whyItMatters: 'Open rate is the earliest signal of whether subject lines and sender reputation are working.',
         bullets: [],
       };
@@ -329,7 +329,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
         tone: 'attention',
         icon: 'fa-solid fa-triangle-exclamation',
         title: `${needsHuman} thread${needsHuman === 1 ? ' needs' : 's need'} a human reply`,
-        message: 'These conversations need your judgment before TODD can continue them.',
+        message: 'These conversations need your judgment before 16Ahead can continue them.',
         whyItMatters: 'A stalled thread waiting on a human reply is usually the highest-value thing to clear.',
         bullets: [],
       };
@@ -342,7 +342,7 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
         tone: 'progress',
         icon: 'fa-solid fa-hourglass-half',
         title: `${draftReady} draft${draftReady === 1 ? '' : 's'} waiting for review`,
-        message: 'Review, edit, and approve drafts TODD has already prepared.',
+        message: 'Review, edit, and approve drafts 16Ahead has already prepared.',
         whyItMatters: 'Nothing sends until you approve it - this is the human-in-the-loop checkpoint.',
         bullets: [],
       };
@@ -354,8 +354,8 @@ export class OutreachAssistantLauncherComponent implements OnInit, OnDestroy {
       tone: 'ready',
       icon: 'fa-solid fa-circle-check',
       title: 'Nothing waiting on you right now',
-      message: 'Check the Outbox, Sent, or Plan tabs, or ask TODD to compose something new.',
-      whyItMatters: 'A clear queue means TODD’s doing its job - new work will land here as it comes in.',
+      message: 'Check the Outbox, Sent, or Plan tabs, or ask 16Ahead to compose something new.',
+      whyItMatters: 'A clear queue means 16Ahead’s doing its job - new work will land here as it comes in.',
       bullets: [],
     };
   }

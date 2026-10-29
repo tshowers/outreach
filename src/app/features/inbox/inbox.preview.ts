@@ -97,7 +97,7 @@ export const INBOX_PREVIEW_LETTERS: MailboxMessageDetail[] = [
   letter( 0, 7, 15, {
     id: 'rl', fromName: 'Robert Leung', fromEmail: 'rleung@rosendin.com', subject: 'Automatic reply: Which do you think is better, Finding or Searching?', kind: 'out_of_office',
     ask: 'Out of office until Mon, Oct 26', toddDid: 'Paused his sequence until Oct 26',
-    toddSummary: 'Robert is out until Oct 26. Maya paused his sequence and will pick it back up when he returns.',
+    toddSummary: 'Robert is out until Oct 26. The Marketing Assistant paused his sequence and will pick it back up when he returns.',
     text: 'I am currently out of the office and will return on Monday, October 26. For immediate needs, please contact Matt Zika at mzika@rosendin.com.',
     nextAction: { type: 'email', label: 'Email Matt Zika', value: 'mzika@rosendin.com' },
   } ),
@@ -118,7 +118,7 @@ export const INBOX_PREVIEW_LETTERS: MailboxMessageDetail[] = [
   letter( 1, 11, 20, {
     id: 'md', fromName: 'Mail Delivery Subsystem', fromEmail: 'mailer-daemon@googlemail.com', subject: 'Delivery Status Notification (Failure)', kind: 'bounce',
     ask: 'jake@harborlinecoop.com bounced', toddDid: 'Removed from the Harborline sequence',
-    toddSummary: 'jake@harborlinecoop.com bounced. Maya removed it from the Harborline sequence.',
+    toddSummary: 'jake@harborlinecoop.com bounced. The Marketing Assistant removed it from the Harborline sequence.',
     text: "Your message to jake@harborlinecoop.com couldn't be delivered. The address may not exist or is unable to receive mail.",
   } ),
   letter( 4, 14, 51, {
@@ -131,7 +131,7 @@ export const INBOX_PREVIEW_LETTERS: MailboxMessageDetail[] = [
   letter( 4, 9, 3, {
     id: 'wp', fromName: 'William Pierce', fromEmail: 'wpierce@piercegroup.com', subject: 'Automatic reply: We have been brainwashed into searching', kind: 'out_of_office',
     ask: 'Back Monday, Oct 19', toddDid: 'Follow-up set for Tue morning',
-    toddSummary: 'William is back Monday, Oct 19. Maya will follow up Tuesday morning.',
+    toddSummary: 'William is back Monday, Oct 19. The Marketing Assistant will follow up Tuesday morning.',
     text: "I'm out of the office through Friday, October 16, and will be back Monday.",
   } ),
   letter( 4, 8, 30, {
@@ -150,7 +150,7 @@ export const INBOX_PREVIEW_LETTERS: MailboxMessageDetail[] = [
   letter( 6, 10, 47, {
     id: 'db', fromName: 'Doug Bryan', fromEmail: 'doug@idahotower.com', subject: 'Automatic reply: Finding value in connections', kind: 'out_of_office',
     ask: 'On a job site through Oct 16', toddDid: 'Follow-up moved to Monday',
-    toddSummary: 'Doug is on a job site through Oct 16. Maya moved his follow-up to Monday.',
+    toddSummary: 'Doug is on a job site through Oct 16. The Marketing Assistant moved his follow-up to Monday.',
     text: 'I am on a job site through Friday, October 16, with limited email. I will reply when I am back.',
   } ),
   letter( 7, 13, 5, {

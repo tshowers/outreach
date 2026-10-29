@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import { Observable, shareReplay, switchMap, tap, of } from 'rxjs';
+import { hostedLoginUrl } from '@taliferro/ui/platform/hosted-login.model';
 
 /**
  * Auth service for the standalone Outreach app. Sign-in itself no longer
@@ -115,7 +116,7 @@ export class OutreachAuthService {
     const state = crypto.randomUUID();
     sessionStorage.setItem( this.pendingLoginStorageKey, JSON.stringify( { state, returnUrl } ) );
     const client = this.isLocalDevelopmentHost() ? 'outreach-web-local' : 'outreach-web';
-    this.navigateToHostedLogin( `https://todd.taliferro.tech/login?client=${client}&state=${state}` );
+    this.navigateToHostedLogin( hostedLoginUrl(client, state) );
   }
 
   /** Split out from signIn() so tests can spy on the actual navigation -

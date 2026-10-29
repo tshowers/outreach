@@ -5,7 +5,7 @@
       <header class="inbox-head" *ngIf="!showGuided">
         <div>
           <h1>Inbox settings</h1>
-          <p>Connect the mailboxes you send outreach from. TODD watches their replies, sorts them and drafts your answers.</p>
+          <p>Connect the mailboxes you send outreach from. 16Ahead watches their replies, sorts them and drafts your answers.</p>
         </div>
         <div class="inbox-head__actions">
           <a class="pill pill--primary" routerLink="/inbox" *ngIf="mailboxAccess.mailboxConfigs.length">Open Inbox</a>
@@ -38,13 +38,13 @@
 
           <ng-container *ngIf="chosen === 'google'; else passwordWay">
             <button type="button" class="guided__primary" appWriteAction="connect an inbox" (click)="connectGoogle()" data-cy="guided-google">Continue with Google</button>
-            <small class="guided__note">Google asks you to approve once. TODD never sees your password, and you can remove access any time.</small>
+            <small class="guided__note">Google asks you to approve once. 16Ahead never sees your password, and you can remove access any time.</small>
           </ng-container>
           <ng-template #passwordWay>
             <label class="guided__field">
               <span>App password</span>
               <input type="password" autocomplete="new-password" [(ngModel)]="mailboxAccess.mailboxForm.secret" data-cy="guided-password" />
-              <small>Your provider can create one for you. TODD stores it encrypted. Server settings are filled in automatically, and you can change them under Advanced.</small>
+              <small>Your provider can create one for you. 16Ahead stores it encrypted. Server settings are filled in automatically, and you can change them under Advanced.</small>
             </label>
             <button type="button" class="guided__link" (click)="mailboxAccess.mailboxForm.showAdvanced = !mailboxAccess.mailboxForm.showAdvanced">{{ mailboxAccess.mailboxNeedsAdvancedSettings ? 'Hide advanced' : 'Advanced' }}</button>
             <div class="guided__advanced" *ngIf="mailboxAccess.mailboxNeedsAdvancedSettings">
@@ -112,7 +112,7 @@
 <ng-template #settingsPanel>
   <!-- A mailbox connected with Google: no password, so no password form. -->
   <ng-container *ngIf="selectedIsGoogle; else connectForm">
-    <p class="panel-note">Connected with Google. TODD never sees your Google password; you can remove access any time in your Google account.</p>
+    <p class="panel-note">Connected with Google. 16Ahead never sees your Google password; you can remove access any time in your Google account.</p>
     <div class="mailbox-actions">
       <button type="button" class="btn-todd" appWriteAction="sync your inbox" (click)="mailboxAccess.syncMailboxNow()" [disabled]="mailboxAccess.isSyncingMailbox">{{ mailboxAccess.isSyncingMailbox ? 'Syncing...' : 'Sync now' }}</button>
       <button type="button" class="btn-todd btn-todd-secondary" appWriteAction="connect an inbox" (click)="mailboxAccess.connectGoogleMailbox()">Reconnect with Google</button>
@@ -124,10 +124,10 @@
     <div class="mailbox-connected-summary mailbox-google-step" *ngIf="isNewGmail" data-cy="inbox-google-step">
       <div class="mailbox-panel-title">{{ cameFromSignUp ? 'One more step' : 'Google mailbox' }}</div>
       <div class="field-help" *ngIf="cameFromSignUp">
-        Signing in with Google told TODD who you are. Letting Outreach see replies and send from
+        Signing in with Google told 16Ahead who you are. Letting Outreach see replies and send from
         <strong>{{ mailboxAccess.mailboxForm.emailAddress }}</strong> is a separate permission Google asks you to approve once.
       </div>
-      <div class="field-help">Google handles it &mdash; TODD never sees your Google password, and you can remove access any time in your Google account.</div>
+      <div class="field-help">Google handles it &mdash; 16Ahead never sees your Google password, and you can remove access any time in your Google account.</div>
       <button type="button" class="btn-todd" appWriteAction="connect an inbox" (click)="mailboxAccess.connectGoogleMailbox()" data-cy="inbox-connect-google">
         Connect {{ mailboxAccess.mailboxForm.emailAddress || 'Gmail' }} with Google
       </button>
@@ -144,7 +144,7 @@
         <div class="form-group profile-row">
           <div class="profile-label">App Password</div>
           <input class="form-control" [(ngModel)]="mailboxAccess.mailboxForm.secret" [ngModelOptions]="{standalone: true}" type="password" autocomplete="new-password" [placeholder]="mailboxAccess.mailboxForm.id ? 'Saved. Type a new one to change it' : 'App password or mailbox password'" />
-          <small class="instructions">Use an app password when your provider supports it. TODD stores the secret encrypted.</small>
+          <small class="instructions">Use an app password when your provider supports it. 16Ahead stores the secret encrypted.</small>
         </div>
         <div class="form-group profile-row">
           <div class="profile-label">Provider</div>

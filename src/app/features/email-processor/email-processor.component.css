@@ -412,10 +412,11 @@
   }
 }
 
-/* Recent runs: Resume / Stop on a run that never finished. */
+/* Recent runs: Resume / Stop on a run that never finished, Delete on one that never sent. */
 .run__actions {
   grid-column: 1 / -1;
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
 }
@@ -439,4 +440,14 @@
 .run__action:disabled {
   opacity: .5;
   cursor: default;
+}
+
+.run__action--danger {
+  color: var(--danger);
+}
+
+.run__confirm {
+  align-self: center;
+  color: var(--muted);
+  font-size: 13px;
 }

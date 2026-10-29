@@ -349,7 +349,7 @@ export class AssistantBoxComponent implements OnInit, OnChanges, OnDestroy {
         if ( looksLikeQuotaOrBilling ) {
             return [
                 '<div class="assistant-nudge">',
-                '<strong>TODD could not finish that right now.</strong><br>',
+                '<strong>16Ahead could not finish that right now.</strong><br>',
                 'It looks like the OpenAI Platform account may need attention because the balance, quota, or usage limit was reached.<br>',
                 'Please try again shortly.',
                 '</div>'

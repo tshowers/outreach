@@ -99,6 +99,9 @@ export interface CatalystRun {
   openedEmailIds?: string[];
   clickedEmailIds?: string[];
   lastSubject?: string;
+  /** The pasted template it started with, so Resume can load it again. */
+  templateSubject?: string;
+  templateHtml?: string;
   lastEmailAddress?: string;
 }
 

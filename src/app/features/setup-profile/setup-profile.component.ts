@@ -23,7 +23,7 @@ import { WriteActionDirective } from '../../shared/write-access/write-action.dir
 const LABELS: Record<ProfileAiField, string> = {
   companyDescription: 'What your company does',
   valueProp: 'Value proposition',
-  jobDescriptionForTODD: 'What TODD should do for you each week',
+  jobDescriptionForTODD: 'What 16Ahead should do for you each week',
   companyGoal: 'Mission',
 };
 
@@ -102,7 +102,7 @@ export class SetupProfileComponent implements OnInit {
   get footNote (): string {
     if ( !this.inboxConnected ) return 'Connect your inbox first.';
     if ( this.missing ) return `${this.missing} left. About a minute.`;
-    return 'Changes save to every TODD app.';
+    return 'Changes save to every 16Ahead app.';
   }
 
   edit ( question: ProfileQuestion ): void {
@@ -132,7 +132,7 @@ export class SetupProfileComponent implements OnInit {
     this.errorMessage = '';
     try {
       this.profile = await this.api.save( { ...this.profile, [question.field]: answer } );
-      this.notifications.show( 'Profile', 'Saved to your TODD profile', 'success' );
+      this.notifications.show( 'Profile', 'Saved to your 16Ahead profile', 'success' );
       this.editing = null;
       this.openNextEmpty();
       void this.setup.refresh();

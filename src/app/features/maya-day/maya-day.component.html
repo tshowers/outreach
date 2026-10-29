@@ -4,8 +4,8 @@
     <header class="activity-head">
         <h1>Activity</h1>
         <div class="seg" role="tablist" aria-label="Activity views">
-            <button type="button" role="tab" [class.is-on]="tab === 'did'" [attr.aria-selected]="tab === 'did'" (click)="setTab('did')" data-cy="maya-day-tab-did">What Maya did</button>
-            <button type="button" role="tab" [class.is-on]="tab === 'plan'" [attr.aria-selected]="tab === 'plan'" (click)="setTab('plan')" data-cy="maya-day-tab-plan">Maya's plan</button>
+            <button type="button" role="tab" [class.is-on]="tab === 'did'" [attr.aria-selected]="tab === 'did'" (click)="setTab('did')" data-cy="maya-day-tab-did">What the Marketing Assistant did</button>
+            <button type="button" role="tab" [class.is-on]="tab === 'plan'" [attr.aria-selected]="tab === 'plan'" (click)="setTab('plan')" data-cy="maya-day-tab-plan">The Marketing Assistant's plan</button>
         </div>
     </header>
 
@@ -14,7 +14,7 @@
     <ng-container *ngIf="tab === 'did'">
     <header class="page-header">
         <p class="eyebrow">{{ dateLabel || 'Today' }}</p>
-        <h2 class="headline">{{ headline || "Maya's day" }}</h2>
+        <h2 class="headline">{{ headline || "The Marketing Assistant's day" }}</h2>
         <p class="subtitle" *ngIf="summary?.startStatus === 'failed'">{{ summary?.startReason }}</p>
         <p class="links" *ngIf="summary?.startStatus === 'failed' && blockedByMoves">
             <a [href]="movesUrl" target="_blank" rel="noopener" data-cy="maya-day-open-moves">Open Moves ↗</a>
@@ -35,14 +35,14 @@
         <section class="panel waiting" *ngIf="s.needsYou || s.draftsWaiting || s.rewriting">
             <h2>Waiting on you</h2>
             <ul>
-                <li *ngIf="s.needsYou"><strong>{{ s.needsYou }}</strong> {{ s.needsYou === 1 ? 'person needs' : 'people need' }} you - replies and threads Maya handed back. <a routerLink="/needs-you">Open Needs you</a></li>
+                <li *ngIf="s.needsYou"><strong>{{ s.needsYou }}</strong> {{ s.needsYou === 1 ? 'person needs' : 'people need' }} you - replies and threads the Marketing Assistant handed back. <a routerLink="/needs-you">Open Needs you</a></li>
                 <li *ngIf="s.draftsWaiting"><strong>{{ s.draftsWaiting }}</strong> {{ s.draftsWaiting === 1 ? 'draft is' : 'drafts are' }} waiting for your approval. <a routerLink="/drafts">Review drafts</a></li>
-                <li *ngIf="s.rewriting"><strong>{{ s.rewriting }}</strong> {{ s.rewriting === 1 ? 'draft is' : 'drafts are' }} being rewritten by Maya.</li>
+                <li *ngIf="s.rewriting"><strong>{{ s.rewriting }}</strong> {{ s.rewriting === 1 ? 'draft is' : 'drafts are' }} being rewritten by the Marketing Assistant.</li>
             </ul>
         </section>
 
         <section class="panel" *ngIf="s.plannedActionCount">
-            <h2>Her plan this morning</h2>
+            <h2>Its plan this morning</h2>
             <ul class="plan">
                 <li *ngFor="let title of s.plannedActionTitles">{{ title }}</li>
             </ul>
@@ -69,7 +69,7 @@
         </section>
 
         <p class="links">
-            <button type="button" class="link-button" (click)="setTab('plan')">See Maya's plan</button>
+            <button type="button" class="link-button" (click)="setTab('plan')">See the Marketing Assistant's plan</button>
             <button type="button" class="link-button" (click)="load()" [disabled]="loading">Refresh</button>
         </p>
     </ng-container>

@@ -15,7 +15,7 @@ export interface MailProviderOption {
 /** Same providers and wording as outreach-ios's MailProvider (mirrors the
  * backend's MAILBOX_PROVIDER_PRESETS). */
 export const MAIL_PROVIDERS: MailProviderOption[] = [
-  { key: 'gmail', label: 'Gmail / Google Workspace', howItConnects: 'Google will ask you once to let Outreach read replies and send from this inbox - that\'s separate from signing in. TODD never sees your password.' },
+  { key: 'gmail', label: 'Gmail / Google Workspace', howItConnects: 'Google will ask you once to let Outreach read replies and send from this inbox - that\'s separate from signing in. 16Ahead never sees your password.' },
   { key: 'outlook', label: 'Outlook / Microsoft 365', howItConnects: 'You\'ll create an app password with Outlook / Microsoft 365 and paste it in once. It\'s not your regular password, and you can revoke it any time.' },
   { key: 'icloud', label: 'iCloud', howItConnects: 'You\'ll create an app password with iCloud and paste it in once. It\'s not your regular password, and you can revoke it any time.' },
   { key: 'yahoo', label: 'Yahoo', howItConnects: 'You\'ll create an app password with Yahoo and paste it in once. It\'s not your regular password, and you can revoke it any time.' },

@@ -50,7 +50,7 @@ export const DESIGN_PREVIEW_CONTACTS = [
 export const DESIGN_PREVIEW_RUNS = [
   { id: 'r1', name: 'Stale Contacts · Sep 28', status: 'completed', sentCount: 985, openRate: 0.49, clickRate: 0.24, startedAt: '2026-09-28T20:01:09Z', completedAt: '2026-09-28T20:08:27Z' },
   { id: 'r2', name: 'Stale Contacts · Sep 28', status: 'completed', sentCount: 25, openRate: 0.56, clickRate: 0.16, startedAt: '2026-09-28T19:59:48Z', completedAt: '2026-09-28T20:00:10Z' },
-  { id: 'r3', name: 'No company · Oct 26', status: 'active', sentCount: 0, openRate: 0, clickRate: 0, startedAt: '2026-10-26T08:18:31Z', contactIds: ['preview-group-0', 'preview-group-1', 'preview-group-4'] },
+  { id: 'r3', name: 'No company · Oct 26', status: 'active', sentCount: 0, openRate: 0, clickRate: 0, startedAt: '2026-10-26T08:18:31Z', contactIds: ['preview-group-0', 'preview-group-1', 'preview-group-4'], templateSubject: 'Quick idea for {{firstName}}', templateHtml: '<p>Hi {{firstName}}, a quick idea.</p>' },
   { id: 'r4', name: 'Stale Contacts · Sep 25', status: 'completed', sentCount: 312, openRate: 0.41, clickRate: 0.12, startedAt: '2026-09-25T21:22:00Z', completedAt: '2026-09-25T21:31:00Z' }
 ];
 

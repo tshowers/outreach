@@ -209,7 +209,7 @@ export class OutreachMomentumThreadService {
       return 'Signal Engine is off, so your manual follow-up will lead this relationship.';
     }
     return thread.nextActionReason
-      || 'TODD is already managing the timing and next move for this contact.';
+      || '16Ahead is already managing the timing and next move for this contact.';
   }
 
   private buildThreadId ( contactId: string ): string {

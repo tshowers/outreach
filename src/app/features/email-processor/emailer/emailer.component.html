@@ -91,12 +91,12 @@
             <input class="form-check-input" type="checkbox" [(ngModel)]="useTemplate">
             <span class="form-check-label">Use pasted HTML template</span>
           </label>
-          <span class="text-muted small" *ngIf="useTemplate">Paste HTML below. TODD fills in tokens like <code>{{'{{firstName}}'}}</code> for each contact.</span>
+          <span class="text-muted small" *ngIf="useTemplate">Paste HTML below. 16Ahead fills in tokens like <code>{{'{{firstName}}'}}</code> for each contact.</span>
         </div>
         <div *ngIf="useTemplate" class="mt-2">
           <div class="mb-2">
             <label class="form-label small mb-1"><b>Template subject</b></label>
-            <input class="form-control" type="text" [(ngModel)]="templateSubject" (ngModelChange)="onTemplateSubjectChanged()" placeholder="Enter subject or leave blank to let TODD choose it">
+            <input class="form-control" type="text" [(ngModel)]="templateSubject" (ngModelChange)="onTemplateSubjectChanged()" placeholder="Enter subject or leave blank to let 16Ahead choose it">
             <div class="text-muted small mt-1">You can use tokens here too, like <code>{{'{{companyName}}'}}</code>.</div>
           </div>
           <textarea class="form-control" [(ngModel)]="templateHtml" (input)="templateTokensDetected = extractTemplateTokens(templateHtml); emitAssistantContext()" rows="10" placeholder="Paste email HTML here..."></textarea>

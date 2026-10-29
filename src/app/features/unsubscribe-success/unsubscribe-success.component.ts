@@ -16,11 +16,11 @@ export class UnsubscribeSuccessComponent {
 
   // List of TODD stats to display randomly
   private toddStats: string[] = [
-    "TODD helps you stay ahead by identifying potential opportunities before your competitors do.",
-    "With TODD, you can automate routine tasks, freeing up time to focus on strategic decisions.",
-    "TODD's AI-driven insights ensure you're always prepared for important meetings and follow-ups.",
-    "Never miss a critical task or deadline again—TODD proactively manages your priorities.",
-    "TODD provides actionable recommendations, helping you make smarter business decisions faster."
+    "16Ahead helps you stay ahead by identifying potential opportunities before your competitors do.",
+    "With 16Ahead, you can automate routine tasks, freeing up time to focus on strategic decisions.",
+    "16Ahead's AI-driven insights ensure you're always prepared for important meetings and follow-ups.",
+    "Never miss a critical task or deadline again—16Ahead proactively manages your priorities.",
+    "16Ahead provides actionable recommendations, helping you make smarter business decisions faster."
   ];
 
   constructor () {

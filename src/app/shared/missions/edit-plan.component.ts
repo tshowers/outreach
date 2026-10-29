@@ -178,7 +178,7 @@ export class EditPlanComponent implements OnInit {
       ...Object.values( this.people() ).filter( ( p ) => !p.left && p.id !== this.viewerId() ).map( ( p ) => ( { id: p.id, who: p.id as Who, name: p.name, note: '', disabled: false } ) ),
     ];
     const agents = ( step.tool ? [step.owner === 'maya' ? 'maya' : 'todd'] : ['todd', 'maya'] ).map( ( id ) => ( {
-      id, who: id as Who, name: id === 'todd' ? 'TODD' : 'Maya', note: personKind ? 'Approvals need a person' : '', disabled: personKind,
+      id, who: id as Who, name: id === 'todd' ? 'General Assistant' : 'Marketing Assistant', note: personKind ? 'Approvals need a person' : '', disabled: personKind,
     } ) );
     return [...people, ...agents].map( ( o ) => ( { ...o, current: o.who === current } ) );
   }
@@ -271,7 +271,7 @@ export class EditPlanComponent implements OnInit {
         const result = await this.api.validate( this.mission().id, this.payload() );
         this.errors.set( result.errors );
       } catch {
-        this.errors.set( ['TODD couldn’t check the plan. Try again.'] );
+        this.errors.set( ['16Ahead couldn’t check the plan. Try again.'] );
       } finally {
         this.checking.set( false );
       }

@@ -3,23 +3,23 @@
 
   @if (loading || (working && !batch)) {
     <div class="fe-intro">
-      <span class="fe-tag"><span class="fe-dot" aria-hidden="true"></span>Maya is writing</span>
-      <h1>Your first email, written by Maya</h1>
+      <span class="fe-tag"><span class="fe-dot" aria-hidden="true"></span>The Marketing Assistant is writing</span>
+      <h1>Your first email, written by the Marketing Assistant</h1>
       <p>One personal email for each contact from Network. This takes a few seconds.</p>
     </div>
   } @else if (blocked === 'contacts') {
     <div class="fe-intro">
       <h1>Who should hear from you first?</h1>
-      <p>Pick people in Network and choose “Email in Outreach”, and Maya writes each of them a personal first email here. Or write one yourself in the composer.</p>
+      <p>Pick people in Network and choose “Email in Outreach”, and the Marketing Assistant writes each of them a personal first email here. Or write one yourself in the composer.</p>
       <div class="fe-row">
-        <a class="fe-btn fe-btn--primary" href="https://network.taliferro.tech/contact-list">Pick contacts in Network</a>
+        <a class="fe-btn fe-btn--primary" href="https://network.16ahead.com/contact-list">Pick contacts in Network</a>
         <a class="fe-btn" routerLink="/compose-email" [queryParams]="{ draft: 'profile' }">Open the composer</a>
       </div>
     </div>
   } @else if (blocked === 'subscription') {
     <div class="fe-intro">
-      <h1>Your first email, written by Maya</h1>
-      <p>Maya writes a personal email to each of your Network contacts from your profile. Writing and sending them needs Outreach.</p>
+      <h1>Your first email, written by the Marketing Assistant</h1>
+      <p>The Marketing Assistant writes a personal email to each of your Network contacts from your profile. Writing and sending them needs Outreach.</p>
       <app-browse-notice what="your first email"></app-browse-notice>
     </div>
   } @else if (batch) {
@@ -55,7 +55,7 @@
             <div class="fe-body">
               @for (p of paragraphs(row.body); track $index) { <p>{{ p }}</p> }
             </div>
-            <footer class="fe-why"><strong>Why Maya wrote it this way</strong><span>{{ row.why }}</span></footer>
+            <footer class="fe-why"><strong>Why the Marketing Assistant wrote it this way</strong><span>{{ row.why }}</span></footer>
             <button type="button" class="fe-link" appWriteAction="edit this email" (click)="editInComposer(row)">Edit this one in the composer</button>
           </article>
         }
@@ -104,7 +104,7 @@
         <div class="fe-next" data-cy="first-email-next">
           <section class="fe-card fe-card--good">
             <h2>What happens now</h2>
-            <p>Replies show up in Inbox, sorted by TODD. Anyone waiting on a decision goes to Needs you. People who don’t reply get a follow-up draft from Maya, usually within two days, for you to approve.</p>
+            <p>Replies show up in Inbox, sorted by 16Ahead. Anyone waiting on a decision goes to Needs you. People who don’t reply get a follow-up draft from the Marketing Assistant, usually within two days, for you to approve.</p>
             <a class="fe-btn fe-btn--primary" routerLink="/inbox">Open Inbox</a>
           </section>
         </div>

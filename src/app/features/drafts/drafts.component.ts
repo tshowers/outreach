@@ -186,7 +186,7 @@ export class DraftsComponent implements OnInit, OnDestroy {
       subject: String( ( kind === 'reply' ? thread.replyDraftSubject : thread.draftSubject ) || '' ).trim() || '(no subject)',
       body: String( ( kind === 'reply' ? thread.replyDraftBody : thread.draftBody ) || '' ),
       why: String( ( kind === 'reply' ? thread.replyDraftRationale : '' ) || thread.strategySummary || thread.stopReason?.detail || '' ).trim(),
-      lastLine: this.rewritten.has( id ) ? 'Rewritten by Maya just now.'
+      lastLine: this.rewritten.has( id ) ? 'Rewritten by the Marketing Assistant just now.'
         : sentThisWeek > 1 ? `You emailed ${ first } ${ sentThisWeek } times this week, last ${ lastSent }.`
           : lastSent ? `Your last email went out ${ lastSent }.`
             : `Drafted ${ sinceLabel( thread.lastUpdated ) || 'recently' }. No emails yet.`,
@@ -318,7 +318,7 @@ export class DraftsComponent implements OnInit, OnDestroy {
       this.moreOpen.delete( card.id );
       this.schedulePoll();
     } catch ( error: any ) {
-      this.failed( card, error, 'Unable to ask Maya for a rewrite.' );
+      this.failed( card, error, 'Unable to ask Marketing Assistant for a rewrite.' );
     } finally {
       this.working.delete( card.id );
     }

@@ -32,7 +32,7 @@ const UNLOCK_GRACE_MS = 60 * 1000;
       <section class="wap__card" role="dialog" aria-modal="true" aria-labelledby="wap-title" (click)="$event.stopPropagation()" data-cy="write-access-prompt">
         <ng-container *ngIf="prompt.state === 'signedOut'">
           <h2 id="wap-title">Sign in to {{ prompt.action }}</h2>
-          <p>You can look around {{ app.name }} without an account. Sign in with your TODD account to make changes.</p>
+          <p>You can look around {{ app.name }} without an account. Sign in with your 16Ahead account to make changes.</p>
           <div class="wap__actions">
             <button type="button" class="wap__primary" (click)="signIn()">Sign in</button>
             <button type="button" class="wap__secondary" (click)="dismiss()">Keep browsing</button>
@@ -50,7 +50,7 @@ const UNLOCK_GRACE_MS = 60 * 1000;
               </button>
               <button type="button" class="wap__secondary" (click)="dismiss()">Not now</button>
             </div>
-            <p class="wap__fine">Works here and in every TODD iPhone app.</p>
+            <p class="wap__fine">Works here and in every 16Ahead iPhone app.</p>
           </ng-container>
           <ng-container *ngIf="( phase === 'ask' || phase === 'starting' || phase === 'error' ) && prompt.plan !== 'suite'">
             <h2 id="wap-title">Subscribe to {{ prompt.action }}</h2>
@@ -63,7 +63,7 @@ const UNLOCK_GRACE_MS = 60 * 1000;
               <button type="button" class="wap__secondary" (click)="dismiss()">Not now</button>
             </div>
             <button type="button" class="wap__suite" [disabled]="phase === 'starting'" (click)="subscribe( prompt, suite.key )" data-cy="write-access-suite">
-              {{ phase === 'starting' && buying === suite.key ? 'Opening checkout…' : 'Or get every TODD app with ' + suite.name + ' · ' + suite.monthlyPrice + '/mo' }}
+              {{ phase === 'starting' && buying === suite.key ? 'Opening checkout…' : 'Or get every 16Ahead app with ' + suite.name + ' · ' + suite.monthlyPrice + '/mo' }}
             </button>
             <p class="wap__fine">One subscription works here and in the {{ app.name }} iPhone app. <a routerLink="/ios" (click)="dismiss()">Get the app</a></p>
           </ng-container>
@@ -86,7 +86,7 @@ const UNLOCK_GRACE_MS = 60 * 1000;
           </ng-container>
           <ng-container *ngIf="phase === 'done'">
             <h2 id="wap-title">You’re subscribed to {{ buyingName }}</h2>
-            <p *ngIf="buying === suite.key">Thanks! Every TODD app is unlocked, here and in the iPhone apps.</p>
+            <p *ngIf="buying === suite.key">Thanks! Every 16Ahead app is unlocked, here and in the iPhone apps.</p>
             <p *ngIf="buying !== suite.key">Thanks! Everything in {{ app.name }} is unlocked, here and in the iPhone app.</p>
             <div class="wap__actions">
               <button type="button" class="wap__primary" (click)="dismiss()">Continue</button>

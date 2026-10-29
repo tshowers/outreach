@@ -82,7 +82,7 @@ export class MayaDayComponent implements OnInit, OnDestroy {
       const response = await firstValueFrom( this.outreachApi.getMayaDay( { tenantId: this.tenantId } ) );
       this.summary = response.data;
     } catch ( error: any ) {
-      this.errorMessage = String( error?.error?.message || error?.message || "Unable to load Maya's day." );
+      this.errorMessage = String( error?.error?.message || error?.message || "Unable to load the Marketing Assistant's day." );
     } finally {
       this.loading = false;
     }
@@ -91,9 +91,9 @@ export class MayaDayComponent implements OnInit, OnDestroy {
   get headline (): string {
     const s = this.summary;
     if ( !s ) return '';
-    if ( s.startStatus === 'failed' ) return "Maya couldn't start today";
-    if ( s.finishedAt ) return "Maya's done for today";
-    return s.startStatus === 'started' ? 'Maya is working' : "Maya's day";
+    if ( s.startStatus === 'failed' ) return "The Marketing Assistant couldn't start today";
+    if ( s.finishedAt ) return "The Marketing Assistant's done for today";
+    return s.startStatus === 'started' ? 'The Marketing Assistant is working' : "The Marketing Assistant's day";
   }
 
   readonly movesUrl = MOVES_TASKS_URL;

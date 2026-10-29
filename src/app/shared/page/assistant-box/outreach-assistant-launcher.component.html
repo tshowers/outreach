@@ -6,28 +6,28 @@
     [class.talk-to-todd-glass-hidden]="showAssistant || !launcherVisible"
     (click)="toggleAssistant()"
     [attr.aria-expanded]="showAssistant"
-    aria-label="Talk to TODD"
+    aria-label="Talk to 16Ahead"
   >
     <span class="todd-assistant-launcher-icon" [class.todd-assistant-launcher-icon-unread]="hasUnread && !showAssistant">
       <i class="fa-solid fa-message"></i>
     </span>
-    <span class="todd-assistant-launcher-label">{{ hasUnread && !showAssistant ? 'Do this next' : 'Talk to TODD' }}</span>
+    <span class="todd-assistant-launcher-label">{{ hasUnread && !showAssistant ? 'Do this next' : 'Talk to 16Ahead' }}</span>
   </button>
 
   <div class="todd-assistant-scrim" *ngIf="showAssistant" (click)="dismissAssistant()" aria-hidden="true"></div>
-  <div class="todd-assistant-window" [class.todd-assistant-window-open]="showAssistant" role="dialog" aria-label="TODD">
+  <div class="todd-assistant-window" [class.todd-assistant-window-open]="showAssistant" role="dialog" aria-label="16Ahead">
     <div class="todd-assistant-header">
       <div class="todd-assistant-header-main">
         <div class="todd-assistant-avatar">
-          <img src="assets/avatar-todd-sm.png" alt="TODD Avatar" style="max-height: 48px;">
+          <img src="assets/avatar-todd-sm.png" alt="16Ahead Avatar" style="max-height: 48px;">
         </div>
         <div>
-          <div class="todd-assistant-title">TODD</div>
+          <div class="todd-assistant-title">16Ahead</div>
           <div class="todd-assistant-subtitle">Momentum System</div>
         </div>
       </div>
       <div class="todd-assistant-header-actions">
-        <button type="button" class="todd-assistant-close" (click)="dismissAssistant()" aria-label="Close TODD assistant">
+        <button type="button" class="todd-assistant-close" (click)="dismissAssistant()" aria-label="Close 16Ahead assistant">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>

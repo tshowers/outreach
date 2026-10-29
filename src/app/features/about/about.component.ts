@@ -50,7 +50,7 @@ export class AboutComponent {
 
   readonly loop: LoopStage[] = [
     { label: 'Notice', where: 'Catalyst', copy: 'Finds contacts you have not talked to in a while.' },
-    { label: 'Draft', where: 'Maya', copy: 'Writes a follow-up that fits the relationship and the signal.' },
+    { label: 'Draft', where: 'Marketing Assistant', copy: 'Writes a follow-up that fits the relationship and the signal.' },
     { label: 'Decide', where: 'Needs you', copy: 'You approve, edit, rewrite, or discard each draft.' },
     { label: 'Send & reply', where: 'Inbox', copy: 'Messages go out from your own mailbox and replies land back here.' },
     { label: 'Learn', where: 'Engagement & Growth', copy: 'Clicks, replies, and silence show who is leaning in, which shapes the next move.' },

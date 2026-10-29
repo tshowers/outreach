@@ -56,7 +56,7 @@ export class GetStartedComponent implements OnInit {
   ) { }
 
   ngOnInit (): void {
-    this.title.setTitle( 'Get started — Outreach | Taliferro Tech' );
+    this.title.setTitle( 'Get started — Outreach | 16Ahead' );
     this.draft = this.drafts.load();
   }
 

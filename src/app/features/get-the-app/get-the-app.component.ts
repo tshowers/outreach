@@ -58,7 +58,7 @@ export class GetTheAppComponent implements OnInit {
     this.product = GET_THE_APP_PRODUCTS[key];
     this.faqs = getTheAppFaqs( this.product );
     this.state$ = this.writeAccess.state( key );
-    const title = `Pricing — ${this.product.shortName} | Taliferro Tech`;
+    const title = `Pricing — ${this.product.shortName} | 16Ahead`;
     const description = `Browse ${this.product.shortName} free on the web. Subscribe to create and edit, on the web or in the iOS app.`;
     this.title.setTitle( title );
     this.meta.updateTag( { name: 'description', content: description } );

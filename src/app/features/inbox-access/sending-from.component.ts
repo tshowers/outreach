@@ -20,7 +20,7 @@ import { OutreachAuthService } from '../../services/outreach-auth.service';
   template: `
     <section class="sending" *ngIf="settings" aria-labelledby="sending-title" data-cy="sending-from">
       <h2 id="sending-title">Sending from</h2>
-      <p class="sending__lead">The address your drips, Catalyst runs and Maya's emails come from. Replies come to {{ settings.repliesTo || 'your connected inbox' }}.</p>
+      <p class="sending__lead">The address your drips, Catalyst runs and the Marketing Assistant's emails come from. Replies come to {{ settings.repliesTo || 'your connected inbox' }}.</p>
 
       <label class="sending__pick">
         <span class="visually-hidden">Send from</span>
@@ -32,7 +32,7 @@ import { OutreachAuthService } from '../../services/outreach-auth.service';
 
       <p class="sending__status" [attr.data-status]="settings.sendsFromStatus" data-cy="sending-from-status">
           <span *ngIf="settings.sendsFromStatus === 'ready'"><strong>Ready to send.</strong> Mail goes out as {{ settings.sendsFrom }}.</span>
-          <span *ngIf="settings.sendsFromStatus === 'not_ready'"><strong>Not set up for sending.</strong> Until {{ domainOf(settings.sendsFrom) }} is authenticated, mail goes out as "{{ nameHint }} via TODD" from {{ settings.relayFrom }}, and replies still come to {{ settings.sendsFrom }}. To send as it directly, ask us to authenticate {{ domainOf(settings.sendsFrom) }} (a few DNS records), or pick an address marked Ready.</span>
+          <span *ngIf="settings.sendsFromStatus === 'not_ready'"><strong>Not set up for sending.</strong> Until {{ domainOf(settings.sendsFrom) }} is authenticated, mail goes out as "{{ nameHint }} via 16Ahead" from {{ settings.relayFrom }}, and replies still come to {{ settings.sendsFrom }}. To send as it directly, ask us to authenticate {{ domainOf(settings.sendsFrom) }} (a few DNS records), or pick an address marked Ready.</span>
           <span *ngIf="settings.sendsFromStatus === 'unknown'">Couldn't check this address right now. Mail still sends.</span>
           <span *ngIf="settings.sendsFromStatus === 'none'">No sending address yet. Pick one above.</span>
       </p>
@@ -141,7 +141,7 @@ export class SendingFromComponent implements OnInit, OnDestroy {
   }
 
   label ( status: SendingStatus ): string {
-    return status === 'ready' ? 'Ready to send' : status === 'not_ready' ? 'Not set up (sends via TODD)' : 'Not checked';
+    return status === 'ready' ? 'Ready to send' : status === 'not_ready' ? 'Not set up (sends via 16Ahead)' : 'Not checked';
   }
 
   domainOf ( email: string ): string {

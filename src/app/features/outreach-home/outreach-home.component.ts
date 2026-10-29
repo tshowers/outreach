@@ -100,7 +100,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
   private mayaBatchTimezone = '';
   growthHealthMeters: Array<{ id: string; label: string; value: number; max?: number; displayValue: string; tone: ArcGaugeTone; detail: string; }> = [];
   growthMomentumScore = 0;
-  growthAppStatusVm = 'TODD is standing by. Connect Outreach to light up diagnosis, treatment, relief, and proof.';
+  growthAppStatusVm = '16Ahead is standing by. Connect Outreach to light up diagnosis, treatment, relief, and proof.';
   visibleGrowthSymptoms: BusinessSymptom[] = [];
   diagnosisRowsVm: CockpitDiagnosisRowVm[] = [];
 
@@ -129,9 +129,9 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
         { label: 'At-risk threads', value: '0', detail: 'Live outreach evidence appears after sign-in.' }
       ],
       toddActions: [
-        { label: 'Prioritize follow-ups', detail: 'TODD ranks threads by signal strength and relationship urgency.' }
+        { label: 'Prioritize follow-ups', detail: '16Ahead ranks threads by signal strength and relationship urgency.' }
       ],
-      progress: { summary: 'Live progress appears once TODD can monitor real outreach threads.' },
+      progress: { summary: 'Live progress appears once 16Ahead can monitor real outreach threads.' },
       outcome: {
         label: 'Replies received',
         value: '0',
@@ -151,9 +151,9 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
         { label: 'Open pressure', value: '0%', detail: 'Signal quality appears after sign-in.' }
       ],
       toddActions: [
-        { label: 'Refactor the message', detail: 'TODD rewrites subject lines and body copy when the signal says the angle missed.' }
+        { label: 'Refactor the message', detail: '16Ahead rewrites subject lines and body copy when the signal says the angle missed.' }
       ],
-      progress: { summary: 'Live progress appears once TODD can compare opens, clicks, and silence.' },
+      progress: { summary: 'Live progress appears once 16Ahead can compare opens, clicks, and silence.' },
       outcome: {
         label: 'Response rate',
         value: '0%',
@@ -173,9 +173,9 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
         { label: 'High-intent contacts', value: '0', detail: 'Engagement intent appears after sign-in.' }
       ],
       toddActions: [
-        { label: 'Prepare the next move', detail: 'TODD stages the next follow-up once a thread shows strong interest.' }
+        { label: 'Prepare the next move', detail: '16Ahead stages the next follow-up once a thread shows strong interest.' }
       ],
-      progress: { summary: 'Live progress appears once TODD is tracking active engagement.' },
+      progress: { summary: 'Live progress appears once 16Ahead is tracking active engagement.' },
       outcome: {
         label: 'Meetings booked',
         value: '0',
@@ -269,10 +269,10 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
   }
 
   get arriveSub (): string {
-    if ( this.showSetUp ) return 'Maya will draft follow-ups as replies come in. You approve before anything sends.';
+    if ( this.showSetUp ) return 'The Marketing Assistant will draft follow-ups as replies come in. You approve before anything sends.';
     return this.handoffCount
-      ? `Network sent over ${this.handoffCount} verified ${this.handoffCount === 1 ? 'contact' : 'contacts'}. Three quick steps and Maya can start emailing them for you.`
-      : 'Three quick steps and Maya can start emailing your contacts for you.';
+      ? `Network sent over ${this.handoffCount} verified ${this.handoffCount === 1 ? 'contact' : 'contacts'}. Three quick steps and the Marketing Assistant can start emailing them for you.`
+      : 'Three quick steps and the Marketing Assistant can start emailing your contacts for you.';
   }
 
   /** Why each step matters, in the user's terms. */
@@ -281,17 +281,17 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
       case 'connectInbox':
         return 'Emails go out from your own address and replies come back here. Nothing sends without this.';
       case 'profile':
-        if ( !step.done ) return 'Maya writes every email from your profile. Without it, drafts sound generic.';
+        if ( !step.done ) return 'The Marketing Assistant writes every email from your profile. Without it, drafts sound generic.';
         return this.handoffCount
-          ? 'You filled it in on Network. Take a quick look, because Maya writes every email from it.'
-          : 'Maya writes every email from your profile. Take a quick look.';
+          ? 'You filled it in on Network. Take a quick look, because the Marketing Assistant writes every email from it.'
+          : 'The Marketing Assistant writes every email from your profile. Take a quick look.';
       case 'firstSend':
         return this.handoffCount
-          ? `Maya drafts a first email to the ${this.handoffCount} ${this.handoffCount === 1 ? 'contact' : 'contacts'} from Network, from your profile. Read it, change anything, and send.`
-          : 'Maya drafts a first email from your profile. Read it, change anything, and send.';
+          ? `The Marketing Assistant drafts a first email to the ${this.handoffCount} ${this.handoffCount === 1 ? 'contact' : 'contacts'} from Network, from your profile. Read it, change anything, and send.`
+          : 'The Marketing Assistant drafts a first email from your profile. Read it, change anything, and send.';
       default:
         return this.setup.onboarding()?.bulkStatus === 'pending'
-          ? 'Your request is with the TODD team. One-to-one emails from your inbox keep working meanwhile.'
+          ? 'Your request is with the 16Ahead team. One-to-one emails from your inbox keep working meanwhile.'
           : 'Only needed for campaigns and drips. Uses SendGrid with your domain. About 10 minutes, then a short approval.';
     }
   }
@@ -410,7 +410,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
         toddActions: [
           {
             label: 'Rewrite the first touch',
-            detail: 'TODD is watching subject misses and preparing stronger subject and hook angles for the next send.'
+            detail: '16Ahead is watching subject misses and preparing stronger subject and hook angles for the next send.'
           }
         ],
         progress: {
@@ -422,7 +422,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
           label: 'Active outreach threads',
           value: String( activeThreads ),
           detail: activeThreads > 0
-            ? 'TODD is using those active threads as the live signal base for growth decisions.'
+            ? '16Ahead is using those active threads as the live signal base for growth decisions.'
             : 'Outcome tracking begins after the first outreach thread goes live.',
           observed: activeThreads > 0
         },
@@ -447,20 +447,20 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
         toddActions: [
           {
             label: 'Refactor the message body',
-            detail: 'TODD is identifying opened-no-click threads so the next version can tighten the offer, proof, or call to action.'
+            detail: '16Ahead is identifying opened-no-click threads so the next version can tighten the offer, proof, or call to action.'
           }
         ],
         progress: {
           summary: clickedCount > 0
             ? `${clickedCount} thread${clickedCount === 1 ? '' : 's'} have already moved past passive opens into stronger interest.`
-            : 'TODD is still looking for the first strong click signal to confirm the angle.'
+            : '16Ahead is still looking for the first strong click signal to confirm the angle.'
         },
         outcome: {
           label: 'Clicked-interest threads',
           value: String( clickedCount ),
           detail: clickedCount > 0
             ? 'Those clicked threads are the strongest current proof that the growth message is landing.'
-            : 'Outcome tracking is in progress while TODD waits for stronger engagement proof.',
+            : 'Outcome tracking is in progress while 16Ahead waits for stronger engagement proof.',
           observed: clickedCount > 0
         },
         trend: clickedCount > 0 ? 'improving' : 'stable',
@@ -482,13 +482,13 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
         toddActions: [
           {
             label: 'Escalate the warmest threads',
-            detail: 'TODD is handing back replied, negative, and decision-needed threads so the next move does not get missed.'
+            detail: '16Ahead is handing back replied, negative, and decision-needed threads so the next move does not get missed.'
           }
         ],
         progress: {
           summary: clickedCount > 0
             ? `${clickedCount} high-intent thread${clickedCount === 1 ? '' : 's'} are already staged as stronger follow-up opportunities.`
-            : 'TODD is watching for clicked-interest and reply signals before it escalates more follow-up work.'
+            : '16Ahead is watching for clicked-interest and reply signals before it escalates more follow-up work.'
         },
         outcome: {
           label: 'Human-ready threads',
@@ -504,7 +504,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
       {
         id: 'catalyst-backlog',
         title: backlogged ? 'Drafts are piling up unsent' : 'Catalyst is keeping pace',
-        description: 'Maya drafting emails only helps growth once those drafts actually go out.',
+        description: 'The Marketing Assistant drafting emails only helps growth once those drafts actually go out.',
         severity: backlogged ? 'high' : draftedToday > 0 ? this.severityFromPercent( 100 - Math.round( ( sentToday / draftedToday ) * 100 ) ) : 'informational',
         reliefStatus: backlogged ? 'needs-user-decision' : this.reliefStatusFromCounts( draftedToday - sentToday, sentToday ),
         evidence: [
@@ -513,15 +513,15 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
             value: String( draftedToday ),
             detail: draftedToday > 0
               ? `${sentToday} of ${draftedToday} drafted email${draftedToday === 1 ? '' : 's'} have been sent today.`
-              : 'Maya has not drafted anything yet today.'
+              : 'The Marketing Assistant has not drafted anything yet today.'
           }
         ],
         toddActions: [
           {
             label: backlogged ? 'Waiting on approval' : 'Keep drafting and sending',
             detail: backlogged
-              ? 'TODD has drafts ready and is waiting for approval before sending - check Catalyst to review and release them.'
-              : 'TODD is drafting and releasing outreach as fast as the approval queue allows.'
+              ? '16Ahead has drafts ready and is waiting for approval before sending - check Catalyst to review and release them.'
+              : '16Ahead is drafting and releasing outreach as fast as the approval queue allows.'
           }
         ],
         progress: {
@@ -535,7 +535,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
           maxValue: draftedToday || 1,
           detail: draftedToday > 0
             ? `${sentToday} of ${draftedToday} drafted email${draftedToday === 1 ? '' : 's'} sent today.`
-            : 'Outcome tracking begins once Maya drafts the first email today.',
+            : 'Outcome tracking begins once the Marketing Assistant drafts the first email today.',
           observed: sentToday > 0
         },
         trend: backlogged ? 'declining' : sentToday > 0 ? 'improving' : 'unknown',
@@ -563,7 +563,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
       route: '/outreach/app',
       mode: 'dashboard',
       title: 'Outreach Home',
-      description: 'Draft email, open the outbox, review engagement, and decide where TODD should push next.',
+      description: 'Draft email, open the outbox, review engagement, and decide where 16Ahead should push next.',
       allowedActions: [
         'compose_email',
         'open_outbox',
@@ -812,7 +812,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
         ? 'threads in motion'
         : 'ready to start';
     this.outboxHeroSubtext = this.momentumNeedsHumanCount > 0
-      ? 'TODD has seen a reply signal and handed the conversation back to you.'
+      ? '16Ahead has seen a reply signal and handed the conversation back to you.'
       : this.outboxThreadCount > 0
         ? 'Top focus: subject misses, opened-no-click refactors, and clicked-interest follow-ups.'
         : 'Send the first email, then let Signal Engine pick the next move from opens, clicks, and silence.';
@@ -863,7 +863,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
       },
       {
         id: 'maya-drafting-progress',
-        label: 'Maya drafting progress',
+        label: 'The Marketing Assistant drafting progress',
         value: this.hasAuthenticatedOutreachContext ? draftedToday : 0,
         max: this.hasAuthenticatedOutreachContext ? Math.max( selectedToday, 1 ) : 100,
         displayValue: this.hasAuthenticatedOutreachContext ? `${draftedToday}` : '0',
@@ -874,7 +874,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
           ? ( selectedToday > 0
             ? `${draftedToday} of ${selectedToday} drafted today.`
             : 'No contacts selected for drafting yet today.' )
-          : 'Maya\'s drafting progress appears after sign-in.'
+          : 'Marketing Assistant\'s drafting progress appears after sign-in.'
       },
       {
         id: 'outbox',
@@ -923,18 +923,18 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
 
   private buildGrowthAppStatus (): string {
     if ( !this.hasAuthenticatedOutreachContext ) {
-      return 'TODD is standing by. Connect Outreach to light up diagnosis, treatment, relief, and proof.';
+      return '16Ahead is standing by. Connect Outreach to light up diagnosis, treatment, relief, and proof.';
     }
 
     if ( this.momentumNeedsHumanCount > 0 ) {
-      return `TODD is watching ${this.momentumNeedsHumanCount} thread${this.momentumNeedsHumanCount === 1 ? '' : 's'} that need a human decision right now.`;
+      return `16Ahead is watching ${this.momentumNeedsHumanCount} thread${this.momentumNeedsHumanCount === 1 ? '' : 's'} that need a human decision right now.`;
     }
 
     if ( this.outboxThreadCount > 0 ) {
-      return `TODD is monitoring ${this.outboxThreadCount} live outreach thread${this.outboxThreadCount === 1 ? '' : 's'} and has drafted ${this.draftedTodayCount} of ${this.selectedTodayCount} planned email${this.selectedTodayCount === 1 ? '' : 's'} today.`;
+      return `16Ahead is monitoring ${this.outboxThreadCount} live outreach thread${this.outboxThreadCount === 1 ? '' : 's'} and has drafted ${this.draftedTodayCount} of ${this.selectedTodayCount} planned email${this.selectedTodayCount === 1 ? '' : 's'} today.`;
     }
 
-    return 'TODD is ready to draft the next outreach email and start reading signal as soon as the first thread is active.';
+    return '16Ahead is ready to draft the next outreach email and start reading signal as soon as the first thread is active.';
   }
 
   private toneFromPercent ( percent: number, inverse = false ): ArcGaugeTone {

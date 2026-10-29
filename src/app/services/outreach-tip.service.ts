@@ -39,27 +39,27 @@ export class OutreachTipService {
     },
     {
       id: 'email-1',
-      text: 'Draft inside TODD first so you keep the thread, then send via your preferred client.',
+      text: 'Draft inside 16Ahead first so you keep the thread, then send via your preferred client.',
       category: 'email',
     },
     {
       id: 'email-2',
-      text: 'Short, specific asks get more replies. TODD can help you rewrite long emails down.',
+      text: 'Short, specific asks get more replies. 16Ahead can help you rewrite long emails down.',
       category: 'email',
     },
     {
       id: 'email-3',
-      text: 'Before you send anything, check TODD for the last thing they responded to. Match that tone and length.',
+      text: 'Before you send anything, check 16Ahead for the last thing they responded to. Match that tone and length.',
       category: 'email',
     },
     {
       id: 'email-4',
-      text: 'One clear ask per email. If TODD can’t summarize your ask in one line, it’s probably too complicated.',
+      text: 'One clear ask per email. If 16Ahead can’t summarize your ask in one line, it’s probably too complicated.',
       category: 'email',
     },
     {
       id: 'email-5',
-      text: 'Use TODD to batch follow-ups for one segment at a time. Same role, tuned message, better hit rate.',
+      text: 'Use 16Ahead to batch follow-ups for one segment at a time. Same role, tuned message, better hit rate.',
       category: 'email',
     },
     {

@@ -17,7 +17,7 @@ export const SENT_BY_LABELS: Record<SentBy, string> = {
   catalyst: 'Catalyst',
   manual: 'You, from Composer',
   reviewed_reply: 'Reviewed reply',
-  maya: 'Maya',
+  maya: 'Marketing Assistant',
   campaign: 'A campaign',
   hot_lead: 'Hot-lead follow-up',
 };
@@ -27,7 +27,7 @@ const SENT_BY_META: Record<SentBy, string> = {
   catalyst: 'Sent by Catalyst',
   manual: 'Sent by you from Composer',
   reviewed_reply: 'Reviewed reply',
-  maya: 'Sent by Maya',
+  maya: 'Sent by the Marketing Assistant',
   campaign: 'Sent by a campaign',
   hot_lead: 'Hot-lead follow-up',
 };
@@ -175,7 +175,7 @@ function toRow ( email: Email, thread: MomentumThread | null, now: Date ): SentR
   const by = sentBy( email );
   const nextAt = thread?.nextActionAt ? new Date( thread.nextActionAt ) : null;
   const next = nextAt && !Number.isNaN( nextAt.getTime() ) && nextAt.getTime() > now.getTime()
-    ? `Maya follows up ${ nextAt.toLocaleDateString( 'en-US', { weekday: 'short', month: 'short', day: 'numeric' } ) }`
+    ? `The Marketing Assistant follows up ${ nextAt.toLocaleDateString( 'en-US', { weekday: 'short', month: 'short', day: 'numeric' } ) }`
     : '';
   return {
     id: String( email.id || `${ address }-${ date?.getTime() || '' }` ),

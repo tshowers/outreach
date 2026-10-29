@@ -184,8 +184,8 @@ export function whoOf ( holder: { owner: Owner; assigneeId: string }, viewerId: 
 export interface Person { id: string; name: string; left?: boolean }
 
 export function nameOf ( who: Who, people: Record<string, Person> = {} ): string {
-  if ( who === 'todd' ) return 'TODD';
-  if ( who === 'maya' ) return 'Maya';
+  if ( who === 'todd' ) return 'General Assistant';
+  if ( who === 'maya' ) return 'Marketing Assistant';
   if ( who === 'you' ) return 'You';
   return ( people[who] && people[who].name.split( ' ' )[0] ) || 'A teammate';
 }
@@ -416,8 +416,8 @@ export function splitLine ( columns: ColumnView[] ): string {
     else counts.teammates += 1;
   } );
   return [
-    counts.todd ? `${counts.todd} by TODD` : '',
-    counts.maya ? `${counts.maya} by Maya` : '',
+    counts.todd ? `${counts.todd} by 16Ahead` : '',
+    counts.maya ? `${counts.maya} by the Marketing Assistant` : '',
     counts.teammates ? `${counts.teammates} by teammates` : '',
     counts.you ? `${counts.you} by you` : '',
   ].filter( Boolean ).join( ' · ' );
@@ -426,8 +426,8 @@ export function splitLine ( columns: ColumnView[] ): string {
 /** Product ids as people read them. */
 export const PRODUCT_LABEL: Record<string, string> = {
   network: 'Network', 'lead-vault': 'Lead Vault', find: 'Find', outreach: 'Outreach', 'email-creator': 'Email Creator',
-  'image-creator': 'Image Creator', maya: 'Maya', social: 'Social', docs: 'Docs', 'knowledge-base': 'Knowledge', pulse: 'Pulse',
-  moves: 'Moves', sayit: 'SayIt', 'email-signature': 'Email Signature', events: 'Events', todd: 'TODD',
+  'image-creator': 'Image Creator', maya: 'Marketing Assistant', social: 'Social', docs: 'Docs', 'knowledge-base': 'Knowledge', pulse: 'Pulse',
+  moves: 'Moves', sayit: 'SayIt', 'email-signature': 'Email Signature', events: 'Events', todd: '16Ahead',
 };
 
 /** The app filter on Playbooks (14a): Maya covers her tools' products. */

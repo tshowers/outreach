@@ -94,7 +94,7 @@ export class FirstEmailComponent implements OnInit, OnDestroy {
   get heading (): string {
     if ( this.batch?.status === 'done' ) return `${this.sentCount} ${this.sentCount === 1 ? 'email' : 'emails'} sent.`;
     if ( this.batch?.status === 'sending' ) return `Sending ${Math.min( this.sentCount + 1, this.rows.length )} of ${this.rows.length}…`;
-    return 'Your first email, written by Maya';
+    return 'Your first email, written by the Marketing Assistant';
   }
 
   get subline (): string {

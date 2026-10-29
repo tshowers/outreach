@@ -37,9 +37,9 @@
                     <span class="tag" [attr.data-group]="row.group">{{ row.activity }}</span>
                     <ng-container *ngIf="row.group === 'engaged'; else nextStep">
                         <ng-container [ngSwitch]="followUpState(row)">
-                            <span *ngSwitchCase="'drafting'" class="drafting"><span class="spinner" aria-hidden="true"></span>Maya is drafting…</span>
+                            <span *ngSwitchCase="'drafting'" class="drafting"><span class="spinner" aria-hidden="true"></span>The Marketing Assistant is drafting…</span>
                             <a *ngSwitchCase="'ready'" class="ready" routerLink="/drafts">Follow-up ready in Drafts →</a>
-                            <button *ngSwitchDefault type="button" class="pill pill--primary" appWriteAction="have Maya draft a follow-up" (click)="draftFollowUp(row)" [attr.data-cy]="'sent-follow-up-' + row.id">Have Maya draft a follow-up</button>
+                            <button *ngSwitchDefault type="button" class="pill pill--primary" appWriteAction="have the Marketing Assistant draft a follow-up" (click)="draftFollowUp(row)" [attr.data-cy]="'sent-follow-up-' + row.id">Have the Marketing Assistant draft a follow-up</button>
                         </ng-container>
                     </ng-container>
                     <ng-template #nextStep><span class="next" *ngIf="row.next">{{ row.next }}</span></ng-template>

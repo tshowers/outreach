@@ -96,17 +96,17 @@ export function needsYouWhy ( thread: MomentumThread ): { title: string; detail:
   const kind = needsYouKind( thread );
   if ( kind === 'out_of_office' ) return { title: 'Out-of-office reply', detail: `${ name }'s inbox sent an automatic away message, so there's nothing to answer.`, suggestion: 'Mark it done to clear it.' };
   if ( kind === 'automated' ) return { title: 'Automated email', detail: `This came from a system, not from ${ name }, so there's nothing to answer.`, suggestion: 'Mark it done to clear it.' };
-  if ( kind === 'unsubscribe' ) return { title: 'Asked to stop', detail: `${ name } asked not to be emailed again. Maya won't follow up.`, suggestion: "Mark it done once you've seen it." };
+  if ( kind === 'unsubscribe' ) return { title: 'Asked to stop', detail: `${ name } asked not to be emailed again. The Marketing Assistant won't follow up.`, suggestion: "Mark it done once you've seen it." };
   switch ( thread.needsYouReason?.key ) {
-    case 'error_blocker': return { title: 'Maya paused this conversation', detail: `Something stopped Maya from following up with ${ name }, so the next step is yours.`, suggestion: 'Read the conversation, then reply or mark it done.' };
-    case 'missing_sender': return { title: 'No address to send from', detail: "Maya can't reply because this conversation has no sending email set up.", suggestion: 'Connect your inbox, or reply yourself.' };
-    case 'missing_draft_body': return { title: 'The draft is empty', detail: 'Maya started a reply, but it has no message yet.', suggestion: 'Write the reply yourself.' };
-    case 'approval_required': return { title: 'Waiting for your OK', detail: "Maya has a message ready and won't send it without you.", suggestion: 'Review it, then send.' };
-    case 'no_safe_draft': return { title: `${ name } replied`, detail: "Maya wasn't confident enough to answer this one for you.", suggestion: 'Read what they said and write a reply.' };
+    case 'error_blocker': return { title: 'The Marketing Assistant paused this conversation', detail: `Something stopped the Marketing Assistant from following up with ${ name }, so the next step is yours.`, suggestion: 'Read the conversation, then reply or mark it done.' };
+    case 'missing_sender': return { title: 'No address to send from', detail: "The Marketing Assistant can't reply because this conversation has no sending email set up.", suggestion: 'Connect your inbox, or reply yourself.' };
+    case 'missing_draft_body': return { title: 'The draft is empty', detail: 'The Marketing Assistant started a reply, but it has no message yet.', suggestion: 'Write the reply yourself.' };
+    case 'approval_required': return { title: 'Waiting for your OK', detail: "The Marketing Assistant has a message ready and won't send it without you.", suggestion: 'Review it, then send.' };
+    case 'no_safe_draft': return { title: `${ name } replied`, detail: "The Marketing Assistant wasn't confident enough to answer this one for you.", suggestion: 'Read what they said and write a reply.' };
   }
   return hasMayaReply( thread )
-    ? { title: `${ name } replied`, detail: 'Maya drafted an answer for you to review.', suggestion: 'Check it, change anything you like, and send.' }
-    : { title: `${ name } replied`, detail: 'Replies always come to you before Maya continues.', suggestion: 'Read what they said and reply.' };
+    ? { title: `${ name } replied`, detail: 'The Marketing Assistant drafted an answer for you to review.', suggestion: 'Check it, change anything you like, and send.' }
+    : { title: `${ name } replied`, detail: 'Replies always come to you before the Marketing Assistant continues.', suggestion: 'Read what they said and reply.' };
 }
 
 /** Needs an answer, or something to clear (design 5a). */

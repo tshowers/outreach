@@ -9,7 +9,7 @@ import { OwnerTokenComponent } from './owner-token.component';
 import { PlanStripComponent, paint } from './plan-strip.component';
 import { StepDrawerComponent } from './step-drawer.component';
 
-const ORIGIN: Record<string, string> = { ask: 'Ask TODD', maya: 'Maya', playbook: 'a playbook', suggestion: 'a suggestion', move: 'Moves', signal: 'the Signal Engine', schedule: 'a schedule', backlog: 'your backlog' };
+const ORIGIN: Record<string, string> = { ask: 'General Assistant', maya: 'the Marketing Assistant', playbook: 'a playbook', suggestion: 'a suggestion', move: 'Moves', signal: 'the Signal Engine', schedule: 'a schedule', backlog: 'your backlog' };
 const OUTCOME: Record<string, string> = { action: 'Action', insight: 'Insight', shortlist: 'Shortlist', program: 'Program', assetSet: 'Asset set' };
 
 /**
@@ -196,7 +196,7 @@ export class MissionDetailComponent implements OnDestroy {
   readonly kicker = computed( () => {
     const m = this.mission()!;
     const started = m.startedAt ? ` · Started ${new Date( m.startedAt ).toLocaleDateString( undefined, { month: 'short', day: 'numeric' } )}` : m.status === 'proposed' ? ' · Not started' : '';
-    return `Mission · ${OUTCOME[m.outcomeType] || 'Action'}${started} from ${ORIGIN[m.origin] || 'Ask TODD'}`;
+    return `Mission · ${OUTCOME[m.outcomeType] || 'Action'}${started} from ${ORIGIN[m.origin] || 'General Assistant'}`;
   } );
 
   readonly canEdit = computed( () => {
@@ -248,7 +248,7 @@ export class MissionDetailComponent implements OnDestroy {
     const mine = m.steps.filter( ( s ) => s.owner === 'person' && s.holder.assigneeId === this.viewerId() && !s.when );
     const minutes = mine.reduce( ( sum, s ) => sum + ( s.minutes || ( s.kind === 'approval' ? 3 : s.kind === 'decision' ? 1 : 10 ) ), 0 );
     const approvals = mine.filter( ( s ) => s.kind === 'approval' ).length;
-    if ( !minutes ) return 'None. TODD and Maya do every step.';
+    if ( !minutes ) return 'None. 16Ahead and the Marketing Assistant do every step.';
     return `About ${minutes} minute${minutes === 1 ? '' : 's'}${approvals ? `, for ${approvals} approval${approvals === 1 ? '' : 's'}` : ''}`;
   } );
 

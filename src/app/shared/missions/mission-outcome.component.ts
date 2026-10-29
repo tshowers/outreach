@@ -48,7 +48,7 @@ type Pick = 'keep' | 'later' | 'drop' | '';
                 <button type="button" class="btn primary" [disabled]="!count('keep') || busy()" (click)="keepAndContinue(decide)" data-cy="continue-kept">Continue with {{ count('keep') }} kept</button>
               }
             } @else {
-              <p>Each becomes its own small Mission: TODD finds a way in, Maya writes to them, and nothing sends until you approve it.</p>
+              <p>Each becomes its own small Mission: 16Ahead finds a way in, the Marketing Assistant writes to them, and nothing sends until you approve it.</p>
               @if (batchDone()) {
                 <span class="started" data-cy="batch-started">✓ {{ batchDone() }} Mission{{ batchDone() === 1 ? '' : 's' }} started · in Moves</span>
               } @else {
@@ -169,7 +169,7 @@ export class MissionOutcomeComponent {
   readonly shortlistSummary = computed( () => String( this.shortlistSource()?.output?.['summary'] || '' ) );
 
   kickerFor ( kind: 'shortlist' | 'insight' ): string {
-    return kind === 'shortlist' ? `Shortlist Mission · ${this.mission().title} · results` : 'Insight Mission · what TODD found';
+    return kind === 'shortlist' ? `Shortlist Mission · ${this.mission().title} · results` : 'Insight Mission · what 16Ahead found';
   }
 
   count ( pick: Pick ): number {

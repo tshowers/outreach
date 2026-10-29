@@ -171,11 +171,11 @@ export class InboxLetterComponent implements OnChanges, OnDestroy {
   }
 
   get replyLabel (): string {
-    return this.letter.draft && !this.edited ? 'Write back · TODD drafted this, edit freely' : 'Write back';
+    return this.letter.draft && !this.edited ? 'Write back · 16Ahead drafted this, edit freely' : 'Write back';
   }
 
   get helpLabel (): string {
-    return this.letter.draft ? 'Rewrite with TODD' : 'Help me write it';
+    return this.letter.draft ? 'Rewrite with 16Ahead' : 'Help me write it';
   }
 
   /** The person's own words, split into paragraphs; the quoted thread is left out. */

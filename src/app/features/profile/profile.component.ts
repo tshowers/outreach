@@ -75,7 +75,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private loadedForUser = false;
 
   ngOnInit (): void {
-    this.title.setTitle( 'Profile — Outreach | Taliferro Tech' );
+    this.title.setTitle( 'Profile — Outreach | 16Ahead' );
     // React to auth state rather than checking once: a session that finishes
     // signing in after the page loads should still load the profile.
     this.authSubscription = this.authService.isLoggedIn().subscribe( ( signedIn ) => {

@@ -75,8 +75,8 @@ export class MissionReportComponent {
     const r = this.mission().report!;
     const s = r.split;
     const parts: string[] = [];
-    if ( s.todd ) parts.push( `${s.todd} step${s.todd === 1 ? '' : 's'} by TODD` );
-    if ( s.maya ) parts.push( `${s.maya} by Maya` );
+    if ( s.todd ) parts.push( `${s.todd} step${s.todd === 1 ? '' : 's'} by 16Ahead` );
+    if ( s.maya ) parts.push( `${s.maya} by the Marketing Assistant` );
     if ( s.teammates ) parts.push( `${s.teammates} by teammates` );
     if ( s.owner ) parts.push( `${s.owner} by you` );
     return parts.length ? `${parts.join( ', ' )}.` : '';
@@ -89,8 +89,8 @@ export class MissionReportComponent {
 
   byName ( row: ReportRow ): string {
     const who = this.who( row );
-    if ( who === 'todd' ) return 'TODD';
-    if ( who === 'maya' ) return 'Maya';
+    if ( who === 'todd' ) return 'General Assistant';
+    if ( who === 'maya' ) return 'Marketing Assistant';
     if ( who === 'you' ) return 'You';
     return ( this.people()[who] && this.people()[who].name ) || 'A teammate';
   }

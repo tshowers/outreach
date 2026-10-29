@@ -38,7 +38,7 @@
 
     <div class="home__warning" *ngIf="brokenMailboxAddress" role="status">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-      <span>Outreach can't reach {{ brokenMailboxAddress }}. Reconnect it so Maya can keep sending.</span>
+      <span>Outreach can't reach {{ brokenMailboxAddress }}. Reconnect it so the Marketing Assistant can keep sending.</span>
       <a class="pill pill--dark" routerLink="/inbox-access">Reconnect</a>
     </div>
 
@@ -72,13 +72,13 @@
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
           <b>{{ draftsCount }}</b>
         </span>
-        <strong>Drafts</strong><span>review and approve Maya's drafts</span>
+        <strong>Drafts</strong><span>review and approve the Marketing Assistant's drafts</span>
       </a>
       <a class="tile tile--blue" routerLink="/inbox">
         <span class="tile__top">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
         </span>
-        <strong>Inbox</strong><span>replies, sorted by TODD</span>
+        <strong>Inbox</strong><span>replies, sorted by 16Ahead</span>
       </a>
       <a class="tile tile--cyan" routerLink="/email-processor">
         <span class="tile__top">
@@ -90,7 +90,7 @@
         <span class="tile__top">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>
         </span>
-        <strong>Activity</strong><span>{{ mayaDayLine || "Maya's day" }}</span>
+        <strong>Activity</strong><span>{{ mayaDayLine || "The Marketing Assistant's day" }}</span>
       </a>
     </div>
 
@@ -125,7 +125,7 @@
         <h2 id="activity-title">Activity</h2>
         <a routerLink="/maya-day">See all</a>
       </div>
-      <p class="activity__empty" *ngIf="!activityGroups.length">Maya's activity shows up here.</p>
+      <p class="activity__empty" *ngIf="!activityGroups.length">The Marketing Assistant's activity shows up here.</p>
       <ng-container *ngFor="let group of activityGroups">
         <span class="eyebrow">{{ group.title }}</span>
         <div class="activity__row" *ngFor="let row of group.rows">

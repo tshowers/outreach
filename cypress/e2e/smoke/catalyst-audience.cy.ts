@@ -47,4 +47,22 @@ describe( 'Catalyst Choose who', () => {
     cy.contains( '.choose__note', "2 of 3 haven't been emailed yet" );
     cy.get( '[data-cy="catalyst-run-stop-r3"]' ).should( 'exist' );
   } );
+
+  it( 'Resume brings back the email the run started with', () => {
+    cy.get( '[data-cy="catalyst-run-resume-r3"]' ).click();
+    cy.contains( '.choose__note', 'Its email is loaded below.' );
+    cy.get( 'input[placeholder^="Enter subject"]' ).should( 'have.value', 'Quick idea for {{firstName}}' );
+    cy.get( 'textarea[placeholder^="Paste email HTML"]' ).should( 'have.value', '<p>Hi {{firstName}}, a quick idea.</p>' );
+  } );
+
+  it( 'only a run that never sent anything can be deleted', () => {
+    cy.get( '[data-cy="catalyst-run-delete-r1"]' ).should( 'not.exist' );
+    cy.get( '[data-cy="catalyst-run-delete-r2"]' ).should( 'not.exist' );
+    // It asks first; Keep backs out. (Preview has no workspace, so the delete itself is covered by the backend tests.)
+    cy.get( '[data-cy="catalyst-run-delete-r3"]' ).click();
+    cy.contains( '.run__confirm', 'Delete this run?' );
+    cy.get( '[data-cy="catalyst-run-delete-yes-r3"]' ).should( 'exist' );
+    cy.contains( '.run__action', 'Keep' ).click();
+    cy.get( '[data-cy="catalyst-run-resume-r3"]' ).should( 'exist' );
+  } );
 } );

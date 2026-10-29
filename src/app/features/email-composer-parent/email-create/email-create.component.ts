@@ -47,7 +47,7 @@ export const Footer: string = `<hr><div style="text-align: center; margin-top: 1
     © 2026
     <a href="https://taliferro.com">Taliferro</a>.
     Email sent from
-    <a href="https://taliferro.com/business-momentum-system">TODD</a>.
+    <a href="https://taliferro.com/business-momentum-system">16Ahead</a>.
     taliferro-tech-unsubscribe.
   </p>
   <p style="margin-top: 4px;">
@@ -1354,7 +1354,7 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
     this.showMomentumInterrupt = false;
     this.message = undefined;
     this.triggerLoading( false );
-    this.notificationService.show( 'Momentum Active', 'TODD stayed in control of this conversation.', 'info' );
+    this.notificationService.show( 'Momentum Active', '16Ahead stayed in control of this conversation.', 'info' );
     this.publishPageContext();
   }
 
@@ -1429,7 +1429,7 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
     }
 
     if ( !testRecipient ) {
-      this.notificationService.show( 'No test recipient', 'TODD could not find the signed-in user email for test delivery.', 'warning' );
+      this.notificationService.show( 'No test recipient', '16Ahead could not find the signed-in user email for test delivery.', 'warning' );
       return;
     }
 
@@ -1453,7 +1453,7 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
       this.notificationService.show( 'Test Sent', this.composerTestStatus, 'success' );
     } catch ( error ) {
       this.logger.error( 'Composer test email failed', error );
-      this.composerTestStatus = 'TODD could not send the test email right now.';
+      this.composerTestStatus = '16Ahead could not send the test email right now.';
       this.notificationService.show( 'Test Send Failed', this.composerTestStatus, 'error' );
     } finally {
       this.isSendingComposerTest = false;
@@ -1641,7 +1641,7 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
       } ) );
 
       this.clearMomentumDraftReviewState();
-      this.notificationService.show( 'Draft Removed', 'TODD removed this draft from the review queue.', 'success' );
+      this.notificationService.show( 'Draft Removed', '16Ahead removed this draft from the review queue.', 'success' );
       this.momentumDraftAction.emit( { action: 'dismissed', contactId } );
     } catch ( error ) {
       this.logger.error( 'Failed to dismiss momentum draft from Compose Email', error );
@@ -1782,7 +1782,7 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
                 draftSubject: null as any,
                 draftBody: null as any,
                 needsHumanEdit: false,
-                nextActionReason: 'Approved reply sent from Compose Email. TODD is waiting for the next real signal.',
+                nextActionReason: 'Approved reply sent from Compose Email. 16Ahead is waiting for the next real signal.',
                 lastAutomationNote: 'Compose Email sent the reviewed reply and cleared the pending draft.'
               }
               : {
@@ -1873,7 +1873,7 @@ export class EmailCreateComponent extends TopDogComponent implements OnInit, OnD
 
   private buildSingleEmailPayload ( options: { useAdvertisementPrefix?: boolean } = {} ): any | null {
     if ( !this.sender ) {
-      this.notificationService.show( 'Missing sender', 'TODD needs a sender profile before it can build this email.', 'error' );
+      this.notificationService.show( 'Missing sender', '16Ahead needs a sender profile before it can build this email.', 'error' );
       return null;
     }
 

@@ -87,8 +87,8 @@
           <button type="button" class="btn btn--primary" appWriteAction="send this reply" (click)="send.emit(reply)" [disabled]="sending || !reply.trim()">
             <app-inbox-icon name="send"></app-inbox-icon>{{ sending ? 'Sending…' : 'Send to ' + first }}
           </button>
-          <button type="button" class="btn" appWriteAction="write a reply with TODD" (click)="rewrite.emit()" [disabled]="rewriting">
-            <app-inbox-icon name="spark"></app-inbox-icon>{{ rewriting ? 'TODD is writing…' : helpLabel }}
+          <button type="button" class="btn" appWriteAction="write a reply with 16Ahead" (click)="rewrite.emit()" [disabled]="rewriting">
+            <app-inbox-icon name="spark"></app-inbox-icon>{{ rewriting ? '16Ahead is writing…' : helpLabel }}
           </button>
           <button type="button" class="btn" appWriteAction="mark this letter done" (click)="done.emit()">
             <app-inbox-icon name="check"></app-inbox-icon>Mark as done
@@ -99,7 +99,7 @@
   </article>
 
   <aside class="todd">
-    <div class="todd__head"><app-inbox-icon name="spark" [size]="18"></app-inbox-icon><span>What TODD sees</span></div>
+    <div class="todd__head"><app-inbox-icon name="spark" [size]="18"></app-inbox-icon><span>What 16Ahead sees</span></div>
     <p class="todd__text">{{ letter.toddSummary || letter.ask }}</p>
     @if (actions.length) {
       <div class="todd__actions">

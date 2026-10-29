@@ -2,7 +2,7 @@
   <app-browse-notice what="your inbox"></app-browse-notice>
 
   <header class="head">
-    <img class="head__logo" src="assets/outreach/logo.png" alt="" width="34" height="34">
+    <img class="head__logo brand-mark--light" src="assets/brand/products/svg/light/05-outreach.svg" alt="" width="34" height="34"><img class="head__logo brand-mark--dark" src="assets/brand/products/svg/dark/05-outreach.svg" alt="" width="34" height="34">
     <div class="head__title">
       <h1>Inbox</h1>
       @if (mailbox.connectedMailbox; as box) {
@@ -12,7 +12,7 @@
     @if (mailbox.connectedMailbox) {
       <label class="ask-field">
         <app-inbox-icon name="spark"></app-inbox-icon>
-        <input #askField type="search" [(ngModel)]="query" (ngModelChange)="clearSelection()" placeholder="Ask TODD: what did George say about timing?" aria-label="Ask TODD" autocomplete="off">
+        <input #askField type="search" [(ngModel)]="query" (ngModelChange)="clearSelection()" placeholder="General Assistant: what did George say about timing?" aria-label="General Assistant" autocomplete="off">
         @if (searching) {
           <button type="button" class="ask-field__clear" (click)="clearQuery()">Clear</button>
         } @else {
@@ -51,7 +51,7 @@
         <p>{{ mailbox.mailboxSyncStatus }}</p>
       } @else {
         <h2>No replies yet</h2>
-        <p>When people reply, TODD sorts their emails into this list and drafts your answers. Anyone waiting on a decision also shows up in Needs you.</p>
+        <p>When people reply, 16Ahead sorts their emails into this list and drafts your answers. Anyone waiting on a decision also shows up in Needs you.</p>
       }
     </div>
   } @else {
@@ -112,9 +112,9 @@
     </nav>
 
     @if (searching) {
-      <section class="sheet" aria-label="Ask TODD">
+      <section class="sheet" aria-label="General Assistant">
         <div class="answer">
-          <div class="answer__head"><app-inbox-icon name="spark" [size]="18"></app-inbox-icon><span>TODD's answer</span></div>
+          <div class="answer__head"><app-inbox-icon name="spark" [size]="18"></app-inbox-icon><span>16Ahead's answer</span></div>
           <p class="answer__text">{{ ask.answer }}</p>
           @if (ask.source; as source) {
             <button type="button" class="answer__source" (click)="openLetterView(source)">{{ sourceLine(source) }}<app-inbox-icon name="chevR" [size]="18"></app-inbox-icon></button>
@@ -172,7 +172,7 @@
         }
 
         <div class="foot foot--keys">
-          <span><b>Send</b> uses TODD's draft without opening</span>
+          <span><b>Send</b> uses 16Ahead's draft without opening</span>
           <span><b>Start answering</b> walks every waiting letter in order</span>
           <span><b>Select</b> several to categorize or delete together</span>
           <span><b>← →</b> change day, or next letter when one is open</span>

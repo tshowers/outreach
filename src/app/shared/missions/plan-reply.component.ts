@@ -91,7 +91,7 @@ type Phase = 'idle' | 'planning' | 'direct' | 'plan' | 'questions' | 'started' |
                 @if (phase() === 'started') {
                   <span class="started" data-cy="started">✓ Started · <a [href]="detailLink()">in Moves</a></span>
                 } @else if (m.planFallback) {
-                  <button type="button" class="btn" (click)="retry()" data-cy="tell-more">Tell TODD more</button>
+                  <button type="button" class="btn" (click)="retry()" data-cy="tell-more">Tell 16Ahead more</button>
                   <button type="button" class="btn primary" (click)="start()" [disabled]="busy()" data-cy="plan-myself">Plan it myself</button>
                 } @else {
                   <button type="button" class="btn" (click)="editing.set(true)" data-cy="plan-edit">Edit plan</button>
@@ -155,7 +155,7 @@ export class PlanReplyComponent implements OnInit {
   readonly agent = input<'todd' | 'maya'>( 'todd' );
   readonly showAsk = input( true );
   /** Where a started Mission lives (Moves). */
-  readonly detailBase = input( 'https://moves.taliferro.tech/missions/' );
+  readonly detailBase = input( 'https://moves.16ahead.com/missions/' );
   readonly started = output<MissionView>();
 
   readonly draft = signal( '' );
@@ -173,7 +173,7 @@ export class PlanReplyComponent implements OnInit {
     if ( this.request() ) void this.ask( this.request(), this.origin() !== 'ask' );
   }
 
-  readonly placeholder = computed( () => ( this.agent() === 'maya' ? 'What should Maya work on?' : 'What do you need done?' ) );
+  readonly placeholder = computed( () => ( this.agent() === 'maya' ? 'What should the Marketing Assistant work on?' : 'What do you need done?' ) );
   readonly outcome = computed( () => ( { action: 'Action', insight: 'Insight', shortlist: 'Shortlist', program: 'Program', assetSet: 'Asset set' }[this.mission()?.outcomeType || 'action'] ) );
   /** Approvals on the main path (the server's estimate leaves out the "if they reply" ones). */
   readonly approvals = computed( () => this.mission()?.estimate?.approvals ?? ( this.mission()?.steps || [] ).filter( ( s ) => s.kind === 'approval' && !s.when ).length );
@@ -191,7 +191,7 @@ export class PlanReplyComponent implements OnInit {
     const d = this.direct();
     if ( !d ) return '';
     // No tool: a question about TODD itself, which the assistant answers.
-    return d.summary || ( d.tool ? 'Here’s what I found.' : 'No plan needed for that one. Ask it in the TODD chat and it answers right away.' );
+    return d.summary || ( d.tool ? 'Here’s what I found.' : 'No plan needed for that one. Ask it in the 16Ahead chat and it answers right away.' );
   } );
   readonly detailLink = computed( () => `${this.detailBase()}${encodeURIComponent( this.mission()?.id || '' )}` );
 
@@ -235,7 +235,7 @@ export class PlanReplyComponent implements OnInit {
       await this.follow( res.mission.id );
     } catch ( error: any ) {
       this.phase.set( 'error' );
-      this.status.set( ( error && error.error && error.error.message ) || 'TODD couldn’t take that on right now.' );
+      this.status.set( ( error && error.error && error.error.message ) || '16Ahead couldn’t take that on right now.' );
     }
   }
 

@@ -2,8 +2,8 @@
   <app-browse-notice what="Maya settings"></app-browse-notice>
 
   <header>
-    <h1>Maya settings</h1>
-    <p class="subtitle">How much Maya does on her own, and what's about to stop her.</p>
+    <h1>Marketing Assistant settings</h1>
+    <p class="subtitle">How much the Marketing Assistant does on its own, and what's about to stop it.</p>
   </header>
 
   <app-preloader [isLoading]="loading && !settings" message="Loading Maya's settings…" [autoHideAfterMs]="null"></app-preloader>
@@ -11,28 +11,28 @@
   <p class="saved" *ngIf="saved" role="status">{{ saved }}</p>
 
   <ng-container *ngIf="settings as s">
-    <!-- What could stop her tomorrow, first. -->
-    <section class="settings-card limits" aria-label="Maya's limits">
+    <!-- What could stop it tomorrow, first. -->
+    <section class="settings-card limits" aria-label="The Marketing Assistant's limits">
       <div class="limit" [class.is-full]="tasksFull" data-cy="maya-open-tasks">
         <strong>{{ s.openTasks.count }} <span>of {{ s.openTasks.limit }}</span></strong>
         <span>open tasks</span>
-        <small *ngIf="tasksFull">She won't plan a new day until a few are done. <a [href]="movesUrl" target="_blank" rel="noopener">Close some in Moves ↗</a></small>
+        <small *ngIf="tasksFull">It won't plan a new day until a few are done. <a [href]="movesUrl" target="_blank" rel="noopener">Close some in Moves ↗</a></small>
         <small *ngIf="!tasksFull"><a [href]="movesUrl" target="_blank" rel="noopener">See them in Moves ↗</a></small>
       </div>
       <div class="limit" [class.is-full]="draftsFull" data-cy="maya-drafts-waiting">
         <strong>{{ s.draftsWaiting.count }} <span>of {{ s.draftsWaiting.limit }}</span></strong>
         <span>drafts waiting for you</span>
-        <small *ngIf="draftsFull">She stops writing new ones until you clear some.</small>
+        <small *ngIf="draftsFull">It stops writing new ones until you clear some.</small>
         <small><a routerLink="/drafts">Review drafts →</a></small>
       </div>
     </section>
 
     <section class="settings-card" aria-labelledby="auto-title">
-      <h2 id="auto-title">When Maya's emails send</h2>
+      <h2 id="auto-title">When the Marketing Assistant's emails send</h2>
       <div class="modes" role="radiogroup" aria-labelledby="auto-title">
         <button type="button" class="mode" role="radio" *ngFor="let mode of modes"
                 [class.is-on]="s.autoSendMode === mode.id" [attr.aria-checked]="s.autoSendMode === mode.id"
-                appWriteAction="change how Maya's emails send" [disabled]="!!saving" (click)="setMode(mode.id)"
+                appWriteAction="change how the Marketing Assistant's emails send" [disabled]="!!saving" (click)="setMode(mode.id)"
                 [attr.data-cy]="'maya-mode-' + mode.id">
           <span class="mode__dot" aria-hidden="true"></span>
           <span class="mode__text">
@@ -42,23 +42,23 @@
         </button>
       </div>
       <p class="note" *ngIf="s.autoSendMode !== 'off'">
-        On since {{ sinceLabel }}. Only drafts Maya writes from then on send by themselves; older drafts still wait in Drafts.
+        On since {{ sinceLabel }}. Only drafts the Marketing Assistant writes from then on send by themselves; older drafts still wait in Drafts.
       </p>
       <p class="note">Either way, nobody gets a new email within 3 days of the last one unless they replied, and replies to people always wait for you.</p>
     </section>
 
     <section class="settings-card" aria-labelledby="work-title">
-      <h2 id="work-title">Maya's day</h2>
+      <h2 id="work-title">The Marketing Assistant's day</h2>
       <label class="row">
-        <span><strong>Maya is working</strong><small>Off pauses her planning, drafting and sending.</small></span>
-        <input type="checkbox" role="switch" [checked]="s.enabled" appWriteAction="turn Maya on or off" [disabled]="!!saving" (change)="save('enabled', { enabled: $any($event.target).checked }, $any($event.target).checked ? 'Maya is back on.' : 'Maya is paused.')" data-cy="maya-enabled">
+        <span><strong>The Marketing Assistant is working</strong><small>Off pauses its planning, drafting and sending.</small></span>
+        <input type="checkbox" role="switch" [checked]="s.enabled" appWriteAction="turn the Marketing Assistant on or off" [disabled]="!!saving" (change)="save('enabled', { enabled: $any($event.target).checked }, $any($event.target).checked ? 'The Marketing Assistant is back on.' : 'The Marketing Assistant is paused.')" data-cy="maya-enabled">
       </label>
       <label class="row">
-        <span><strong>She writes emails</strong><small>Off keeps her planning and posting, but no new email drafts.</small></span>
-        <input type="checkbox" role="switch" [checked]="s.emailDraftingEnabled" appWriteAction="change Maya's email drafting" [disabled]="!!saving" (change)="save('drafting', { emailDraftingEnabled: $any($event.target).checked }, 'Saved.')">
+        <span><strong>It writes emails</strong><small>Off keeps its planning and posting, but no new email drafts.</small></span>
+        <input type="checkbox" role="switch" [checked]="s.emailDraftingEnabled" appWriteAction="change the Marketing Assistant's email drafting" [disabled]="!!saving" (change)="save('drafting', { emailDraftingEnabled: $any($event.target).checked }, 'Saved.')">
       </label>
       <label class="row">
-        <span><strong>She starts at</strong><small>{{ s.timezone }}</small></span>
+        <span><strong>It starts at</strong><small>{{ s.timezone }}</small></span>
         <select [ngModel]="s.startHour" (ngModelChange)="save('hour', { startHour: +$event }, 'Saved.')" [disabled]="!!saving">
           <option *ngFor="let hour of hours" [ngValue]="hour">{{ hourLabel(hour) }}</option>
         </select>

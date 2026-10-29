@@ -37,7 +37,7 @@ export function buildCockpitDiagnosisRows ( symptoms: BusinessSymptom[] ): Cockp
       reliefLabel: labelFromReliefStatus( symptom.reliefStatus ),
       symptom: symptom.description,
       evidence: symptom.evidence[0]?.detail || symptom.evidence[0]?.value || 'Signal appears after live data is connected.',
-      treatment: symptom.toddActions[0]?.detail || 'TODD is standing by for the next treatment step.',
+      treatment: symptom.toddActions[0]?.detail || '16Ahead is standing by for the next treatment step.',
       relief: symptom.progress?.summary || 'Relief becomes visible as the treatment starts producing proof.',
       proofLabel,
       proofReadout,
@@ -97,7 +97,7 @@ function labelFromReliefStatus ( reliefStatus: ReliefStatus ): string {
     case 'needs-relief':
       return 'NEEDS RELIEF';
     case 'todd-working':
-      return 'TODD IS WORKING';
+      return '16Ahead IS WORKING';
     case 'improving':
       return 'IMPROVING';
     case 'relief-delivered':

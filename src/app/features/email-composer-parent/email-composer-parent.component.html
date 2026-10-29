@@ -5,17 +5,17 @@
     <app-browse-notice what="the Composer"></app-browse-notice>
     <div class="alert alert-warning alert-dismissible fade show" role="alert" *ngIf="showRegisterEmailWarning">
       <h4 class="alert-heading">Heads up</h4>
-      <p>To send email through TODD, you must first register your email address by contacting support. This step helps prevent spam and abuse.</p>
+      <p>To send email through 16Ahead, you must first register your email address by contacting support. This step helps prevent spam and abuse.</p>
       <p class="mb-0"><a href="mailto:info@taliferro.tech?subject=Email%20Address%20Approval">Request approval</a>.</p>
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     <app-email-create [tenantId]="tenantId" [nomenclature]="nomenclature" [userId]="userId" [firebaseUser]="firebaseUser" (toChange)="updateTo($event)" (subjectChange)="updateSubject($event)" (psChange)="updatePS($event)" (textChange)="updateText($event)" (loader)="setIsLoading($event)" (senderInformation)="onSenderInfo($event)" (useTemplateChange)="onUseTemplate($event)" (momentumDraftAction)="handleMomentumDraftAction($event)"></app-email-create>
   </div>
 
-  <aside class="todd-panel" aria-label="TODD">
+  <aside class="todd-panel" aria-label="16Ahead">
     <header class="todd-panel__head">
       <span class="todd-panel__mark" aria-hidden="true">✦</span>
-      <strong>TODD</strong>
+      <strong>16Ahead</strong>
       <app-email-sending-status class="todd-panel__status" [userId]="userId" [compact]="true"></app-email-sending-status>
     </header>
 
@@ -33,6 +33,6 @@
       <button type="button" *ngFor="let chip of toddChips" (click)="askTodd(chip.prompt)">{{ chip.label }}</button>
     </div>
 
-    <app-assistant-box #todd class="todd-panel__chat" [docked]="true" [isOpen]="true" [userId]="userId" [tenantId]="tenantId" [pageContext]="assistantPageContext" placeholder="Ask TODD to revise…"></app-assistant-box>
+    <app-assistant-box #todd class="todd-panel__chat" [docked]="true" [isOpen]="true" [userId]="userId" [tenantId]="tenantId" [pageContext]="assistantPageContext" placeholder="Ask the General Assistant to revise…"></app-assistant-box>
   </aside>
 </div>

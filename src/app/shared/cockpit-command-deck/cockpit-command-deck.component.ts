@@ -20,7 +20,7 @@ export interface CockpitCommandDeckLink {
 } )
 export class CockpitCommandDeckComponent {
   @Input() demoId = '';
-  @Input() eyebrow = 'TODD Command Deck';
+  @Input() eyebrow = '16Ahead Command Deck';
   @Input() context = '';
   @Input() title = '';
   @Input() subtitle = '';

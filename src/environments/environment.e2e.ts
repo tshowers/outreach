@@ -12,7 +12,7 @@ export const environment = {
   production: false,
   useAuthEmulator: true,
   COMPANY_NAME: 'Outreach',
-  PLATFORM_URL: 'https://outreach.taliferro.tech',
+  PLATFORM_URL: 'https://outreach.16ahead.com',
   backendURL: 'https://api.taliferro.tech/api',
   apiKey: 'AIzaSyCAAgRd8tq9PXkPKE2zddseYtZ-Xx_P8mU',
   linkPreview: '37bd4a175494ee23afba7d8a117c5f77',
@@ -24,6 +24,6 @@ export const environment = {
     storageBucket: 'taliferrotech.appspot.com',
     messagingSenderId: '633736143723',
     appId: '1:633736143723:web:1f91a0cc7efcdc9b5fe22e',
-    measurementId: 'G-YQ9PHPM6FJ',
+    measurementId: 'G-4QZ1CSSGYJ',
   },
 };

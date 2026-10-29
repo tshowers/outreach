@@ -746,6 +746,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
         skippedCount: 0,
         removedCount: invalidContacts.length,
         contactIds: eligibleContacts.map( contact => String( contact?.id || '' ).trim() ).filter( Boolean ),
+        ...( this.useTemplate && String( this.templateHtml || '' ).trim() ? { templateSubject: this.templateSubject || '', templateHtml: this.templateHtml } : {} ),
         createdByUserId: this.userId,
         createdByUserEmail: this.sender?.emailAddresses?.[0]?.emailAddress || ( this.sender as any )?.email || ''
       }, {

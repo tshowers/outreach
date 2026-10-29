@@ -91,7 +91,7 @@
   <div class="engagement-insights-header">
     <div>
       <div class="engagement-insights-eyebrow">Behavior Learning</div>
-      <h2 class="engagement-insights-title">What anonymous visitors are teaching TODD</h2>
+      <h2 class="engagement-insights-title">What anonymous visitors are teaching 16Ahead</h2>
     </div>
     <div class="engagement-insights-period"> Last {{ behavior.overview.periodDays }} days <span *ngIf="isSegmentFilterActive"> · {{ selectedSegmentType }}: {{ selectedSegmentValue }}</span>
       <div *ngIf="behaviorFreshnessLabel" class="engagement-insights-freshness">{{ behaviorFreshnessLabel }}</div>
@@ -130,7 +130,7 @@
   <div class="row g-3 mt-1">
     <div class="col-12 col-xl-7">
       <div class="engagement-learning-panel">
-        <div class="engagement-learning-panel__title">TODD Learned</div>
+        <div class="engagement-learning-panel__title">16Ahead Learned</div>
         <div *ngIf="behaviorEscalationCallout as callout" class="engagement-escalation-callout" [attr.data-tone]="callout.tone">
           <div class="engagement-summary-label">{{ callout.title }}</div>
           <div class="engagement-insight-recommendation">{{ callout.summary }}</div>
@@ -138,7 +138,7 @@
         <div *ngIf="recommendedBehaviorResponse as response" class="engagement-response-callout" [attr.data-tone]="response.tone">
           <div class="engagement-response-callout__top">
             <div>
-              <div class="engagement-summary-label">What TODD Wants To Do Next</div>
+              <div class="engagement-summary-label">What 16Ahead Wants To Do Next</div>
               <strong>{{ response.label }}</strong>
             </div>
             <span class="engagement-history-badge" [attr.data-source]="response.contextSource">
@@ -168,7 +168,7 @@
           </article>
         </div>
         <ng-template #noBehaviorInsights>
-          <div class="engagement-learning-empty">TODD needs more anonymous behavior before it can turn patterns into lessons.</div>
+          <div class="engagement-learning-empty">16Ahead needs more anonymous behavior before it can turn patterns into lessons.</div>
         </ng-template>
       </div>
     </div>
@@ -271,7 +271,7 @@
           </div>
         </div>
         <ng-template #noTransitionsYet>
-          <div class="engagement-learning-empty">TODD needs more multi-page sessions before the journey flow becomes visible.</div>
+          <div class="engagement-learning-empty">16Ahead needs more multi-page sessions before the journey flow becomes visible.</div>
         </ng-template>
       </div>
     </div>
@@ -290,7 +290,7 @@
           </article>
         </div>
         <ng-template #noBreakpointsYet>
-          <div class="engagement-learning-empty">TODD needs more exit activity before it can highlight where momentum is breaking.</div>
+          <div class="engagement-learning-empty">16Ahead needs more exit activity before it can highlight where momentum is breaking.</div>
         </ng-template>
       </div>
     </div>
@@ -298,8 +298,8 @@
       <div class="engagement-learning-panel engagement-history-panel">
         <div class="engagement-history-panel__header">
           <div>
-            <div class="engagement-learning-panel__title">How TODD Responded</div>
-            <div class="engagement-learning-empty mb-0"> TODD's prepared moves stay compact here. Open a card only when you need the full reasoning. </div>
+            <div class="engagement-learning-panel__title">How 16Ahead Responded</div>
+            <div class="engagement-learning-empty mb-0"> 16Ahead's prepared moves stay compact here. Open a card only when you need the full reasoning. </div>
           </div>
           <span class="engagement-history-count">{{ behaviorResponseHistory.length }} responses</span>
         </div>
@@ -321,7 +321,7 @@
               </div>
             </summary>
             <div class="engagement-history-details">
-              <div class="engagement-summary-label">What TODD did</div>
+              <div class="engagement-summary-label">What 16Ahead did</div>
               <div class="engagement-insight-recommendation">{{ item.outcome }}</div>
               <div *ngIf="item.behaviorCommandSummary" class="engagement-response-command">
                 {{ item.behaviorCommandSummary }}
@@ -433,7 +433,7 @@
       </div>
       <div class="engagement-empty-state-eyebrow">Outreach</div>
       <h2 class="engagement-empty-state-title">Engagement data will chart here</h2>
-      <p class="engagement-empty-state-text"> If this area looks empty, TODD has not seen enough engagement data to chart yet. Newest activity will appear first as records arrive. Anonymous behavior learning will begin once public traffic starts moving through the site. </p>
+      <p class="engagement-empty-state-text"> If this area looks empty, 16Ahead has not seen enough engagement data to chart yet. Newest activity will appear first as records arrive. Anonymous behavior learning will begin once public traffic starts moving through the site. </p>
     </div>
   </div>
 </ng-template>

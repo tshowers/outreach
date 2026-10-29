@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://outreach.taliferro.tech/</loc>
+    <loc>https://outreach.16ahead.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://outreach.taliferro.tech/ios</loc>
+    <loc>https://outreach.16ahead.com/ios</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://outreach.taliferro.tech/pricing</loc>
+    <loc>https://outreach.16ahead.com/pricing</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://outreach.taliferro.tech/help</loc>
+    <loc>https://outreach.16ahead.com/help</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://outreach.taliferro.tech/about</loc>
+    <loc>https://outreach.16ahead.com/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

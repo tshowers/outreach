@@ -59,7 +59,7 @@ describe('Outreach assistant: Missions', () => {
       cy.get('[data-cy="mission-title"]').should('be.visible').and('contain.text', 'Reach a named person');
       cy.get('[data-cy="start"]').should('be.visible');
       cy.get('[data-cy="plan-strip-list"]').should('exist');
-      cy.contains('a', 'Open in Moves').should('have.attr', 'href', 'https://moves.taliferro.tech/missions/reach-named-person');
+      cy.contains('a', 'Open in Moves').should('have.attr', 'href', 'https://moves.16ahead.com/missions/reach-named-person');
     });
   });
 
@@ -74,7 +74,7 @@ describe('Outreach assistant: Missions', () => {
     cy.get('[data-cy="assistant-mission"]').should('exist').within(() => {
       cy.get('[data-cy="mission-title"]').should('be.visible').and('contain.text', 'Email an industry segment');
       cy.get('[data-cy="start"]').should('be.visible');
-      cy.contains('a', 'Open in Moves').should('have.attr', 'href', 'https://moves.taliferro.tech/missions/pitch-segment');
+      cy.contains('a', 'Open in Moves').should('have.attr', 'href', 'https://moves.16ahead.com/missions/pitch-segment');
     });
   });
 

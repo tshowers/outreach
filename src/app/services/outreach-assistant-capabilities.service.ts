@@ -82,9 +82,9 @@ export class OutreachAssistantCapabilitiesService {
         /\bcreate (an |a )?campaign\b/i,
       ],
       message: [
-        '<p><strong>There is no campaign to create anymore.</strong> TODD handles the email and follow-up workflow for you.</p>',
-        '<p>TODD drafts thoughtful, individual messages and keeps each follow-up connected to the previous conversation, so the thread stays relevant instead of feeling like a generic sequence.</p>',
-        '<p>Open <strong>/app</strong> to review the outreach workflow, or use <strong>/signal-engine</strong> to review what TODD has prepared. If you want to draft something directly, use <strong>/compose-email</strong>.</p>'
+        '<p><strong>There is no campaign to create anymore.</strong> 16Ahead handles the email and follow-up workflow for you.</p>',
+        '<p>16Ahead drafts thoughtful, individual messages and keeps each follow-up connected to the previous conversation, so the thread stays relevant instead of feeling like a generic sequence.</p>',
+        '<p>Open <strong>/app</strong> to review the outreach workflow, or use <strong>/signal-engine</strong> to review what 16Ahead has prepared. If you want to draft something directly, use <strong>/compose-email</strong>.</p>'
       ].join( '' )
     },
   ];

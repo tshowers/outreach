@@ -22,8 +22,8 @@ interface GroupView {
 
 const GROUPS: Array<{ id: SentGroup; title: string; hint: string; }> = [
   { id: 'engaged', title: 'Engaged', hint: "clicked a link. Follow up while it's fresh." },
-  { id: 'opened', title: 'Opened', hint: 'Maya has a follow-up planned for each' },
-  { id: 'none', title: 'No response yet', hint: 'Maya will try a new angle' },
+  { id: 'opened', title: 'Opened', hint: 'The Marketing Assistant has a follow-up planned for each' },
+  { id: 'none', title: 'No response yet', hint: 'The Marketing Assistant will try a new angle' },
 ];
 
 /**
@@ -137,7 +137,7 @@ export class SentComponent implements OnInit, OnDestroy {
     try {
       await this.sent.draftFollowUp( row.contactId, this.opts );
       this.followUps.set( row.contactId, 'ready' );
-      this.toast = { text: `Maya drafted a follow-up to ${ row.name }.`, action: { label: 'Review in Drafts', link: '/drafts' } };
+      this.toast = { text: `The Marketing Assistant drafted a follow-up to ${ row.name }.`, action: { label: 'Review in Drafts', link: '/drafts' } };
     } catch ( error: any ) {
       this.followUps.delete( row.contactId );
       // No thread to draft from (an email sent outside Outreach's flows): write it yourself.
@@ -145,7 +145,7 @@ export class SentComponent implements OnInit, OnDestroy {
         void this.router.navigate( ['/compose-email'], { queryParams: { id: row.contactId } } );
         return;
       }
-      this.toast = { text: String( error?.error?.message || `Maya couldn't draft a follow-up to ${ row.name }.` ) };
+      this.toast = { text: String( error?.error?.message || `The Marketing Assistant couldn't draft a follow-up to ${ row.name }.` ) };
     }
   }
 

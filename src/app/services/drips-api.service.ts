@@ -96,7 +96,7 @@ export class DripsApiService {
       return ( await firstValueFrom( request ) ).data;
     } catch ( error ) {
       if ( error instanceof HttpErrorResponse ) {
-        const message = error.status === 0 ? 'Could not reach TODD. Check your connection and try again.' : error.error?.message || 'Something went wrong. Please try again.';
+        const message = error.status === 0 ? 'Could not reach 16Ahead. Check your connection and try again.' : error.error?.message || 'Something went wrong. Please try again.';
         throw new DripsApiError( message, error.status, error.error?.code || null, error.error?.conflict || null );
       }
       throw error;

@@ -1,5 +1,5 @@
 <div class="plan" data-cy="maya-plan">
-    <p class="intro">What Maya will do next for each person, and when. Anyone marked <strong>Needs you</strong> is waiting on you, and Maya won't act until you do.</p>
+    <p class="intro">What the Marketing Assistant will do next for each person, and when. Anyone marked <strong>Needs you</strong> is waiting on you, and the Marketing Assistant won't act until you do.</p>
 
     <div class="chips" role="group" aria-label="Who to show">
         <button type="button" *ngFor="let chip of chips" class="chip" [class.is-on]="chip.id === filter" [attr.aria-pressed]="chip.id === filter" (click)="setFilter(chip.id)" [attr.data-cy]="'maya-plan-filter-' + chip.id">
@@ -39,7 +39,7 @@
                 </div>
                 <div class="row__actions">
                     <a *ngIf="row.action as action" class="btn btn--primary" [routerLink]="action.link" [queryParams]="action.queryParams || null">{{ action.label }}</a>
-                    <button type="button" class="btn" appWriteAction="change Maya's plan" [disabled]="pendingId === row.id" (click)="changePlan(row)">
+                    <button type="button" class="btn" appWriteAction="change the Marketing Assistant's plan" [disabled]="pendingId === row.id" (click)="changePlan(row)">
                         {{ pendingId === row.id ? 'Opening…' : 'Change plan' }}
                     </button>
                 </div>

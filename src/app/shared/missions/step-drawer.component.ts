@@ -96,7 +96,7 @@ import { paint } from './plan-strip.component';
           <label class="note">
             <span>{{ notePrompt() }}</span>
             <textarea rows="3" [value]="note()" (input)="note.set($any($event.target).value)" data-cy="drawer-note"></textarea>
-            @if (step().kind === 'approval') { <span class="muted">{{ revisable() ? 'Maya revises once and sends it back to you.' : 'It won’t go out.' }}</span> }
+            @if (step().kind === 'approval') { <span class="muted">{{ revisable() ? 'The Marketing Assistant revises once and sends it back to you.' : 'It won’t go out.' }}</span> }
           </label>
         }
         @if (reassigning()) {

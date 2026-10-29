@@ -34,9 +34,9 @@ export class MayaSettingsComponent implements OnInit, OnDestroy {
   readonly movesUrl = MOVES_TASKS_URL;
   readonly hours = Array.from( { length: 24 }, ( _, hour ) => hour );
   readonly modes: Array<{ id: MayaAutoSendMode; title: string; detail: string; }> = [
-    { id: 'off', title: 'Review every draft', detail: 'Nothing Maya writes sends until you approve it in Drafts.' },
+    { id: 'off', title: 'Review every draft', detail: 'Nothing the Marketing Assistant writes sends until you approve it in Drafts.' },
     { id: 'noon', title: "Send at noon if I haven't reviewed it", detail: "You get the morning to read, edit or discard. Anything you haven't touched by noon sends." },
-    { id: 'immediate', title: 'Send right away', detail: "Maya's emails go out as soon as she writes them, during each person's business hours." },
+    { id: 'immediate', title: 'Send right away', detail: "The Marketing Assistant's emails go out as soon as it writes them, during each person's business hours." },
   ];
 
   loading = true;
@@ -65,7 +65,7 @@ export class MayaSettingsComponent implements OnInit, OnDestroy {
       this.settings = ( await firstValueFrom( this.api.getMayaSettings( this.opts ) ) ).data;
       this.error = '';
     } catch ( error: any ) {
-      this.error = String( error?.error?.message || error?.message || "Couldn't load Maya's settings." );
+      this.error = String( error?.error?.message || error?.message || "Couldn't load the Marketing Assistant's settings." );
     } finally {
       this.loading = false;
     }
@@ -90,7 +90,7 @@ export class MayaSettingsComponent implements OnInit, OnDestroy {
   setMode ( mode: MayaAutoSendMode ): void {
     if ( !this.settings || mode === this.settings.autoSendMode ) return;
     const label = this.modes.find( ( item ) => item.id === mode )?.title || mode;
-    void this.save( 'mode', { autoSendMode: mode }, mode === 'off' ? 'Auto-send is off. Every draft waits for you.' : `Saved: ${ label }. It applies to drafts Maya writes from now on.` );
+    void this.save( 'mode', { autoSendMode: mode }, mode === 'off' ? 'Auto-send is off. Every draft waits for you.' : `Saved: ${ label }. It applies to drafts the Marketing Assistant writes from now on.` );
   }
 
   hourLabel ( hour: number ): string {
