@@ -4,9 +4,9 @@
   <img src="public/assets/outreach-banner.png" alt="Outreach campaign signals and follow-up visualization" width="900">
 </p>
 
-Outreach is TODD’s email campaign and follow-up workspace. It helps teams plan thoughtful outreach, understand engagement signals, and choose the right next move for each conversation.
+Outreach is 16Ahead’s email campaign and follow-up workspace. It helps teams plan thoughtful outreach, understand engagement signals, and choose the right next move for each conversation.
 
-Live at <https://outreach.taliferro.tech>. Built with Angular 19, Firebase Auth and the shared `@taliferro/ui` package; all data and AI work happens in the TODD backend (`api.taliferro.tech`).
+Live at <https://outreach.16ahead.com>. Built with Angular 19, Firebase Auth and the shared `@taliferro/ui` package; all data and AI work happens in the 16Ahead backend (`api.taliferro.tech`).
 
 ## Before you start
 
@@ -38,11 +38,11 @@ npm start
 
 Open <http://localhost:4200>. `npm start` stamps a new build version first (see [Versioning](#versioning)), then runs `ng serve`.
 
-**Local dev talks to production.** There is no separate dev backend or Firebase project. The default configuration uses the live TODD API and the live `taliferrotech` Firebase project, so anything you create while signed in is real data on your real account. Use the emulator setup under [Tests](#tests) when you need a throwaway user.
+**Local dev talks to production.** There is no separate dev backend or Firebase project. The default configuration uses the live 16Ahead API and the live `taliferrotech` Firebase project, so anything you create while signed in is real data on your real account. Use the emulator setup under [Tests](#tests) when you need a throwaway user.
 
 ### Signing in locally
 
-Sign-in is not done in this app. `OutreachAuthService.signIn()` sends you to TODD’s hosted login (`todd.taliferro.tech/login`) with `client=outreach-web-local` when the host is `localhost` or `127.0.0.1` (`outreach-web` in production). TODD sends you back to `/auth/callback` with a Firebase custom token, and the app signs in with it. Keep the dev server on port 4200 so the return trip lands.
+Sign-in is not done in this app. `OutreachAuthService.signIn()` sends you to 16Ahead’s hosted login (`todd.taliferro.tech/login`) with `client=outreach-web-local` when the host is `localhost` or `127.0.0.1` (`outreach-web` in production). 16Ahead sends you back to `/auth/callback` with a Firebase custom token, and the app signs in with it. Keep the dev server on port 4200 so the return trip lands.
 
 You can browse every page signed out. Actions that save something are gated one by one (`WriteActionDirective`) and enforced by the server.
 
@@ -59,7 +59,7 @@ There are no environment variables or `.env` files. Settings live in [src/enviro
 | Key | What it is |
 | --- | --- |
 | `PLATFORM_URL` | The site’s public URL. |
-| `backendURL` | TODD backend base URL (`https://api.taliferro.tech/api`). |
+| `backendURL` | 16Ahead backend base URL (`https://api.taliferro.tech/api`). |
 | `apiKey` | Bearer key for a few older backend calls (`EmailService`, `OutreachInsightService`). |
 | `firebaseConfig` | Web config for the `taliferrotech` Firebase project (Auth). |
 | `taliferroTenantId` | The admin account’s uid; that user sees admin-only UI. |
@@ -71,8 +71,8 @@ If you add a key, add it to all three files. `environment.e2e.ts` is a copy, not
 
 | Service | What Outreach uses it for |
 | --- | --- |
-| TODD backend (`api.taliferro.tech/api`) | Everything: contacts, mailboxes, emails, drafts, catalyst runs, signals, engagement, Lead Vault, profile, the in-app assistant, billing. Every `/api/` request is stamped with tenant, user and email by `tenantInterceptor`, and with a Firebase ID token by `idTokenInterceptor`. |
-| TODD hosted login (`todd.taliferro.tech/login`) | Sign-in (see above). |
+| 16Ahead backend (`api.taliferro.tech/api`) | Everything: contacts, mailboxes, emails, drafts, catalyst runs, signals, engagement, Lead Vault, profile, the in-app assistant, billing. Every `/api/` request is stamped with tenant, user and email by `tenantInterceptor`, and with a Firebase ID token by `idTokenInterceptor`. |
+| 16Ahead hosted login (`todd.taliferro.tech/login`) | Sign-in (see above). |
 | Firebase Auth (`taliferrotech`) | Session after sign-in. |
 | Stripe, through the backend’s `/billing` | Web subscriptions (`WebCheckoutService`). The App Store handles iOS subscriptions. |
 | Google OAuth, through the backend | Connecting a Gmail mailbox (`/outreach/mailboxes/oauth/google/start`). |
@@ -90,18 +90,18 @@ None of these need keys on your machine. Backend-side secrets (Stripe, Google OA
 | `/help` | Help (shared template plus Outreach’s guide) | yes |
 | `/about` | About (shared template plus Outreach’s story) | yes |
 | `/get-started` | Sign-up wizard: sending email, name, then sign in | |
-| `/login` | Straight to TODD’s hosted login, for returning users and deep links | |
+| `/login` | Straight to 16Ahead’s hosted login, for returning users and deep links | |
 | `/auth/callback` | Return from hosted login | |
 | `/app` | Outreach workspace | |
 | `/needs-you` | Conversations waiting on you | |
-| `/maya-day` | Maya’s day plan | |
+| `/maya-day` | The Marketing Assistant’s day plan | |
 | `/compose-email` | Email composer | |
 | `/email-processor` | Contacts, last-contact chart, sending | |
 | `/inbox-access` | Connect and review mailboxes | |
 | `/signal-engine` | Follow-up signal workflow | |
 | `/engagement` | Ad engagement and click stream | |
 | `/profile` | Profile basics | |
-| `/mobile-handoff` | Landing page for a native TODD app opening this site already signed in | |
+| `/mobile-handoff` | Landing page for a native 16Ahead app opening this site already signed in | |
 | `/unsubscribe-success`, `/unsubscribe-failure` | Unsubscribe results | |
 | `/success` | Old Stripe return page; redirects to `/app` | |
 
