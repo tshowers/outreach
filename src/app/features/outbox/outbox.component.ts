@@ -12,6 +12,7 @@ import { WriteActionDirective } from '../../shared/write-access/write-action.dir
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { MailToast, MailToastComponent } from '../../shared/mail/mail-toast.component';
 import { countdownLabel, sendTimeLabel } from '../../shared/mail/mail-time.util';
+import { stripAiFooter } from '../../shared/mail/ai-footer.util';
 
 interface OutboxRow {
   thread: MomentumThread;
@@ -115,7 +116,7 @@ export class OutboxComponent implements OnInit, OnDestroy {
       company: String( thread.companyName || '' ),
       subject: String( thread.draftSubject || thread.lastSubject || '' ).trim() || '(no subject)',
       origin: `${ touches > 1 ? 'Follow-up' : 'First email' } · you approved it`,
-      body: String( thread.draftBody || '' ),
+      body: stripAiFooter( String( thread.draftBody || '' ) ),
       sending: thread.queueState === 'sending' || this.working.get( id ) === 'now',
       countdown: known ? countdownLabel( at ) : 'Soon',
       when: known ? sendTimeLabel( at ) : 'During business hours',

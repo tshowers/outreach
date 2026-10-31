@@ -15,6 +15,7 @@ import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { OutreachDataService } from '../../services/outreach-data.service';
 import { DESIGN_PREVIEW_NEEDS_YOU, isDesignPreview } from '../../shared/utils/design-preview';
 import { cleanMessageText } from '../../shared/utils/message-kind.util';
+import { stripAiFooter } from '../../shared/mail/ai-footer.util';
 import {
   NEEDS_YOU_KIND_LABELS, NEEDS_YOU_KIND_TINTS, NeedsYouAction, NeedsYouKind, hasMayaReply, isDraftToApprove, isNeedsYou, needsAnswer,
   needsYouKind, outOfOfficeDetails, primaryAction, readableReply, whyItsHere
@@ -185,14 +186,14 @@ export class NeedsYouComponent implements OnInit, OnDestroy {
     this.draftSignature = '';
     // A first email to approve opens in the editor, signature set aside.
     if ( item && isDraftToApprove( item ) ) {
-      const html = String( item.draftBody || '' );
+      const html = stripAiFooter( String( item.draftBody || '' ) );
       const signatureAt = html.search( /<table\b/i );
       this.draftSignature = signatureAt >= 0 ? html.slice( signatureAt ) : '';
       this.openDraft( String( item.draftSubject || '' ), this.htmlToText( signatureAt >= 0 ? html.slice( 0, signatureAt ) : html ).trim() );
       this.draftOriginal = { subject: this.draftSubject, body: this.draftBody };
     // Maya's reply is open and editable from the start (5e); otherwise nothing yet.
     } else if ( item && hasMayaReply( item ) ) {
-      this.openDraft( String( item.replyDraftSubject || '' ), this.htmlToText( String( item.replyDraftBody || '' ) ) );
+      this.openDraft( String( item.replyDraftSubject || '' ), this.htmlToText( stripAiFooter( String( item.replyDraftBody || '' ) ) ) );
     } else {
       this.draftOpen = false;
       this.draftSubject = '';

@@ -6,7 +6,15 @@
     <p class="subtitle" *ngIf="cards.length">
       {{ cards.length }} {{ cards.length === 1 ? 'email' : 'emails' }} Marketing Assistant wrote for you. Nothing sends until you approve it. Approved emails go to Outbox and send during the recipient's business hours.
     </p>
-    <a class="drafts__settings" routerLink="/maya-settings" data-cy="drafts-maya-settings">Let the Marketing Assistant send on its own →</a>
+    <div class="drafts__links">
+      <a class="drafts__settings" routerLink="/maya-settings" data-cy="drafts-maya-settings">Let the Marketing Assistant send on its own →</a>
+      <ng-container *ngIf="cards.length">
+        <button type="button" class="pill pill--40" *ngIf="selecting; else selectButton" [disabled]="!!bulkWorking" (click)="stopSelecting()" data-cy="drafts-select-done">Done</button>
+        <ng-template #selectButton>
+          <button type="button" class="pill pill--40" (click)="startSelecting()" data-cy="drafts-select">Select</button>
+        </ng-template>
+      </ng-container>
+    </div>
   </header>
 
   <app-preloader [isLoading]="loading && !cards.length" message="Loading your drafts…" [autoHideAfterMs]="null"></app-preloader>
@@ -55,11 +63,14 @@
   </ng-container>
 
   <ng-template #list let-cards>
-    <article class="draft" *ngFor="let card of cards; trackBy: trackById" [attr.data-cy]="'draft-' + card.id">
+    <article class="draft" *ngFor="let card of cards; trackBy: trackById" [class.is-checked]="selecting && checkedIds.has(card.id)" [attr.data-cy]="'draft-' + card.id">
       <div class="draft__head">
-        <div class="draft__who">
-          <div><strong class="draft__name">{{ card.name }}</strong> <span class="muted" *ngIf="card.company">{{ card.company }}</span></div>
-          <span class="muted draft__last">{{ card.lastLine }}</span>
+        <div class="draft__lead">
+          <input type="checkbox" class="draft__check" *ngIf="selecting" [checked]="checkedIds.has(card.id)" [disabled]="!!bulkWorking" (change)="toggleChecked(card)" [attr.aria-label]="'Select the draft to ' + card.name" [attr.data-cy]="'draft-check-' + card.id">
+          <div class="draft__who">
+            <div><strong class="draft__name">{{ card.name }}</strong> <span class="muted" *ngIf="card.company">{{ card.company }}</span></div>
+            <span class="muted draft__last">{{ card.lastLine }}</span>
+          </div>
         </div>
         <div class="draft__tags">
           <span class="tag">{{ card.kindPill }}</span>
@@ -89,7 +100,7 @@
       </div>
 
       <ng-template #actions>
-        <div class="draft__actions">
+        <div class="draft__actions" *ngIf="!selecting">
           <button type="button" class="pill pill--primary" appWriteAction="approve this draft" [disabled]="working.has(card.id) || !!card.heldUntil" [title]="card.heldUntil ? 'Held until ' + card.heldUntil + ' so ' + card.name + ' doesn\'t get too many emails.' : ''" (click)="approve(card)" [attr.data-cy]="'draft-approve-' + card.id">
             <span class="spinner" *ngIf="working.get(card.id) === 'approve'" aria-hidden="true"></span>
             {{ card.kind === 'reply' ? 'Approve & send' : 'Approve' }}
@@ -104,10 +115,40 @@
             <button type="button" class="pill pill--ghost pill--danger" appWriteAction="discard this draft" [disabled]="working.has(card.id)" (click)="discard(card)" [attr.data-cy]="'draft-discard-' + card.id">Discard</button>
           </ng-container>
         </div>
-        <p class="muted draft__send">{{ sendLine(card) }}</p>
+        <p class="muted draft__send" *ngIf="!selecting">{{ sendLine(card) }}</p>
       </ng-template>
     </article>
   </ng-template>
+
+  <!-- Select (2026-10-31): approve & send or delete the checked drafts, four at a time. -->
+  <div class="drafts-selectbar" *ngIf="selecting" role="region" aria-label="Selected drafts" data-cy="drafts-selectbar">
+    <ng-container *ngIf="!confirmBulk; else bulkConfirm">
+      <strong aria-live="polite">{{ checkedCount }} selected</strong>
+      <button type="button" class="pill pill--40" [disabled]="!!bulkWorking" (click)="toggleAll()" data-cy="drafts-select-all">{{ allChecked ? 'Clear all ' + cards.length : 'Select all ' + cards.length }}</button>
+      <span class="drafts-selectbar__spacer"></span>
+      <button type="button" class="pill pill--40" [disabled]="!!bulkWorking" (click)="stopSelecting()">Cancel</button>
+      <button type="button" class="pill pill--40 pill--danger" appWriteAction="delete these drafts" [disabled]="!checkedCount || !!bulkWorking" (click)="confirmBulk = 'discard'" data-cy="drafts-delete-selected">
+        <span class="spinner" *ngIf="bulkWorking === 'discard'" aria-hidden="true"></span>
+        {{ bulkWorking === 'discard' ? 'Deleting…' : 'Delete ' + checkedCount }}
+      </button>
+      <button type="button" class="pill pill--40 pill--primary" appWriteAction="approve and send these drafts" [disabled]="!checkedApprovable || !!bulkWorking" (click)="confirmBulk = 'approve'" data-cy="drafts-approve-selected">
+        <span class="spinner" *ngIf="bulkWorking === 'approve'" aria-hidden="true"></span>
+        {{ bulkWorking === 'approve' ? 'Approving…' : 'Approve & send ' + checkedApprovable }}
+      </button>
+    </ng-container>
+    <ng-template #bulkConfirm>
+      <span *ngIf="confirmBulk === 'approve'" data-cy="drafts-confirm-text">
+        Approve & send {{ checkedApprovable }} {{ checkedApprovable === 1 ? 'draft' : 'drafts' }}? Replies send right away; new emails go to Outbox and send during each person's business hours.
+        <ng-container *ngIf="checkedCount > checkedApprovable">{{ checkedCount - checkedApprovable }} held or being rewritten stay here.</ng-container>
+      </span>
+      <span *ngIf="confirmBulk === 'discard'" data-cy="drafts-confirm-text">Delete {{ checkedCount }} {{ checkedCount === 1 ? 'draft' : 'drafts' }}? This can't be undone.</span>
+      <span class="drafts-selectbar__spacer"></span>
+      <button type="button" class="pill pill--40" (click)="confirmBulk = null">Cancel</button>
+      <button type="button" class="pill pill--40" [class.pill--primary]="confirmBulk === 'approve'" [class.pill--danger]="confirmBulk === 'discard'" (click)="runBulk(confirmBulk!)" data-cy="drafts-bulk-confirm">
+        {{ confirmBulk === 'approve' ? 'Yes, approve & send' : 'Yes, delete' }}
+      </button>
+    </ng-template>
+  </div>
 
   <app-mail-toast [toast]="toast" (closed)="toast = null" (action)="undoDiscard()"></app-mail-toast>
 </div>

@@ -22,7 +22,9 @@ describe('Mail pages', () => {
     {
       id: 'willy', contactId: 'willy', contactName: 'Willy Gevers', companyName: 'Gevers Wealth', userLane: 'drafts',
       touchCount: 0, openCount: 0, clickCount: 0, lastUpdated: hours(-72),
-      draftSubject: 'Quick chat about client acquisition', draftBody: '<p>Hi Willy, a quick question.</p>',
+      draftSubject: 'Quick chat about client acquisition',
+      // Stored before the AI footer was removed (2026-10-31): Drafts must not show it.
+      draftBody: '<p>Hi Willy, a quick question.</p><p style="font-size:11px;color:#8a8f98;margin-top:12px;">Maya drafted this message, but the thinking and intent behind it came from a real person. She’s just better at putting it into words. Maya is TODD’s AI Marketing Director.</p>',
     },
     // The scanner loop of 2026-10-27: emailed 14 times today, never replied - held by the contact cap.
     {
@@ -51,7 +53,10 @@ describe('Mail pages', () => {
     }).as('approve');
     cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/reject-draft' }, { statusCode: 200, body: { success: true, data: {} } }).as('rewrite');
     cy.intercept({ method: 'GET', pathname: '/api/outreach/drafts/recent-sends' }, { statusCode: 200, body: { success: true, data: { days: 7, capDays: 3, counts: { 'laurie@kaizenfa.com': { count: 14, lastSentAt: hours(-1) } } } } });
-    cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/discard-draft' }, { statusCode: 200, body: { success: true, data: {} } }).as('discard');
+    cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/discard-draft' }, (req) => {
+      approved.add(String(req.url.split('/momentum-threads/')[1]).split('/')[0]);
+      req.reply({ statusCode: 200, body: { success: true, data: {} } });
+    }).as('discard');
     cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/send-now' }, { statusCode: 200, body: { success: true, data: {} } }).as('sendNow');
     cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/*/return-to-drafts' }, { statusCode: 200, body: { success: true, data: {} } }).as('moveBack');
   });
@@ -79,6 +84,52 @@ describe('Mail pages', () => {
     cy.get('[data-cy="drafts-discard-held-confirm"]').click();
     cy.wait('@discard').its('request.url').should('contain', '/laurie/');
     cy.contains('.mail-toast', 'Discarded 1 drafts to people you emailed recently.');
+  });
+
+  it('never shows the old AI footer on a stored draft', () => {
+    cy.loginAsTestUser('/drafts');
+    cy.wait('@bootstrap', { timeout: 20000 });
+    cy.get('[data-cy="draft-willy"]').should('contain', 'Hi Willy, a quick question.')
+      .and('not.contain', 'better at putting it into words').and('not.contain', 'Marketing Director');
+  });
+
+  it('Select checks drafts and approves & sends them together after a confirm, skipping held ones', () => {
+    cy.loginAsTestUser('/drafts');
+    cy.wait('@bootstrap', { timeout: 20000 });
+    cy.get('[data-cy="drafts-select"]').click();
+    cy.get('[data-cy="drafts-selectbar"]').should('contain', '0 selected');
+    cy.get('[data-cy="draft-approve-willy"]').should('not.exist');
+    cy.get('[data-cy="drafts-select-all"]').should('have.text', 'Select all 3').click();
+    cy.get('[data-cy="drafts-selectbar"]').should('contain', '3 selected');
+    // Laurie is held by the contact cap, so only two can send.
+    cy.get('[data-cy="drafts-approve-selected"]').should('contain', 'Approve & send 2').click();
+    cy.get('[data-cy="drafts-confirm-text"]').should('contain', 'Approve & send 2 drafts?').and('contain', '1 held or being rewritten stay here.');
+    cy.get('[data-cy="drafts-bulk-confirm"]').click();
+    cy.wait(['@approve', '@approve']);
+    cy.get('@approve.all').should('have.length', 2);
+    cy.get('[data-cy="draft-theo"]').should('not.exist');
+    cy.get('[data-cy="draft-willy"]').should('not.exist');
+    cy.get('[data-cy="draft-laurie"]').should('exist');
+    cy.contains('.mail-toast', 'Approved 2 drafts.');
+    cy.get('[data-cy="drafts-selectbar"]').should('not.exist');
+  });
+
+  it('Select deletes the checked drafts after a confirm, and a failed one stays checked', () => {
+    cy.intercept({ method: 'POST', pathname: '/api/outreach/momentum-threads/theo/discard-draft' }, { statusCode: 500, body: { success: false, message: 'nope' } }).as('discardFail');
+    cy.loginAsTestUser('/drafts');
+    cy.wait('@bootstrap', { timeout: 20000 });
+    cy.get('[data-cy="drafts-select"]').click();
+    cy.get('[data-cy="draft-check-theo"]').check();
+    cy.get('[data-cy="draft-check-willy"]').check();
+    cy.get('[data-cy="draft-theo"]').should('have.class', 'is-checked');
+    cy.get('[data-cy="drafts-delete-selected"]').should('contain', 'Delete 2').click();
+    cy.get('[data-cy="drafts-confirm-text"]').should('contain', "Delete 2 drafts? This can't be undone.");
+    cy.get('[data-cy="drafts-bulk-confirm"]').click();
+    cy.wait(['@discard', '@discardFail']);
+    cy.get('[data-cy="draft-willy"]').should('not.exist');
+    cy.contains('.mail-toast', "Deleted 1 draft. 1 couldn't be deleted and are still checked.");
+    cy.get('[data-cy="draft-check-theo"]').should('be.checked');
+    cy.get('[data-cy="drafts-selectbar"]').should('contain', '1 selected');
   });
 
   it('Read full email opens the whole message', () => {

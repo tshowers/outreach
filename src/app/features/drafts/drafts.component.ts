@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { Subscription, combineLatest, firstValueFrom, take } from 'rxjs';
+import { Observable, Subscription, catchError, combineLatest, firstValueFrom, from, map, mergeMap, of, take, toArray } from 'rxjs';
 
 import { OutreachAuthService } from '../../services/outreach-auth.service';
 import { OutreachApiService } from '../../services/outreach-api.service';
@@ -12,6 +12,7 @@ import { WriteActionDirective } from '../../shared/write-access/write-action.dir
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { MailToast, MailToastComponent } from '../../shared/mail/mail-toast.component';
 import { firstName, sendTimeLabel, sinceLabel } from '../../shared/mail/mail-time.util';
+import { stripAiFooter } from '../../shared/mail/ai-footer.util';
 
 type DraftKind = 'outbound' | 'reply';
 
@@ -43,7 +44,8 @@ const REWRITE_GIVE_UP_MS = 120000;
  * Drafts (design_handoff_outreach_mail 1e): what Maya wrote, people with
  * momentum first. Approve sends it to Outbox; Ask Maya to rewrite shows
  * progress until the new version lands in place; Discard can be undone for
- * five seconds.
+ * five seconds. Select (Ty, 2026-10-31, as in Docs) checks many drafts to
+ * approve & send or delete together.
  */
 @Component( {
   selector: 'app-drafts',
@@ -85,6 +87,16 @@ export class DraftsComponent implements OnInit, OnDestroy {
   private rewriting = new Map<string, number>();
   private rewritten = new Set<string>();
   toast: MailToast | null = null;
+
+  /** Select mode: each card gets a checkbox, and the select bar acts on the checked ones. */
+  selecting = false;
+  checkedIds = new Set<string>();
+  /** Kept in step with checkedIds by syncChecked(), for the template. */
+  checkedCount = 0;
+  checkedApprovable = 0;
+  allChecked = false;
+  confirmBulk: 'approve' | 'discard' | null = null;
+  bulkWorking: 'approve' | 'discard' | null = null;
 
   ngOnInit (): void {
     this.auth.isLoggedIn().pipe( take( 1 ) ).subscribe( ( signedIn ) => {
@@ -158,6 +170,7 @@ export class DraftsComponent implements OnInit, OnDestroy {
     this.warm = cards.filter( ( card ) => card.warm && !card.heldUntil );
     this.first = cards.filter( ( card ) => !card.warm && !card.heldUntil );
     this.held = cards.filter( ( card ) => !!card.heldUntil );
+    this.syncChecked();
     if ( this.rewriting.size ) this.schedulePoll();
   }
 
@@ -184,7 +197,7 @@ export class DraftsComponent implements OnInit, OnDestroy {
       name,
       company: String( thread.companyName || '' ),
       subject: String( ( kind === 'reply' ? thread.replyDraftSubject : thread.draftSubject ) || '' ).trim() || '(no subject)',
-      body: String( ( kind === 'reply' ? thread.replyDraftBody : thread.draftBody ) || '' ),
+      body: stripAiFooter( String( ( kind === 'reply' ? thread.replyDraftBody : thread.draftBody ) || '' ) ),
       why: String( ( kind === 'reply' ? thread.replyDraftRationale : '' ) || thread.strategySummary || thread.stopReason?.detail || '' ).trim(),
       lastLine: this.rewritten.has( id ) ? 'Rewritten by the Marketing Assistant just now.'
         : sentThisWeek > 1 ? `You emailed ${ first } ${ sentThisWeek } times this week, last ${ lastSent }.`
@@ -259,12 +272,11 @@ export class DraftsComponent implements OnInit, OnDestroy {
     this.working.set( card.id, 'approve' );
     this.cardError.delete( card.id );
     try {
+      const response = await firstValueFrom( this.approveCall( card ) );
       if ( card.kind === 'reply' ) {
-        await firstValueFrom( this.api.sendManualMomentumReplyDraft( { contactId: card.id }, this.opts ) );
         this.remove( card );
         this.toast = { text: `Reply sent to ${ card.name }.`, action: { label: 'View in Sent', link: '/sent' } };
       } else {
-        const response = await firstValueFrom( this.api.approveMomentumDraft( card.id, this.opts ) );
         const scheduledAt = ( response as any )?.data?.scheduledAt;
         this.remove( card );
         this.toast = { text: `Approved. Sends ${ scheduledAt ? sendTimeLabel( new Date( scheduledAt ) ) : 'during their business hours' }.`, action: { label: 'View in Outbox', link: '/outbox' } };
@@ -275,6 +287,96 @@ export class DraftsComponent implements OnInit, OnDestroy {
     } finally {
       this.working.delete( card.id );
     }
+  }
+
+  /** The one call behind Approve, for a single card and for Approve & send on the checked ones. */
+  private approveCall ( card: DraftCard ): Observable<unknown> {
+    return card.kind === 'reply'
+      ? this.api.sendManualMomentumReplyDraft( { contactId: card.id }, this.opts )
+      : this.api.approveMomentumDraft( card.id, this.opts );
+  }
+
+  startSelecting (): void {
+    this.selecting = true;
+    this.checkedIds = new Set();
+    this.confirmBulk = null;
+    this.syncChecked();
+  }
+
+  stopSelecting (): void {
+    if ( this.bulkWorking ) return;
+    this.selecting = false;
+    this.checkedIds = new Set();
+    this.confirmBulk = null;
+    this.syncChecked();
+  }
+
+  toggleChecked ( card: DraftCard ): void {
+    if ( this.checkedIds.has( card.id ) ) this.checkedIds.delete( card.id );
+    else this.checkedIds.add( card.id );
+    this.confirmBulk = null;
+    this.syncChecked();
+  }
+
+  /** Checks every draft on the page, or clears them when all are. */
+  toggleAll (): void {
+    this.checkedIds = this.allChecked ? new Set() : new Set( this.cards.map( ( card ) => card.id ) );
+    this.confirmBulk = null;
+    this.syncChecked();
+  }
+
+  /** Drops ids that left the page and recounts. Held and rewriting drafts can be deleted but not approved. */
+  private syncChecked (): void {
+    const checked = this.cards.filter( ( card ) => this.checkedIds.has( card.id ) );
+    this.checkedIds = new Set( checked.map( ( card ) => card.id ) );
+    this.checkedCount = checked.length;
+    this.checkedApprovable = checked.filter( ( card ) => this.approvable( card ) ).length;
+    this.allChecked = this.cards.length > 0 && checked.length === this.cards.length;
+  }
+
+  private approvable ( card: DraftCard ): boolean {
+    return !card.heldUntil && !card.rewriting && !this.working.has( card.id );
+  }
+
+  /** Approve & send or Delete on the checked drafts, after the select bar's confirm. */
+  async runBulk ( action: 'approve' | 'discard' ): Promise<void> {
+    if ( this.bulkWorking ) return;
+    const checked = this.cards.filter( ( card ) => this.checkedIds.has( card.id ) );
+    const cards = action === 'approve' ? checked.filter( ( card ) => this.approvable( card ) ) : checked;
+    if ( !cards.length ) return;
+    // An Undo still showing is committed first, so the reload can't bring it back.
+    this.commitDiscard();
+    this.confirmBulk = null;
+    this.bulkWorking = action;
+    const call = ( card: DraftCard ) => action === 'approve' ? this.approveCall( card ) : this.api.discardMomentumDraft( card.id, this.opts );
+    const failed = await this.eachFourAtATime( cards, call );
+    const done = cards.length - failed.length;
+    this.bulkWorking = null;
+    // Ones that failed stay checked, so trying again only retries those.
+    this.checkedIds = new Set( failed );
+    if ( !failed.length ) this.selecting = false;
+    this.syncChecked();
+    const drafts = ( count: number ) => `${ count } ${ count === 1 ? 'draft' : 'drafts' }`;
+    if ( action === 'approve' ) {
+      this.toast = failed.length
+        ? { text: `Approved ${ drafts( done ) }. ${ failed.length } couldn't be approved and are still checked.` }
+        : { text: `Approved ${ drafts( done ) }. Replies send now; new emails send during each person's business hours.`, action: { label: 'View in Outbox', link: '/outbox' } };
+    } else {
+      this.toast = { text: failed.length ? `Deleted ${ drafts( done ) }. ${ failed.length } couldn't be deleted and are still checked.` : `Deleted ${ drafts( done ) }.` };
+    }
+    await this.load( true );
+  }
+
+  /** Runs call on every card, four at a time; resolves with the ids that failed. */
+  private async eachFourAtATime ( cards: DraftCard[], call: ( card: DraftCard ) => Observable<unknown> ): Promise<string[]> {
+    const results = await firstValueFrom( from( cards ).pipe(
+      mergeMap( ( card ) => call( card ).pipe(
+        map( () => ( { id: card.id, ok: true } ) ),
+        catchError( () => of( { id: card.id, ok: false } ) ),
+      ), 4 ),
+      toArray(),
+    ) );
+    return results.filter( ( result ) => !result.ok ).map( ( result ) => result.id );
   }
 
   async edit ( card: DraftCard ): Promise<void> {
