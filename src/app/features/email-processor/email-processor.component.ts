@@ -1,7 +1,7 @@
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
 import { ChangeDetectorRef, Component, ViewChild, inject } from '@angular/core';
-import { EMAIL_CREATOR_HANDOFF_PARAM, EmailCreatorHandoffService } from '../../services/email-creator-handoff.service';
+import { EMAIL_CREATOR_HANDOFF_PARAM, EmailCreatorHandoff, EmailCreatorHandoffService } from '../../services/email-creator-handoff.service';
 import { firstValueFrom } from 'rxjs';
 import { LastContactChartComponent } from './last-contact-chart/last-contact-chart.component';
 import { EmailerComponent, CatalystAssistantContext, CatalystAssistantDraftPayload } from './emailer/emailer.component';
@@ -50,6 +50,8 @@ import {
 
 /** Choose who's default: people not contacted in a while, stalest first. */
 const STALE_AUDIENCE = 'stale';
+/** The contacts who match the audience a Marketing Assistant email was written for. */
+const WRITTEN_FOR_AUDIENCE = 'match:written-for';
 
 interface AudienceOption {
   key: string;
@@ -368,7 +370,7 @@ export class EmailProcessorComponent extends TopDogComponent {
 
   get audienceTitle (): string {
     if ( this.isStaleAudience ) return 'People you may have forgotten';
-    const all = [...this.audienceGroups, ...this.audienceCategories, ...this.savedAudiences];
+    const all = [...( this.writtenForOption ? [this.writtenForOption] : [] ), ...this.audienceGroups, ...this.audienceCategories, ...this.savedAudiences];
     return all.find( ( option ) => option.key === this.audienceKey )?.name || 'Your audience';
   }
 
@@ -432,6 +434,7 @@ export class EmailProcessorComponent extends TopDogComponent {
       ...this.savedAudiences.filter( ( option ) => !option.key.startsWith( 'run:' ) ),
     ];
     this.audienceKey = key;
+    this.refreshWrittenForNotice();
     this.audienceFilter = ( contact ) => remaining.has( String( contact?.id || '' ) );
     const html = String( run.templateHtml || '' ).trim();
     if ( html ) this.resumedTemplate = { subject: String( run.templateSubject || '' ), html };
@@ -481,9 +484,58 @@ export class EmailProcessorComponent extends TopDogComponent {
     }
   }
 
+  // ---- Written for: the audience a Marketing Assistant email came with (Ty, 2026-10-31) ----
+
+  /** Who the email from the Marketing Assistant was written for, e.g. "Agencies/consultants". */
+  writtenFor = '';
+  /** The contacts who match it, as a Choose who option; null when none matched. */
+  writtenForOption: AudienceOption | null = null;
+  /** Shown while the chosen list isn't the audience the email was written for. */
+  writtenForNotice = '';
+  private writtenForIds = new Set<string>();
+  private writtenForTerms: string[] = [];
+
+  /**
+   * Preselects the contacts who match the email's audience (the backend's
+   * Network match on industry, title and company). With no match, the
+   * default list stays and a notice says it isn't who the email was for.
+   */
+  private applyWrittenFor ( audience: string | undefined, match: EmailCreatorHandoff['audienceMatch'] ): void {
+    this.writtenFor = String( audience || '' ).trim();
+    if ( !this.writtenFor ) return;
+    const ids = ( match?.contactIds || [] ).map( String ).filter( Boolean );
+    this.writtenForIds = new Set( ids );
+    this.writtenForTerms = ( match?.terms || [] ).map( String ).filter( Boolean );
+    const short = this.writtenFor.length > 60 ? `${ this.writtenFor.slice( 0, 57 ).trim() }…` : this.writtenFor;
+    this.writtenForOption = ids.length ? { key: WRITTEN_FOR_AUDIENCE, name: `Written for: ${ short }`, count: ids.length } : null;
+    if ( this.writtenForOption && !this.catalystAssistantContext?.isRunning ) {
+      void this.onAudienceChange( WRITTEN_FOR_AUDIENCE );
+    } else {
+      this.refreshWrittenForNotice();
+    }
+  }
+
+  private refreshWrittenForNotice (): void {
+    if ( !this.writtenFor || this.audienceKey === WRITTEN_FOR_AUDIENCE ) {
+      this.writtenForNotice = '';
+    } else if ( !this.writtenForOption ) {
+      this.writtenForNotice = `This email was written for ${ this.writtenFor }, and none of your contacts clearly match that by industry, title or company. The list below isn't that audience, so choose who gets it on purpose.`;
+    } else {
+      this.writtenForNotice = `This email was written for ${ this.writtenFor }, and this list isn't that audience. Choose "${ this.writtenForOption.name }" for the ${ this.writtenForOption.count } contacts who match.`;
+    }
+  }
+
   async onAudienceChange ( key: string ): Promise<void> {
     this.audienceKey = key;
     this.audienceNote = '';
+    this.refreshWrittenForNotice();
+    if ( key === WRITTEN_FOR_AUDIENCE ) {
+      const ids = this.writtenForIds;
+      this.audienceFilter = ( contact ) => ids.has( String( contact?.id || '' ) );
+      const terms = this.writtenForTerms.slice( 0, 6 ).join( ', ' );
+      this.audienceNote = `Matched to "${ this.writtenFor }" by industry, title or company${ terms ? ` (${ terms })` : '' }. Check a few below, or pick another list.`;
+      return;
+    }
     if ( key === STALE_AUDIENCE ) {
       this.audienceFilter = null;
       return;
@@ -746,6 +798,7 @@ export class EmailProcessorComponent extends TopDogComponent {
     try {
       const handoff = await this.emailCreatorHandoff.open( id, 'email-template' );
       this.emailCreatorTemplate = { subject: handoff.subject, html: handoff.html };
+      this.applyWrittenFor( handoff.audience, handoff.audienceMatch );
     } catch ( error: any ) {
       this.emailCreatorHandoffError = String( error?.error?.message || error?.message || 'Couldn\'t open the email from Email Creator.' );
     }

@@ -40,6 +40,9 @@
                 <span class="visually-hidden">Who gets it</span>
                 <select [ngModel]="audienceKey" (ngModelChange)="onAudienceChange($event)" [disabled]="!!catalystAssistantContext?.isRunning || audienceLoading" data-cy="catalyst-audience">
                     <option value="stale">Haven't heard from in a while</option>
+                    <optgroup label="Written for this email" *ngIf="writtenForOption">
+                        <option [value]="writtenForOption.key">{{ writtenForOption.name }} ({{ writtenForOption.count }})</option>
+                    </optgroup>
                     <optgroup label="Groups" *ngIf="audienceGroups.length">
                         <option *ngFor="let option of audienceGroups" [value]="option.key">{{ option.name }} ({{ option.count }})</option>
                     </optgroup>
@@ -69,6 +72,8 @@
                 </p>
             </ng-template>
             <p class="choose__note" *ngIf="audienceNote">{{ audienceNote }}</p>
+            <!-- The email came from the Marketing Assistant for a particular audience (Ty, 2026-10-31). -->
+            <p class="choose__note choose__note--warn" *ngIf="writtenForNotice" role="status" data-cy="catalyst-written-for-warning">{{ writtenForNotice }}</p>
             <p class="choose__note choose__note--warn" *ngIf="noCompanyInBatch" data-cy="catalyst-no-company-warning">
                 {{ noCompanyInBatch }} of these {{ noCompanyInBatch === 1 ? 'has' : 'have' }} no company. If your email uses {{ '{{company}}' }}, it will be blank for them.
             </p>

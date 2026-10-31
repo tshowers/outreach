@@ -14,6 +14,10 @@ export interface EmailCreatorHandoff {
   html: string;
   /** Recipient tokens still in it, e.g. ['firstName'] - Catalyst fills them per contact. */
   tokens: string[];
+  /** Catalyst only: who a Marketing Assistant email was written for ("Agencies/consultants"). */
+  audience?: string;
+  /** The contacts who match that audience by industry, title or company (the Drips audience match); null when it wasn't run. */
+  audienceMatch?: { contactIds: string[]; terms: string[]; total: number } | null;
 }
 
 /**
