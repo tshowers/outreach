@@ -58,7 +58,7 @@ describe('Sidebar', () => {
 
   it('lists Growth, Needs you, Mail and Maya in order', () => {
     cy.get('.sidebar__group').then((groups) => {
-      expect([...groups].map((group) => group.textContent?.trim().toUpperCase())).to.deep.equal(['MAIL', 'MAYA']);
+      expect([...groups].map((group) => group.textContent?.trim().toUpperCase())).to.deep.equal(['MAIL', 'MARKETING ASSISTANT']);
     });
     cy.get('.sidebar__item .sidebar__label').then((labels) => {
       expect([...labels].map((label) => label.textContent?.trim())).to.deep.equal(['Growth', 'Needs you', 'Inbox', 'Drafts', 'Outbox', 'Sent', 'Activity', 'Drips', 'Catalyst', 'Settings']);

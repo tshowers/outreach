@@ -211,7 +211,7 @@ describe('Maya settings', () => {
   it('shows what will stop her, and sets when her emails send', () => {
     cy.loginAsTestUser('/maya-settings');
     cy.wait('@settings', { timeout: 20000 });
-    cy.get('[data-cy="maya-open-tasks"]').should('have.class', 'is-full').and('contain', "She won't plan a new day");
+    cy.get('[data-cy="maya-open-tasks"]').should('have.class', 'is-full').and('contain', "It won't plan a new day");
     cy.get('[data-cy="maya-drafts-waiting"]').should('contain', '55');
     cy.get('[data-cy="maya-mode-off"]').should('have.attr', 'aria-checked', 'true');
     cy.get('[data-cy="maya-mode-noon"]').click();

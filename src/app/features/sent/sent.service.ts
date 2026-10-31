@@ -53,6 +53,10 @@ export interface SentRow {
 }
 
 const RANGE_DAYS = 30;
+/** Same rule as the follow-up engine (momentum.contact-cap.js): a mail scanner
+ *  opens and clicks every link within five minutes of a send, seconds apart. */
+const SCANNER_AFTER_SEND_MS = 5 * 60 * 1000;
+const SCANNER_BURST_MS = 5 * 1000;
 const PAGE_SIZE = 100;
 const MAX_PAGES = 10;
 
@@ -133,6 +137,33 @@ function countOf ( list: unknown, fallback: unknown ): number {
   return Array.isArray( list ) ? list.length : Number( fallback || 0 ) || 0;
 }
 
+function timeOf ( value: any ): number {
+  if ( !value ) return 0;
+  if ( typeof value.toDate === 'function' ) return value.toDate().getTime();
+  if ( value.seconds ) return value.seconds * 1000;
+  return Date.parse( String( value ) ) || 0;
+}
+
+/**
+ * Clicks a person made (Ty, 2026-10-31): scanners "clicked" every link,
+ * phone number included, seconds after the send, so 165 of 441 emails read
+ * as clicked when about 5 were. A click with no time is counted as before.
+ */
+export function personClicks ( clicks: unknown, sentAt: Date | null ): number {
+  if ( !Array.isArray( clicks ) ) return 0;
+  const sent = sentAt?.getTime() || 0;
+  const times = clicks.map( ( click: any ) => timeOf( click?.timestamp ) ).sort( ( a, b ) => a - b );
+  return times.filter( ( at, i ) => !at || ( ( !sent || at - sent >= SCANNER_AFTER_SEND_MS ) && ( i === 0 || at - times[i - 1] >= SCANNER_BURST_MS ) ) ).length;
+}
+
+/** An open within five minutes of the send is the scanner, not the person. */
+export function personOpened ( email: any, sentAt: Date | null ): boolean {
+  if ( !email?.opened && !email?.openedAt ) return false;
+  const at = timeOf( email.openedAt );
+  const sent = sentAt?.getTime() || 0;
+  return !at || !sent || at - sent >= SCANNER_AFTER_SEND_MS;
+}
+
 export function sentBy ( email: Email ): SentBy {
   const type = String( email?.messageType || '' ).toLowerCase();
   const authority = String( email?.sendAuthority || '' ).toLowerCase();
@@ -169,9 +200,11 @@ function nameFromAddress ( address: string ): string {
 function toRow ( email: Email, thread: MomentumThread | null, now: Date ): SentRow {
   const address = String( email.to || '' ).trim();
   const raw = email as any;
-  const opens = countOf( raw.opens ?? raw.openEvents, raw.openCount ?? ( raw.opened ? 1 : 0 ) );
-  const clicks = countOf( raw.clicks, raw.clickCount );
   const date = sentDate( email );
+  const opens = Array.isArray( raw.opens ?? raw.openEvents ) || raw.openCount != null
+    ? countOf( raw.opens ?? raw.openEvents, raw.openCount )
+    : personOpened( raw, date ) ? 1 : 0;
+  const clicks = Array.isArray( raw.clicks ) ? personClicks( raw.clicks, date ) : countOf( null, raw.clickCount );
   const by = sentBy( email );
   const nextAt = thread?.nextActionAt ? new Date( thread.nextActionAt ) : null;
   const next = nextAt && !Number.isNaN( nextAt.getTime() ) && nextAt.getTime() > now.getTime()

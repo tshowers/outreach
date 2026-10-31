@@ -1,12 +1,12 @@
 <div class="page" data-cy="maya-settings">
-  <app-browse-notice what="Maya settings"></app-browse-notice>
+  <app-browse-notice what="Marketing Assistant settings"></app-browse-notice>
 
   <header>
     <h1>Marketing Assistant settings</h1>
     <p class="subtitle">How much the Marketing Assistant does on its own, and what's about to stop it.</p>
   </header>
 
-  <app-preloader [isLoading]="loading && !settings" message="Loading Maya's settings…" [autoHideAfterMs]="null"></app-preloader>
+  <app-preloader [isLoading]="loading && !settings" message="Loading Marketing Assistant settings…" [autoHideAfterMs]="null"></app-preloader>
   <p class="error" *ngIf="error" role="alert">{{ error }}</p>
   <p class="saved" *ngIf="saved" role="status">{{ saved }}</p>
 
