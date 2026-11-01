@@ -113,7 +113,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
   noMailbox = false;
   needsYouRows: Array<{ id: string; initials: string; name: string; reason: string; age: string; }> = [];
   draftsCount = 0;
-  pipeline = { activeThreads: 0, draftReady: 0, stalledWaiting: 0, hotLeads: 0, warmLeads: 0, queued: 0, sending: 0 };
+  pipeline = { activeThreads: 0, draftReady: 0, upNext: 0, hotLeads: 0, warmLeads: 0, queued: 0, sending: 0 };
   brokenMailboxAddress = '';
   mayaDayLine = '';
   activityGroups: ActivityGroup[] = [];
@@ -668,7 +668,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
       this.pipeline = {
         activeThreads: summary?.activeThreads || 0,
         draftReady: summary?.draftReady || 0,
-        stalledWaiting: summary?.stalledWaiting || 0,
+        upNext: summary?.upNext ?? summary?.stalledWaiting ?? 0,
         hotLeads: summary?.hotLeads || 0,
         warmLeads: summary?.warmLeads || 0,
         queued: summary?.queuedActions || 0,

@@ -479,6 +479,15 @@ export interface MayaSettings {
   draftsWaiting: { count: number; limit: number; };
 }
 
+/** The Marketing Assistant's review limits (mayaCreationGuard.service.js). */
+export interface MayaQueueHealth {
+  blocked: boolean;
+  taskBlocked: boolean;
+  draftBlocked: boolean;
+  socialPostBlocked: boolean;
+  counts: { openTaskCount: number; openDraftCount: number; openSocialPostCount: number; taskLimit: number; draftLimit: number; socialPostLimit: number; };
+}
+
 @Injectable( { providedIn: 'root' } )
 export class OutreachApiService {
   private baseUrl = `${environment.backendURL}`;
@@ -589,6 +598,8 @@ export class OutreachApiService {
         warmLeads: number;
         draftReady: number;
         stalledWaiting: number;
+        /** Waiting for the Marketing Assistant's next pass. */
+        upNext?: number;
         needsHuman: number;
       };
       generatedAt: string;
@@ -596,6 +607,12 @@ export class OutreachApiService {
   }> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.get<any>( `${this.baseUrl}/outreach/signal-engine/bootstrap`, { headers } );
+  }
+
+  /** Whether the Marketing Assistant's review limits are holding new work back - momentumRoutes.js /momentum/maya-runs/status. */
+  getMayaQueueHealth ( opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; data: { queueHealth: MayaQueueHealth | null; } | null; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.get<{ success: boolean; data: { queueHealth: MayaQueueHealth | null; } | null; }>( `${this.baseUrl}/momentum/maya-runs/status`, { headers, params: opts.tenantId ? { tenantId: opts.tenantId } : {} } );
   }
 
   /** Maya's day summary - todd-backend outreachRoutes.js /outreach/maya-day. */

@@ -15,9 +15,15 @@ export function isMovesLimitReason ( text: string | undefined ): boolean {
   return /\bMoves\b/.test( String( text || '' ) );
 }
 
+/** True when her start failed on the email-draft limit - clearing Drafts is the fix (mayaDay.service.js limitReason). */
+export function isDraftsLimitReason ( text: string | undefined ): boolean {
+  return /\bin Drafts\b/.test( String( text || '' ) );
+}
+
 export function activityAction ( item: { category: string; title: string; body: string; } ): ActivityAction | null {
   switch ( item.category ) {
     case 'maya':
+      if ( isDraftsLimitReason( item.body ) ) return { label: 'Open Drafts', route: '/drafts' };
       return isMovesLimitReason( item.body ) ? { label: 'Open Moves', href: MOVES_TASKS_URL } : null;
     case 'replies':
       return { label: 'Open Needs you', route: '/needs-you' };

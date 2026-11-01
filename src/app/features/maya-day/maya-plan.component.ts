@@ -2,13 +2,13 @@ import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angu
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { OutreachApiService } from '../../services/outreach-api.service';
+import { MayaQueueHealth, OutreachApiService } from '../../services/outreach-api.service';
 import { MomentumThread } from '../../models/momentum-thread.model';
 import { isNeedsYou } from '../../shared/utils/needs-you.util';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 
-export type PlanFilter = 'all' | 'needs-you' | 'hot' | 'stalled';
+export type PlanFilter = 'all' | 'needs-you' | 'hot' | 'queued' | 'stalled';
 type PlanWhen = 'today' | 'week' | 'later';
 
 interface PlanRow {
@@ -18,6 +18,9 @@ interface PlanRow {
   company: string;
   needsYou: boolean;
   hot: boolean;
+  /** Waiting for the Marketing Assistant's next pass. */
+  queued: boolean;
+  /** Paused, unsubscribed or gone quiet: nothing more is planned. */
   stalled: boolean;
   meta: string;
   last: string;
@@ -38,6 +41,7 @@ interface PlanGroup {
 }
 
 const GROUP_CAP = 50;
+const DISCARDED = /discarded/i;
 const DAY_MS = 86400000;
 const NEXT_ACTION_WORDS: Record<string, string> = {
   draft_followup: 'The Marketing Assistant drafts a follow-up for you to approve.',
@@ -77,6 +81,8 @@ export class MayaPlanComponent implements OnChanges {
   showAll: Record<PlanWhen, boolean> = { today: false, week: false, later: false };
   pendingId = '';
   actionError = '';
+  /** "Paused" banners: which review limit is holding new work back. */
+  held: Array<{ id: string; text: string; label: string; link?: string; href?: string; }> = [];
   private loadedFor = '';
 
   readonly cap = GROUP_CAP;
@@ -92,10 +98,15 @@ export class MayaPlanComponent implements OnChanges {
     this.loading = true;
     this.error = '';
     try {
-      const response = await firstValueFrom( this.api.getSignalEngineBootstrap( { tenantId: this.tenantId } ) );
+      const [response, health] = await Promise.all( [
+        firstValueFrom( this.api.getSignalEngineBootstrap( { tenantId: this.tenantId } ) ),
+        firstValueFrom( this.api.getMayaQueueHealth( { tenantId: this.tenantId } ) ).then( ( res ) => res?.data?.queueHealth || null ).catch( () => null ),
+      ] );
       const threads: MomentumThread[] = Array.isArray( response?.data?.threads ) ? response.data.threads : [];
       const now = new Date();
-      this.rows = threads.filter( isLive ).map( ( thread ) => toRow( thread, now ) );
+      this.held = heldBanners( health );
+      const draftsFull = !!health?.draftBlocked;
+      this.rows = threads.filter( isLive ).map( ( thread ) => toRow( thread, now, draftsFull ) );
       this.regroup();
     } catch ( error: any ) {
       this.error = String( error?.error?.message || error?.message || "Unable to load the Marketing Assistant's plan." );
@@ -123,7 +134,7 @@ export class MayaPlanComponent implements OnChanges {
     return row.id;
   }
 
-  /** "Change plan": open this person's next email in the composer to take it over. */
+  /** "Write it myself": open this person's next email in the composer to take it over. */
   async changePlan ( row: PlanRow ): Promise<void> {
     if ( !this.tenantId || this.pendingId ) return;
     this.pendingId = row.id;
@@ -174,13 +185,34 @@ export class MayaPlanComponent implements OnChanges {
   }
 }
 
-const FILTER_LABELS: Record<PlanFilter, string> = { all: 'All', 'needs-you': 'Needs you', hot: 'Hot leads', stalled: 'Stalled' };
+const FILTER_LABELS: Record<PlanFilter, string> = { all: 'All', 'needs-you': 'Needs you', hot: 'Hot leads', queued: 'Up next', stalled: 'Stalled' };
 const FILTERS: Record<PlanFilter, ( row: PlanRow ) => boolean> = {
   all: () => true,
   'needs-you': ( row ) => row.needsYou,
   hot: ( row ) => row.hot,
+  queued: ( row ) => row.queued,
   stalled: ( row ) => row.stalled,
 };
+
+const SOCIAL_REVIEW_URL = 'https://social.16ahead.com/today';
+
+/**
+ * Ty, 2026-10-31: with 100 drafts waiting, the Marketing Assistant stopped
+ * making new ones for days and 469 people sat under "Stalled" with no word
+ * why. Each full review queue gets a line and a way to clear it.
+ */
+export function heldBanners ( health: MayaQueueHealth | null ): Array<{ id: string; text: string; label: string; link?: string; href?: string; }> {
+  if ( !health ) return [];
+  const counts = health.counts || ( {} as MayaQueueHealth['counts'] );
+  const banners: Array<{ id: string; text: string; label: string; link?: string; href?: string; }> = [];
+  if ( health.draftBlocked ) {
+    banners.push( { id: 'drafts', text: `The Marketing Assistant is paused: ${ counts.openDraftCount } email drafts are waiting for you (the limit is ${ counts.draftLimit }). Approve or dismiss some and it picks up everyone queued.`, label: 'Clear drafts', link: '/drafts' } );
+  }
+  if ( health.socialPostBlocked ) {
+    banners.push( { id: 'social', text: `New social posts are paused: ${ counts.openSocialPostCount } are waiting for review (the limit is ${ counts.socialPostLimit }).`, label: 'Review social posts', href: SOCIAL_REVIEW_URL } );
+  }
+  return banners;
+}
 
 /** Everyone Maya still has a next step for: not sent and done, not archived. */
 function isLive ( thread: MomentumThread ): boolean {
@@ -239,7 +271,7 @@ function activityLine ( thread: MomentumThread ): string {
   return Number( thread.touchCount || 0 ) ? 'no opens' : 'no emails yet';
 }
 
-function toRow ( thread: MomentumThread, now: Date ): PlanRow {
+export function toRow ( thread: MomentumThread, now: Date, draftsFull = false ): PlanRow {
   const needsYou = isNeedsYou( thread );
   const lane = String( thread.userLane || '' );
   const touches = Number( thread.touchCount || 0 );
@@ -248,6 +280,7 @@ function toRow ( thread: MomentumThread, now: Date ): PlanRow {
   const sentAt = parse( thread.lastSentAt );
   const replyAt = parse( thread.latestReplyAt );
   const at = lane === 'outbox' ? parse( thread.scheduledAt ) : parse( thread.nextActionAt ) || parse( thread.scheduledAt );
+  const queued = !needsYou && lane === 'plan' && thread.bucket === 'waiting';
 
   // LAST: the most recent thing that happened.
   let last: string;
@@ -270,6 +303,13 @@ function toRow ( thread: MomentumThread, now: Date ): PlanRow {
     when = 'today';
     nextWhen = 'Waiting on you:';
     next = touches ? 'approve the follow-up so it can send.' : 'approve the first email so it can send.';
+  } else if ( queued && ( draftsFull || ( at && at < now.getTime() ) || DISCARDED.test( String( thread.nextActionReason || '' ) ) ) ) {
+    // Waiting for the next pass: say so, not a date that has gone by.
+    when = 'today';
+    nextWhen = draftsFull ? 'Paused:' : 'Next pass:';
+    next = draftsFull
+      ? `the Marketing Assistant writes ${ touches ? 'the follow-up' : 'the first email' } once Drafts has room.`
+      : `the Marketing Assistant writes ${ touches ? 'the follow-up' : 'the first email' } on its next morning run.`;
   } else {
     when = !at ? 'later' : at < startOfDay( now ) + DAY_MS ? 'today' : at < weekRange( now ).end ? 'week' : 'later';
     nextWhen = at ? `${ dayLabel( at, now ) }:` : 'Not scheduled:';
@@ -291,7 +331,8 @@ function toRow ( thread: MomentumThread, now: Date ): PlanRow {
     company: String( thread.companyName || '' ),
     needsYou,
     hot: thread.isHotLeadActive === true,
-    stalled: thread.bucket === 'stalled' || thread.bucket === 'waiting',
+    queued,
+    stalled: thread.bucket === 'stalled',
     meta: touches ? `Email ${ touches } · ${ activity }` : activity,
     last,
     subject,

@@ -1,6 +1,12 @@
 <div class="plan" data-cy="maya-plan">
     <p class="intro">What the Marketing Assistant will do next for each person, and when. Anyone marked <strong>Needs you</strong> is waiting on you, and the Marketing Assistant won't act until you do.</p>
 
+    <div class="held" *ngFor="let banner of held" role="status" [attr.data-cy]="'maya-plan-held-' + banner.id">
+        <p class="held__text">{{ banner.text }}</p>
+        <a *ngIf="banner.link" class="btn btn--primary" [routerLink]="banner.link">{{ banner.label }}</a>
+        <a *ngIf="banner.href" class="btn btn--primary" [href]="banner.href" target="_blank" rel="noopener">{{ banner.label }}</a>
+    </div>
+
     <div class="chips" role="group" aria-label="Who to show">
         <button type="button" *ngFor="let chip of chips" class="chip" [class.is-on]="chip.id === filter" [attr.aria-pressed]="chip.id === filter" (click)="setFilter(chip.id)" [attr.data-cy]="'maya-plan-filter-' + chip.id">
             {{ chip.label }} <span class="chip__count">{{ chip.count }}</span>
@@ -28,6 +34,7 @@
                     <span class="row__spacer"></span>
                     <span class="tag tag--pink" *ngIf="row.needsYou">Needs you</span>
                     <span class="tag tag--yellow" *ngIf="row.hot">Hot lead</span>
+                    <span class="tag tag--grey" *ngIf="row.queued">Up next</span>
                     <span class="tag tag--grey" *ngIf="row.stalled">Stalled</span>
                     <span class="row__meta">{{ row.meta }}</span>
                 </div>
@@ -39,8 +46,8 @@
                 </div>
                 <div class="row__actions">
                     <a *ngIf="row.action as action" class="btn btn--primary" [routerLink]="action.link" [queryParams]="action.queryParams || null">{{ action.label }}</a>
-                    <button type="button" class="btn" appWriteAction="change the Marketing Assistant's plan" [disabled]="pendingId === row.id" (click)="changePlan(row)">
-                        {{ pendingId === row.id ? 'Opening…' : 'Change plan' }}
+                    <button type="button" class="btn" appWriteAction="write this email yourself" [disabled]="pendingId === row.id" (click)="changePlan(row)">
+                        {{ pendingId === row.id ? 'Opening…' : 'Write it myself' }}
                     </button>
                 </div>
             </article>

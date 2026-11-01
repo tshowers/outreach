@@ -29,6 +29,26 @@
   color: var(--t-pink-fg);
 }
 
+.held {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 16px 20px;
+  border-radius: 20px;
+  background: var(--t-yellow);
+  color: var(--t-yellow-fg);
+}
+
+.held__text {
+  flex: 1 1 320px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;

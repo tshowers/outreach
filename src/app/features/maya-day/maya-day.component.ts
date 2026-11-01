@@ -7,11 +7,11 @@ import { MayaDaySummary, OutreachApiService } from '../../services/outreach-api.
 import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
-import { ActivityAction, MOVES_TASKS_URL, activityAction, isMovesLimitReason } from '../../shared/utils/activity-action.util';
+import { ActivityAction, MOVES_TASKS_URL, activityAction, isDraftsLimitReason, isMovesLimitReason } from '../../shared/utils/activity-action.util';
 import { MayaPlanComponent, PlanFilter } from './maya-plan.component';
 
 /** ?filter= values, including the old Signal Engine Plan ones (active, warm - now All). */
-const PLAN_FILTERS: Record<string, PlanFilter> = { all: 'all', 'needs-you': 'needs-you', hot: 'hot', stalled: 'stalled', active: 'all', warm: 'all', plan: 'all' };
+const PLAN_FILTERS: Record<string, PlanFilter> = { all: 'all', 'needs-you': 'needs-you', hot: 'hot', queued: 'queued', stalled: 'stalled', active: 'all', warm: 'all', plan: 'all' };
 
 /**
  * Maya's day: what she planned at 6am, what she did, and what's waiting on
@@ -100,7 +100,12 @@ export class MayaDayComponent implements OnInit, OnDestroy {
 
   /** Her start failed on the open-task limit: closing Moves is the fix. */
   get blockedByMoves (): boolean {
-    return isMovesLimitReason( this.summary?.startReason );
+    return !this.blockedByDrafts && isMovesLimitReason( this.summary?.startReason );
+  }
+
+  /** Her start failed on the email-draft limit: clearing Drafts is the fix. */
+  get blockedByDrafts (): boolean {
+    return isDraftsLimitReason( this.summary?.startReason );
   }
 
   actionFor ( item: { category: string; title: string; body: string; } ): ActivityAction | null {

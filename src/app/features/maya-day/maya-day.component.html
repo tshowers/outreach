@@ -19,6 +19,9 @@
         <p class="links" *ngIf="summary?.startStatus === 'failed' && blockedByMoves">
             <a [href]="movesUrl" target="_blank" rel="noopener" data-cy="maya-day-open-moves">Open Moves ↗</a>
         </p>
+        <p class="links" *ngIf="summary?.startStatus === 'failed' && blockedByDrafts">
+            <a routerLink="/drafts" data-cy="maya-day-open-drafts">Open Drafts</a>
+        </p>
     </header>
 
     <app-preloader *ngIf="loading && !summary"></app-preloader>

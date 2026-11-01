@@ -113,7 +113,7 @@
       <div class="pipeline__grid">
         <a routerLink="/maya-day" [queryParams]="{ tab: 'plan' }" data-cy="pipeline-active"><span class="dot dot--blue"></span><b>{{ pipeline.activeThreads }}</b><span>Active threads</span></a>
         <a routerLink="/drafts" data-cy="pipeline-drafts"><span class="dot dot--violet"></span><b>{{ pipeline.draftReady }}</b><span>Draft ready</span></a>
-        <a routerLink="/maya-day" [queryParams]="{ tab: 'plan', filter: 'stalled' }" data-cy="pipeline-stalled"><span class="dot dot--yellow"></span><b>{{ pipeline.stalledWaiting }}</b><span>Stalled</span></a>
+        <a routerLink="/maya-day" [queryParams]="{ tab: 'plan', filter: 'queued' }" data-cy="pipeline-up-next"><span class="dot dot--yellow"></span><b>{{ pipeline.upNext }}</b><span>Up next</span></a>
         <a routerLink="/maya-day" [queryParams]="{ tab: 'plan', filter: 'hot' }" data-cy="pipeline-hot"><span class="dot dot--pink"></span><b>{{ pipeline.hotLeads }}</b><span>Hot leads</span></a>
         <a routerLink="/sent" data-cy="pipeline-warm"><span class="dot dot--neutral"></span><b>{{ pipeline.warmLeads }}</b><span>Warm leads</span></a>
         <a routerLink="/outbox" data-cy="pipeline-queued"><span class="dot dot--cyan"></span><b>{{ pipeline.queued }}</b><span>Queued</span></a>
