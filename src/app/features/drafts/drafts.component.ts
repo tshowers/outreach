@@ -30,6 +30,8 @@ interface DraftCard {
   signalPill: { text: string; tint: 'yellow' | 'green'; } | null;
   warm: boolean;
   rewriting: boolean;
+  /** What the rewriting bar says: queued batch rewrites take hours, a single rewrite seconds. */
+  rewritingText: string;
   rewritten: boolean;
   /** Emails this address got in the last 7 days. */
   sentThisWeek: number;
@@ -38,6 +40,8 @@ interface DraftCard {
 }
 
 const REWRITE_POLL_MS = 5000;
+// Queued rewrites finish about five every 12 minutes, so check once a minute.
+const REWRITE_QUEUE_POLL_MS = 60000;
 const REWRITE_GIVE_UP_MS = 120000;
 
 /**
@@ -173,6 +177,7 @@ export class DraftsComponent implements OnInit, OnDestroy {
     this.held = cards.filter( ( card ) => !!card.heldUntil );
     this.syncChecked();
     if ( this.rewriting.size ) this.schedulePoll();
+    else if ( cards.some( ( card ) => !!card.thread.rewriteQueueState ) ) this.schedulePoll( REWRITE_QUEUE_POLL_MS );
   }
 
   private hasDraft ( thread: MomentumThread ): boolean {
@@ -208,6 +213,9 @@ export class DraftsComponent implements OnInit, OnDestroy {
       signalPill: clicks ? { text: `Clicked ${ clicks }×`, tint: 'yellow' } : opens ? { text: `Opened ${ opens }×`, tint: 'green' } : null,
       warm: kind === 'reply' || clicks > 0 || opens > 0,
       rewriting,
+      rewritingText: thread.rewriteQueueState === 'pending' ? 'Waiting its turn to be rewritten. The Marketing Assistant does about five every 12 minutes.'
+        : thread.rewriteQueueState === 'processing' ? 'The Marketing Assistant is rewriting this now.'
+          : 'The Marketing Assistant is rewriting this with a different angle. About 20 seconds.',
       rewritten: this.rewritten.has( id ),
       sentThisWeek,
       heldUntil,
@@ -465,9 +473,9 @@ export class DraftsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private schedulePoll (): void {
+  private schedulePoll ( ms = REWRITE_POLL_MS ): void {
     clearTimeout( this.pollTimer );
-    this.pollTimer = setTimeout( () => void this.load( true ), REWRITE_POLL_MS );
+    this.pollTimer = setTimeout( () => void this.load( true ), ms );
   }
 
   async sendTest ( card: DraftCard ): Promise<void> {

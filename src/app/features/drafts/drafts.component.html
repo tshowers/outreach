@@ -96,7 +96,7 @@
 
       <div class="draft__rewriting" *ngIf="card.rewriting; else actions" role="status">
         <span class="spinner" aria-hidden="true"></span>
-        The Marketing Assistant is rewriting this with a different angle. About 20 seconds.
+        {{ card.rewritingText }}
       </div>
 
       <ng-template #actions>
