@@ -1,0 +1,186 @@
+/* Conversations: follows Sent's page layout. */
+:host {
+  display: block;
+  font-family: var(--font);
+  color: var(--text);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 36px 64px;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: var(--surface);
+  font-size: 15px;
+}
+
+.empty span,
+.convo__note {
+  color: var(--muted);
+}
+
+.convo {
+  border-radius: 20px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.convo__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 20px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.convo__head:hover {
+  background: var(--surface2);
+}
+
+.convo__head:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+
+.convo__main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.convo__who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.convo__subject {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.convo__preview {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.convo__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.convo__thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 20px 20px;
+}
+
+.msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: var(--surface2);
+}
+
+.msg--assistant {
+  align-self: flex-end;
+  background: var(--bg);
+}
+
+.msg__meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.msg__text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 20px 16px 48px;
+  }
+
+  .convo__head {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .convo__side {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .msg {
+    max-width: 100%;
+  }
+}

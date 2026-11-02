@@ -25,6 +25,22 @@ import { MomentumThread } from '../models/momentum-thread.model';
  * own independent trimmed copy in parallel.
  */
 
+/** One "Talk to me about this email" conversation (emailConversations.service.js). */
+export interface EmailConversation {
+  id: string;
+  emailId: string;
+  subject: string;
+  contactName?: string;
+  companyName?: string;
+  to?: string;
+  isTest?: boolean;
+  startedAt?: string;
+  lastMessageAt?: string;
+  lastMessage?: string;
+  messageCount?: number;
+  messages?: Array<{ id: string; role: 'recipient' | 'assistant'; text: string; at: string; }>;
+}
+
 export interface ContactResponse {
   success: boolean;
   message: string;
@@ -673,6 +689,17 @@ export class OutreachApiService {
   draftAssistMomentumReply ( contactId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; message: string; data: any; }> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.post<{ success: boolean; message: string; data: any; }>( `${this.baseUrl}/outreach/momentum-threads/draft-assist`, { contactId, purpose: 'needs_you' }, { headers } );
+  }
+
+  /** What recipients said after "Talk to me about this email" - outreachRoutes.js /outreach/email-conversations. */
+  listEmailConversations ( opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; data: EmailConversation[]; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.get<{ success: boolean; data: EmailConversation[]; }>( `${this.baseUrl}/outreach/email-conversations`, { headers } );
+  }
+
+  getEmailConversation ( emailId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; data: EmailConversation; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.get<{ success: boolean; data: EmailConversation; }>( `${this.baseUrl}/outreach/email-conversations/${encodeURIComponent( emailId )}`, { headers } );
   }
 
   /** Outreach "Maya settings": auto-send, on/off, start hour, and her open-task / draft limits. */

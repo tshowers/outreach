@@ -17,7 +17,7 @@ interface SidebarItem {
  * The laptop shell's sidebar (design_handoff_outreach "Laptop shell", regrouped
  * by design_handoff_outreach_mail 1b): the logo and wordmark, New email, then
  * Growth and Needs you, MAIL (Inbox, Drafts, Outbox, Sent) and MAYA
- * (Activity, Drips, Catalyst) - 40px rows, radius 12, the active row raised
+ * (Activity, Conversations, Drips, Catalyst) - 40px rows, radius 12, the active row raised
  * on --bg - with the account menu at the bottom. Scrolls when the window is
  * short. Hidden below 900px, where the floating Menu takes over.
  */
@@ -67,6 +67,8 @@ export class AppSidebarComponent {
         label: 'Marketing Assistant',
         items: [
           item( 'Activity', '/maya-day', 'yellow', '<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/>' ),
+          // What recipients said after "Talk to me about this email" (2026-11-01).
+          item( 'Conversations', '/conversations', 'blue', '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>' ),
           item( 'Drips', '/drips', 'violet', '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>' ),
           item( 'Catalyst', '/email-processor', 'cyan', '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>' ),
           // Maya's auto-send, on/off and limits (2026-10-27).

@@ -112,6 +112,12 @@ export const routes: Routes = [
       import( './features/drips/drip-detail.component' ).then( ( m ) => m.DripDetailComponent ),
   },
   {
+    // What recipients said after "Talk to me about this email" (2026-11-01).
+    path: 'conversations',
+    loadComponent: () =>
+      import( './features/conversations/conversations.component' ).then( ( m ) => m.ConversationsComponent ),
+  },
+  {
     path: 'maya-day',
     loadComponent: () =>
       import( './features/maya-day/maya-day.component' ).then( ( m ) => m.MayaDayComponent ),
