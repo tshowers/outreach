@@ -120,7 +120,7 @@
     </article>
   </ng-template>
 
-  <!-- Select (2026-10-31): approve & send or delete the checked drafts, four at a time. -->
+  <!-- Select (2026-10-31): approve & send, delete, or (2026-11-02) rewrite the checked drafts. -->
   <div class="drafts-selectbar" *ngIf="selecting" role="region" aria-label="Selected drafts" data-cy="drafts-selectbar">
     <ng-container *ngIf="!confirmBulk; else bulkConfirm">
       <strong aria-live="polite">{{ checkedCount }} selected</strong>
@@ -130,6 +130,10 @@
       <button type="button" class="pill pill--40 pill--danger" appWriteAction="delete these drafts" [disabled]="!checkedCount || !!bulkWorking" (click)="confirmBulk = 'discard'" data-cy="drafts-delete-selected">
         <span class="spinner" *ngIf="bulkWorking === 'discard'" aria-hidden="true"></span>
         {{ bulkWorking === 'discard' ? 'Deleting…' : 'Delete ' + checkedCount }}
+      </button>
+      <button type="button" class="pill pill--40" appWriteAction="rewrite these drafts" [disabled]="!checkedRewritable || !!bulkWorking" (click)="confirmBulk = 'rewrite'" data-cy="drafts-rewrite-selected">
+        <span class="spinner" *ngIf="bulkWorking === 'rewrite'" aria-hidden="true"></span>
+        {{ bulkWorking === 'rewrite' ? 'Queuing…' : 'Rewrite ' + checkedRewritable }}
       </button>
       <button type="button" class="pill pill--40 pill--primary" appWriteAction="approve and send these drafts" [disabled]="!checkedApprovable || !!bulkWorking" (click)="confirmBulk = 'approve'" data-cy="drafts-approve-selected">
         <span class="spinner" *ngIf="bulkWorking === 'approve'" aria-hidden="true"></span>
@@ -141,11 +145,12 @@
         Approve & send {{ checkedApprovable }} {{ checkedApprovable === 1 ? 'draft' : 'drafts' }}? Replies send right away; new emails go to Outbox and send during each person's business hours.
         <ng-container *ngIf="checkedCount > checkedApprovable">{{ checkedCount - checkedApprovable }} held or being rewritten stay here.</ng-container>
       </span>
+      <span *ngIf="confirmBulk === 'rewrite'" data-cy="drafts-confirm-text">Have the Marketing Assistant rewrite {{ checkedRewritable }} {{ checkedRewritable === 1 ? 'draft' : 'drafts' }}? They leave Drafts while she works and come back as each is done.</span>
       <span *ngIf="confirmBulk === 'discard'" data-cy="drafts-confirm-text">Delete {{ checkedCount }} {{ checkedCount === 1 ? 'draft' : 'drafts' }}? This can't be undone.</span>
       <span class="drafts-selectbar__spacer"></span>
       <button type="button" class="pill pill--40" (click)="confirmBulk = null">Cancel</button>
       <button type="button" class="pill pill--40" [class.pill--primary]="confirmBulk === 'approve'" [class.pill--danger]="confirmBulk === 'discard'" (click)="runBulk(confirmBulk!)" data-cy="drafts-bulk-confirm">
-        {{ confirmBulk === 'approve' ? 'Yes, approve & send' : 'Yes, delete' }}
+        {{ confirmBulk === 'approve' ? 'Yes, approve & send' : confirmBulk === 'rewrite' ? 'Yes, rewrite' : 'Yes, delete' }}
       </button>
     </ng-template>
   </div>

@@ -94,9 +94,10 @@ export class DraftsComponent implements OnInit, OnDestroy {
   /** Kept in step with checkedIds by syncChecked(), for the template. */
   checkedCount = 0;
   checkedApprovable = 0;
+  checkedRewritable = 0;
   allChecked = false;
-  confirmBulk: 'approve' | 'discard' | null = null;
-  bulkWorking: 'approve' | 'discard' | null = null;
+  confirmBulk: 'approve' | 'discard' | 'rewrite' | null = null;
+  bulkWorking: 'approve' | 'discard' | 'rewrite' | null = null;
 
   ngOnInit (): void {
     this.auth.isLoggedIn().pipe( take( 1 ) ).subscribe( ( signedIn ) => {
@@ -331,6 +332,7 @@ export class DraftsComponent implements OnInit, OnDestroy {
     this.checkedIds = new Set( checked.map( ( card ) => card.id ) );
     this.checkedCount = checked.length;
     this.checkedApprovable = checked.filter( ( card ) => this.approvable( card ) ).length;
+    this.checkedRewritable = checked.filter( ( card ) => !card.rewriting && !this.working.has( card.id ) ).length;
     this.allChecked = this.cards.length > 0 && checked.length === this.cards.length;
   }
 
@@ -338,9 +340,10 @@ export class DraftsComponent implements OnInit, OnDestroy {
     return !card.heldUntil && !card.rewriting && !this.working.has( card.id );
   }
 
-  /** Approve & send or Delete on the checked drafts, after the select bar's confirm. */
-  async runBulk ( action: 'approve' | 'discard' ): Promise<void> {
+  /** Approve & send, Delete or Rewrite on the checked drafts, after the select bar's confirm. */
+  async runBulk ( action: 'approve' | 'discard' | 'rewrite' ): Promise<void> {
     if ( this.bulkWorking ) return;
+    if ( action === 'rewrite' ) return this.rewriteChecked();
     const checked = this.cards.filter( ( card ) => this.checkedIds.has( card.id ) );
     const cards = action === 'approve' ? checked.filter( ( card ) => this.approvable( card ) ) : checked;
     if ( !cards.length ) return;
@@ -364,6 +367,42 @@ export class DraftsComponent implements OnInit, OnDestroy {
     } else {
       this.toast = { text: failed.length ? `Deleted ${ drafts( done ) }. ${ failed.length } couldn't be deleted and are still checked.` : `Deleted ${ drafts( done ) }.` };
     }
+    await this.load( true );
+  }
+
+  /**
+   * The Marketing Assistant rewrites the checked drafts (2026-11-02): they
+   * join the rewrite queue (momentum.rewrite-queue.js), which redrafts about
+   * five every 12 minutes, and come back to Drafts as they finish.
+   */
+  private async rewriteChecked (): Promise<void> {
+    const cards = this.cards.filter( ( card ) => this.checkedIds.has( card.id ) && !card.rewriting && !this.working.has( card.id ) );
+    if ( !cards.length ) return;
+    this.commitDiscard();
+    this.confirmBulk = null;
+    this.bulkWorking = 'rewrite';
+    const failed: string[] = [];
+    // The backend takes up to 100 at a time.
+    for ( let start = 0; start < cards.length; start += 100 ) {
+      const ids = cards.slice( start, start + 100 ).map( ( card ) => card.id );
+      try {
+        const response = await firstValueFrom( this.api.rejectRewriteMomentumDraftsBatch( ids, this.opts ) );
+        for ( const result of response.data?.results || [] ) if ( !result.success && result.error !== 'already_queued' ) failed.push( result.contactId );
+      } catch {
+        failed.push( ...ids );
+      }
+    }
+    const done = cards.length - failed.length;
+    this.bulkWorking = null;
+    this.checkedIds = new Set( failed );
+    if ( !failed.length ) this.selecting = false;
+    this.syncChecked();
+    const drafts = ( count: number ) => `${ count } ${ count === 1 ? 'draft' : 'drafts' }`;
+    const hours = Math.max( 1, Math.round( Math.ceil( done / 5 ) * 12 / 60 ) );
+    const pace = `About five are done every 12 minutes, so this takes about ${ hours } ${ hours === 1 ? 'hour' : 'hours' }.`;
+    this.toast = failed.length
+      ? { text: `The Marketing Assistant is rewriting ${ drafts( done ) }. ${ failed.length } couldn't be queued and are still checked.` }
+      : { text: `The Marketing Assistant is rewriting ${ drafts( done ) }. ${ pace }` };
     await this.load( true );
   }
 
