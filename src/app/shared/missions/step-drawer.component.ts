@@ -100,6 +100,28 @@ import { paint } from './plan-strip.component';
             @if (mode() === 'task') { <span class="muted">Paste a list, or attach a file. Anything longer than a quick note is saved to your Docs, and the next steps use it.</span> }
           </label>
         }
+        @if (shortlist().length) {
+          <section class="picks" data-cy="drawer-shortlist">
+            <h3>Keep the ones to contact</h3>
+            @for (item of shortlist(); track item.name) {
+              <label class="pick">
+                <input type="checkbox" [checked]="kept().has(item.name)" (change)="toggleKeep(item.name)" [attr.data-cy]="'drawer-keep-' + item.id">
+                <span><b>{{ item.name }}</b>@if (item.fit) { <span class="muted"> · {{ item.fit }} fit</span> }@if (item.why) { <span class="muted why">{{ item.why }}</span> }</span>
+              </label>
+            }
+          </section>
+        }
+        @for (r of recipients(); track r.stepId) {
+          <section class="recipients" data-cy="drawer-recipients">
+            <h3>{{ r.title }}: {{ r.pending ? 'the list isn’t ready yet' : r.count + (r.count === 1 ? ' person' : ' people') }}</h3>
+            <ul>
+              @for (p of r.people; track p.email) {
+                <li>{{ p.name || p.email }}@if (p.name) { <span class="muted"> {{ p.email }}</span> }@if (p.company) { <span class="muted"> · {{ p.company }}</span> }</li>
+              }
+            </ul>
+            @if (r.count > r.people.length) { <span class="muted">and {{ r.count - r.people.length }} more</span> }
+          </section>
+        }
         @if (mode() === 'task') {
           <div class="attach">
             @if (attachment(); as file) {
@@ -133,7 +155,9 @@ import { paint } from './plan-strip.component';
               <button type="button" class="btn primary" (click)="act('approve')" [disabled]="busy()" data-cy="drawer-approve">Approve</button>
             }
             @case ('decision') {
-              @if (choices().length) {
+              @if (shortlist().length) {
+                <button type="button" class="btn primary" (click)="act('answer', keptNames())" [disabled]="busy() || !kept().size" data-cy="drawer-continue-kept">Continue with {{ kept().size }} kept</button>
+              } @else if (choices().length) {
                 @for (o of choices(); track o) {
                   <button type="button" class="btn option" (click)="act('answer', o)" [disabled]="busy()" data-cy="drawer-option">{{ o }}</button>
                 }
@@ -194,6 +218,11 @@ import { paint } from './plan-strip.component';
     .tag { height: 20px; padding: 0 7px; border-radius: 999px; background: var(--bg); font-size: 11px; display: flex; align-items: center; }
     .note { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 700; }
     .attach { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .picks, .recipients { display: flex; flex-direction: column; gap: 6px; }
+    .pick { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 12px; background: var(--surface); font-size: 14px; cursor: pointer; }
+    .pick input { margin-top: 3px; }
+    .pick .why { display: block; font-size: 12px; }
+    .recipients ul { margin: 0; padding-left: 18px; font-size: 14px; max-height: 260px; overflow: auto; }
     label.btn { display: inline-flex; align-items: center; }
     textarea, select { font: inherit; font-weight: 400; font-size: 15px; color: var(--text); background: var(--bg); border-radius: 14px; border: 0; box-shadow: inset 0 0 0 2px var(--blue); padding: 10px 12px; }
     select { box-shadow: inset 0 0 0 2px var(--surface2); height: 44px; }
@@ -277,7 +306,17 @@ export class StepDrawerComponent {
     return source ? ( source.output!['candidates'] as any[] ).map( ( c ) => `${c.name}${c.title || c.company ? ` · ${[c.title, c.company].filter( Boolean ).join( ', ' )}` : ''}` ) : [];
   } );
   // A task always offers the box: what the person hands over is often what the next steps need (Ty, 2026-11-03).
-  readonly needsNote = computed( () => ( this.mode() === 'decision' && !this.choices().length ) || this.mode() === 'task' );
+  /** A pick from a shortlist: the ranked candidates to keep or drop, never a typed answer (Ty, 2026-11-03). */
+  readonly shortlist = computed<{ id: string; name: string; why: string; fit: string }[]>( () => {
+    if ( this.mode() !== 'decision' ) return [];
+    const source = this.uses().find( ( s ) => s.tool === 'todd.shortlist' && s.output && Array.isArray( s.output['items'] ) );
+    return source ? ( source.output!['items'] as any[] ).filter( ( item ) => item && item.name ).map( ( item ) => ( { id: String( item.id || item.name ), name: String( item.name ), why: String( item.why || '' ), fit: String( item.fit || '' ) } ) ) : [];
+  } );
+  readonly kept = signal<Set<string>>( new Set() );
+  readonly keptNames = computed( () => [ ...this.kept() ].join( ', ' ) );
+  /** For an approval: who each send right after it goes to (the server's preview). */
+  readonly recipients = computed<{ stepId: string; title: string; count: number; pending: boolean; people: { email: string; name: string; company: string }[] }[]>( () => ( this.step() as any ).recipients || [] );
+  readonly needsNote = computed( () => ( this.mode() === 'decision' && !this.choices().length && !this.shortlist().length ) || this.mode() === 'task' );
   readonly notePrompt = computed( () => ( this.mode() === 'approval' ? 'What should change?' : this.mode() === 'decision' ? 'Your answer' : 'Add a note or paste a list (optional)' ) );
   /** A text file the person attaches to a task; the server saves it to their Docs. */
   readonly attachment = signal<{ name: string; text: string } | null>( null );
@@ -333,6 +372,13 @@ export class StepDrawerComponent {
 
   outcome ( outcome: 'replied' | 'no_reply' | 'bounced' ): void {
     void this.send( 'complete', this.note(), { outcome, replyText: outcome === 'replied' ? this.note() : '', opens: 0, clicks: 0 } );
+  }
+
+  toggleKeep ( name: string ): void {
+    const next = new Set( this.kept() );
+    if ( next.has( name ) ) next.delete( name );
+    else next.add( name );
+    this.kept.set( next );
   }
 
   async attach ( event: Event ): Promise<void> {
