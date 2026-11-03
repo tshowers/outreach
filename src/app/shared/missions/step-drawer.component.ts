@@ -97,7 +97,18 @@ import { paint } from './plan-strip.component';
             <span>{{ notePrompt() }}</span>
             <textarea rows="3" [value]="note()" (input)="note.set($any($event.target).value)" data-cy="drawer-note"></textarea>
             @if (step().kind === 'approval') { <span class="muted">{{ revisable() ? 'The Marketing Assistant revises once and sends it back to you.' : 'It won’t go out.' }}</span> }
+            @if (mode() === 'task') { <span class="muted">Paste a list, or attach a file. Anything longer than a quick note is saved to your Docs, and the next steps use it.</span> }
           </label>
+        }
+        @if (mode() === 'task') {
+          <div class="attach">
+            @if (attachment(); as file) {
+              <span class="chip" data-cy="drawer-attachment">{{ file.name }}</span>
+              <button type="button" class="btn" (click)="attachment.set(null)" [disabled]="busy()">Remove</button>
+            } @else {
+              <label class="btn" data-cy="drawer-attach">Attach a file<input type="file" accept=".txt,.csv,.tsv,.md,text/plain,text/csv" (change)="attach($event)" hidden></label>
+            }
+          </div>
         }
         @if (reassigning()) {
           <label class="note">
@@ -182,6 +193,8 @@ import { paint } from './plan-strip.component';
     .doc { align-self: flex-start; height: 32px; padding: 0 12px; border-radius: 999px; background: var(--surface); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
     .tag { height: 20px; padding: 0 7px; border-radius: 999px; background: var(--bg); font-size: 11px; display: flex; align-items: center; }
     .note { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 700; }
+    .attach { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    label.btn { display: inline-flex; align-items: center; }
     textarea, select { font: inherit; font-weight: 400; font-size: 15px; color: var(--text); background: var(--bg); border-radius: 14px; border: 0; box-shadow: inset 0 0 0 2px var(--blue); padding: 10px 12px; }
     select { box-shadow: inset 0 0 0 2px var(--surface2); height: 44px; }
     .error { color: var(--t-red-fg); font-size: 14px; font-weight: 600; }
@@ -263,8 +276,11 @@ export class StepDrawerComponent {
     const source = this.uses().find( ( s ) => s.output && Array.isArray( s.output['candidates'] ) && s.output['candidates'].length );
     return source ? ( source.output!['candidates'] as any[] ).map( ( c ) => `${c.name}${c.title || c.company ? ` · ${[c.title, c.company].filter( Boolean ).join( ', ' )}` : ''}` ) : [];
   } );
-  readonly needsNote = computed( () => this.mode() === 'decision' && !this.choices().length );
-  readonly notePrompt = computed( () => ( this.mode() === 'approval' ? 'What should change?' : this.mode() === 'decision' ? 'Your answer' : 'Add a note (optional)' ) );
+  // A task always offers the box: what the person hands over is often what the next steps need (Ty, 2026-11-03).
+  readonly needsNote = computed( () => ( this.mode() === 'decision' && !this.choices().length ) || this.mode() === 'task' );
+  readonly notePrompt = computed( () => ( this.mode() === 'approval' ? 'What should change?' : this.mode() === 'decision' ? 'Your answer' : 'Add a note or paste a list (optional)' ) );
+  /** A text file the person attaches to a task; the server saves it to their Docs. */
+  readonly attachment = signal<{ name: string; text: string } | null>( null );
   readonly withoutLabel = computed( () => ( this.step().tool === 'image.obtain' ? 'Design without it' : 'Go ahead without it' ) );
 
   readonly revisable = computed( () => this.step().dependsOn.some( ( id ) => {
@@ -319,6 +335,19 @@ export class StepDrawerComponent {
     void this.send( 'complete', this.note(), { outcome, replyText: outcome === 'replied' ? this.note() : '', opens: 0, clicks: 0 } );
   }
 
+  async attach ( event: Event ): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files && input.files[0];
+    input.value = '';
+    if ( !file ) return;
+    if ( file.size > 200 * 1024 ) {
+      this.error.set( 'That file is over 200 KB. Attach a smaller one, or paste the part you need.' );
+      return;
+    }
+    this.error.set( '' );
+    this.attachment.set( { name: file.name, text: await file.text() } );
+  }
+
   act ( type: StepActionType, value = '' ): void {
     void this.send( type, value );
   }
@@ -327,8 +356,10 @@ export class StepDrawerComponent {
     this.busy.set( true );
     this.error.set( '' );
     try {
-      const extra: { note?: string; value?: string; output?: Record<string, unknown> } = {};
+      const extra: { note?: string; value?: string; output?: Record<string, unknown>; attachment?: { name: string; text: string } } = {};
       if ( type === 'reject' || type === 'complete' ) extra.note = type === 'reject' ? this.note() : value;
+      const file = this.attachment();
+      if ( type === 'complete' && file ) extra.attachment = file;
       if ( type === 'answer' || type === 'reassign' ) extra.value = value;
       if ( output ) extra.output = output;
       await this.api.act( this.mission().id, this.step().id, type, extra );

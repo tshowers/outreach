@@ -37,6 +37,15 @@ const OUTCOME: Record<string, string> = { action: 'Action', insight: 'Insight', 
             <div class="head-actions">
               @if (canEdit()) { <button type="button" class="btn" (click)="editing.set(true)" data-cy="edit-plan">Edit plan</button> }
               @if (m.status === 'proposed' && m.isOwner) { <button type="button" class="btn primary" (click)="start()" [disabled]="busy()" data-cy="start">Start</button> }
+              @if (canCancel()) {
+                @if (confirmingCancel()) {
+                  <span class="muted" data-cy="cancel-confirm">Cancel this Mission? Nothing else will run.</span>
+                  <button type="button" class="btn" (click)="cancel()" [disabled]="busy()" data-cy="cancel-yes">Yes, cancel</button>
+                  <button type="button" class="btn" (click)="confirmingCancel.set(false)" [disabled]="busy()">Keep it</button>
+                } @else {
+                  <button type="button" class="btn" (click)="confirmingCancel.set(true)" data-cy="cancel">Cancel</button>
+                }
+              }
             </div>
           </header>
 
@@ -124,6 +133,7 @@ const OUTCOME: Record<string, string> = { action: 'Action', insight: 'Insight', 
     .kicker { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
     h1 { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.1; }
     .head-actions { display: flex; gap: 8px; }
+    .head-actions .muted { align-self: center; font-size: 13px; color: var(--muted); }
     .btn { height: 44px; padding: 0 22px; border-radius: 999px; border: 0; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
     .btn.primary { background: var(--blue); color: #fff; }
     .btn:disabled { opacity: .5; }
@@ -173,6 +183,12 @@ export class MissionDetailComponent implements OnDestroy {
   readonly mission = signal<MissionView | null>( null );
   readonly error = signal( '' );
   readonly busy = signal( false );
+  readonly confirmingCancel = signal( false );
+  /** The owner can stop a Mission that hasn't finished (Ty, 2026-11-03: there was no way to). */
+  readonly canCancel = computed( () => {
+    const m = this.mission();
+    return !!m && m.isOwner && ![ 'done', 'cancelled', 'failed' ].includes( m.status as string );
+  } );
   readonly editing = signal( false );
   readonly drawer = signal<ColumnView | null>( null );
   readonly skeleton = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -274,6 +290,19 @@ export class MissionDetailComponent implements OnDestroy {
     this.mission.set( mission );
     this.editing.set( false );
     this.refreshSoon();
+  }
+
+  async cancel (): Promise<void> {
+    this.busy.set( true );
+    try {
+      this.mission.set( await this.api.cancel( this.missionId() ) );
+      this.confirmingCancel.set( false );
+      this.refreshSoon();
+    } catch ( error: any ) {
+      this.error.set( ( error && error.error && error.error.message ) || 'It didn’t cancel. Try again.' );
+    } finally {
+      this.busy.set( false );
+    }
   }
 
   async start (): Promise<void> {
