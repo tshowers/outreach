@@ -157,7 +157,6 @@
             {{ working === 'send' ? 'Sending…' : (hasMayaReply(item) ? "Send the Marketing Assistant's reply" : 'Send reply') }} <kbd>⌘↵</kbd>
           </button>
           <button *ngSwitchCase="'help_write'" type="button" appWriteAction="have the Marketing Assistant write a reply" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ {{ working === 'help' ? 'The Marketing Assistant is writing…' : 'Help me write it' }}</button>
-          <a *ngSwitchCase="'connect_inbox'" class="pill pill--primary pill--big" routerLink="/inbox-access">Connect inbox</a>
           <button *ngSwitchCase="'mark_done'" type="button" appWriteAction="mark this done" class="pill pill--primary pill--big" (click)="markDone([item])">✓ Mark as done</button>
           <button *ngSwitchDefault type="button" appWriteAction="have the Marketing Assistant write a reply" class="pill pill--primary pill--big" (click)="helpMeWrite(item)" [disabled]="!!working">✦ Help me write it</button>
         </ng-container>

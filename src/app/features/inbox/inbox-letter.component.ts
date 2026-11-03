@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, ViewChild, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 import { InboxCategory, MailboxAttachment, MailboxMessageDetail } from '../../services/outreach-api.service';
+import { AssistantMissionComponent } from '../../shared/missions/assistant-missions';
+import { MissionsApiService } from '../../shared/missions/missions-api.service';
 import { cleanMessageText } from '../../shared/utils/message-kind.util';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { InboxIconComponent } from './inbox-icon.component';
@@ -19,12 +21,14 @@ interface ToddAction {
  * The letter fills the screen (Outreach Inbox 2026, "Letter"): a top bar
  * with Back, the position and prev/next; the paper; "What TODD sees" beside
  * it on wide pages and above it on narrow ones; and, while the person is
- * waiting, Write back with TODD's draft in the box.
+ * waiting, Write back with TODD's draft in the box. "Make a Mission" turns
+ * the letter into a Mission: the person says what should happen, the server
+ * reads the letter from their mailbox, and the plan shows under it.
  */
 @Component( {
   selector: 'app-inbox-letter',
   standalone: true,
-  imports: [FormsModule, InboxIconComponent, WriteActionDirective],
+  imports: [FormsModule, InboxIconComponent, WriteActionDirective, AssistantMissionComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './inbox-letter.component.html',
   styleUrl: './inbox-letter.component.css',
@@ -32,9 +36,12 @@ interface ToddAction {
 export class InboxLetterComponent implements OnChanges, OnDestroy {
   @ViewChild( 'replyBox' ) replyBox?: ElementRef<HTMLTextAreaElement>;
   @ViewChild( 'mailFrame' ) mailFrame?: ElementRef<HTMLIFrameElement>;
+  @ViewChild( 'missionBox' ) missionBox?: ElementRef<HTMLTextAreaElement>;
 
   private sanitizer = inject( DomSanitizer );
   private host = inject<ElementRef<HTMLElement>>( ElementRef );
+  private missions = inject( MissionsApiService );
+  private cdr = inject( ChangeDetectorRef );
 
   letter!: InboxLetter;
   reply = '';
@@ -47,6 +54,11 @@ export class InboxLetterComponent implements OnChanges, OnDestroy {
     if ( changed ) {
       this.reply = letter.draft;
       this.edited = false;
+      this.missionOpen = false;
+      this.missionAsk = '';
+      this.missionId = '';
+      this.missionError = '';
+      this.missionPlaybookId = '';
     }
   }
 
@@ -56,6 +68,21 @@ export class InboxLetterComponent implements OnChanges, OnDestroy {
   @Input() sending = false;
   @Input() rewriting = false;
   @Input() category: InboxCategory | null = null;
+  /** Who's reading, for the Mission card's "you" steps. */
+  @Input() viewerId = '';
+  /** Off in the design preview, where letters aren't in a real mailbox. */
+  @Input() canMakeMission = true;
+
+  /** Make a Mission: the box is open, what the person typed, and the Mission once made. */
+  missionOpen = false;
+  missionAsk = '';
+  missionId = '';
+  missionError = '';
+  makingMission = false;
+  /** Ready-made asks for an email (the inbox playbooks), loaded the first time the box opens. */
+  missionPlaybooks: { id: string; title: string; request: string; }[] = [];
+  private missionPlaybookId = '';
+  private playbooksLoaded = false;
 
   @Output() back = new EventEmitter<void>();
   @Output() prev = new EventEmitter<void>();
@@ -249,6 +276,73 @@ export class InboxLetterComponent implements OnChanges, OnDestroy {
     const action = this.letter.nextAction;
     if ( !action || ( action.type === 'call' && !this.canReply ) ) return [];
     return [{ label: action.label, icon: this.iconOf( action ), href: this.hrefOf( action ) }];
+  }
+
+  openMission (): void {
+    this.missionOpen = true;
+    this.missionError = '';
+    this.loadPlaybooks();
+    setTimeout( () => {
+      const box = this.missionBox?.nativeElement;
+      box?.scrollIntoView( { block: 'center', behavior: 'smooth' } );
+      box?.focus();
+    } );
+  }
+
+  /** A playbook fills in the ask; the person can still change it. */
+  usePlaybook ( playbook: { id: string; request: string; } ): void {
+    this.missionAsk = playbook.request;
+    this.missionPlaybookId = playbook.id;
+    this.missionBox?.nativeElement.focus();
+  }
+
+  onMissionAskChange ( value: string ): void {
+    this.missionAsk = value;
+    if ( !this.missionPlaybooks.some( playbook => playbook.id === this.missionPlaybookId && playbook.request === value ) ) this.missionPlaybookId = '';
+  }
+
+  private async loadPlaybooks (): Promise<void> {
+    if ( this.playbooksLoaded ) return;
+    this.playbooksLoaded = true;
+    try {
+      const res = await this.missions.playbooks( { for: 'email' } );
+      this.missionPlaybooks = ( res.playbooks || [] ).map( playbook => ( { id: playbook.id, title: playbook.title, request: playbook.request } ) );
+    } catch {
+      this.playbooksLoaded = false;
+    }
+    this.cdr.markForCheck();
+  }
+
+  closeMission (): void {
+    this.missionOpen = false;
+    this.missionError = '';
+  }
+
+  async makeMission (): Promise<void> {
+    const request = this.missionAsk.trim();
+    if ( !request || this.makingMission ) return;
+    const letter = this.letter;
+    this.makingMission = true;
+    this.missionError = '';
+    try {
+      const res: any = await this.missions.ask( request, {
+        origin: 'email',
+        ...( this.missionPlaybookId ? { playbookId: this.missionPlaybookId } : {} ),
+        sourceRef: { kind: 'email', id: letter.id, mailboxId: letter.source.mailboxId },
+      } );
+      if ( letter.id !== this.letter.id ) return;
+      if ( res?.mission?.id ) {
+        this.missionId = res.mission.id;
+        this.missionOpen = false;
+      } else {
+        this.missionError = "16Ahead couldn't make a Mission from this one.";
+      }
+    } catch ( error: any ) {
+      if ( letter.id === this.letter.id ) this.missionError = String( error?.error?.message || "16Ahead couldn't make a Mission from this one." );
+    } finally {
+      this.makingMission = false;
+      this.cdr.markForCheck();
+    }
   }
 
   onReplyChange ( value: string ): void {

@@ -73,6 +73,16 @@ export type EmailerContactLite = Contact;
  * reads the local messageVisibility map directly, same fallback behavior
  * the original had when that delegation found nothing.
  */
+/** Catalyst reads every contact in the browser; past this it tells the person instead of waiting forever. */
+const CONTACTS_LOAD_TIMEOUT_MS = 60000;
+
+function withTimeout<T> ( work: Promise<T>, ms: number ): Promise<T> {
+  return new Promise<T>( ( resolve, reject ) => {
+    const timer = setTimeout( () => reject( Object.assign( new Error( `Timed out after ${ ms }ms` ), { timedOut: true } ) ), ms );
+    work.then( ( value ) => { clearTimeout( timer ); resolve( value ); }, ( error ) => { clearTimeout( timer ); reject( error ); } );
+  } );
+}
+
 @Component( {
   selector: 'app-email-processor',
   imports: [WriteActionDirective, BrowseNoticeComponent, CommonModule, FormsModule, LastContactChartComponent, PreloaderComponent, EmailerComponent, BackToTopComponent, EmailSendingStatusComponent],
@@ -94,6 +104,8 @@ export class EmailProcessorComponent extends TopDogComponent {
   contactsToPass: Contact[] = [];
   emailTipText: string = '';
   private hasLoadedContacts = false;
+  /** The contacts didn't arrive in time; the page says so instead of a cover that never lifts. */
+  contactsLoadFailed = '';
   catalystAssistantContext: CatalystAssistantContext | null = null;
   private _pageMode: 'stale_queue' | 'blocked_handoff' = 'stale_queue';
   catalystHandoff: CatalystHandoffPayload | null = null;
@@ -221,17 +233,31 @@ export class EmailProcessorComponent extends TopDogComponent {
     try {
       if ( !this.userId || !this.tenantId ) {
         this.logger.warn( '⚠️ EmailProcessor: tenant/user not ready yet; skipping contact load.' );
+        this.isLoading = false;
         return;
       }
 
-      const raw = await this.dataService.getAllContacts( this.tenantId );
+      this.contactsLoadFailed = '';
+      const started = Date.now();
+      const raw = await withTimeout( this.dataService.getAllContacts( this.tenantId ), CONTACTS_LOAD_TIMEOUT_MS );
+      const seconds = Math.round( ( Date.now() - started ) / 100 ) / 10;
+      if ( seconds > 5 ) this.logger.warn( `EmailProcessor: ${ ( raw || [] ).length } contacts took ${ seconds }s to load` );
       this.liteContacts = ( raw || [] ) as Contact[];
       this.hasLoadedContacts = true;
       await this.maybeActivateCatalystHandoff();
+      // Up Next normally lifts the cover once it has picked who's next; this
+      // makes sure it lifts even when Up Next has nothing to report.
+      setTimeout( () => this.zone.run( () => {
+        if ( !this.isCatalystHandoffMode ) this.isLoading = false;
+        try { this.cdr.detectChanges(); } catch { }
+      } ), 0 );
       this.publishPageContext();
 
-    } catch ( e ) {
+    } catch ( e: any ) {
       this.logger.error( '❌ EmailProcessor: failed loading contacts', e );
+      this.contactsLoadFailed = e?.timedOut
+        ? "Your contacts are taking too long to load. Try again, or come back in a few minutes."
+        : "Your contacts couldn't be loaded. Try again.";
       this.liteContacts = [];
       this.hasLoadedContacts = true;
       await this.maybeActivateCatalystHandoff();
@@ -245,6 +271,11 @@ export class EmailProcessorComponent extends TopDogComponent {
         } );
       }, 0 );
     }
+  }
+
+  retryContacts (): void {
+    this.isLoading = true;
+    void this.loadData();
   }
 
   shouldShowMessage ( key: string ): boolean {

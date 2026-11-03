@@ -96,6 +96,35 @@
         </div>
       </section>
     }
+
+    @if (missionOpen) {
+      <section class="mission" aria-label="Make a Mission">
+        <label class="reply__label" for="inbox-mission">What should happen with this email?</label>
+        @if (missionPlaybooks.length) {
+          <div class="mission__playbooks">
+            @for (playbook of missionPlaybooks; track playbook.id) {
+              <button type="button" class="mission__playbook" [attr.aria-pressed]="missionAsk === playbook.request" (click)="usePlaybook(playbook)">{{ playbook.title }}</button>
+            }
+          </div>
+        }
+        <textarea #missionBox id="inbox-mission" class="reply__box mission__box" rows="3" maxlength="4000"
+                  placeholder="e.g. Reply with our applicant email and the interview for the role they applied for"
+                  [ngModel]="missionAsk" (ngModelChange)="onMissionAskChange($event)"></textarea>
+        @if (missionError) { <p class="mission__error" role="alert">{{ missionError }}</p> }
+        <div class="reply__actions">
+          <button type="button" class="btn btn--primary" appWriteAction="make a Mission" (click)="makeMission()" [disabled]="makingMission || !missionAsk.trim()">
+            <app-inbox-icon name="spark"></app-inbox-icon>{{ makingMission ? 'Making the Mission…' : 'Make a Mission' }}
+          </button>
+          <button type="button" class="btn" (click)="closeMission()">Cancel</button>
+        </div>
+      </section>
+    }
+
+    @if (missionId) {
+      <section class="mission" aria-label="Mission">
+        <tm-assistant-mission [missionId]="missionId" [viewerId]="viewerId"></tm-assistant-mission>
+      </section>
+    }
   </article>
 
   <aside class="todd">
@@ -111,6 +140,11 @@
           }
         }
       </div>
+    }
+    @if (canMakeMission && !missionOpen && !missionId) {
+      <button type="button" class="todd__action todd__action--mission" appWriteAction="make a Mission" (click)="openMission()">
+        <app-inbox-icon name="spark"></app-inbox-icon>Make a Mission
+      </button>
     }
   </aside>
 </div>

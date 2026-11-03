@@ -16,7 +16,7 @@ export class MissionsApiService {
   private readonly base = `${environment.backendURL}/orchestration/missions`;
 
   /** A request: answered directly, or a Mission that starts planning. */
-  ask ( request: string, opts: { origin?: string; title?: string; playbookId?: string; force?: 'mission'; autoStart?: boolean; sourceRef?: { kind: string; id: string }; context?: Record<string, unknown> } = {} ): Promise<DirectAnswer | { mode: 'mission'; mission: MissionView }> {
+  ask ( request: string, opts: { origin?: string; title?: string; playbookId?: string; force?: 'mission'; autoStart?: boolean; sourceRef?: { kind: string; id: string; mailboxId?: string }; context?: Record<string, unknown> } = {} ): Promise<DirectAnswer | { mode: 'mission'; mission: MissionView }> {
     return firstValueFrom( this.http.post<any>( this.base, { request, ...opts } ) );
   }
 
@@ -68,8 +68,9 @@ export class MissionsApiService {
     return firstValueFrom( this.http.get<Cockpit>( `${this.base}/cockpit` ) );
   }
 
-  playbooks (): Promise<{ categories: { id: string; label: string }[]; playbooks: Playbook[] }> {
-    return firstValueFrom( this.http.get<any>( `${this.base}/playbooks` ) );
+  /** The Playbooks screen's library; `for: 'email'` gives the inbox ones instead. */
+  playbooks ( opts: { for?: 'email' } = {} ): Promise<{ categories: { id: string; label: string }[]; playbooks: Playbook[] }> {
+    return firstValueFrom( this.http.get<any>( `${this.base}/playbooks`, { params: opts.for ? { for: opts.for } : {} } ) );
   }
 
   /** Polls a Mission until it leaves planning (queued/running), for the 1d "Planning…" state. */

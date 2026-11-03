@@ -122,7 +122,7 @@ export class InboxComponent implements OnInit, OnDestroy {
   private deleteChain: Promise<void> = Promise.resolve();
   private toastTimer?: ReturnType<typeof setTimeout>;
   private subscriptions: Subscription[] = [];
-  private userId = '';
+  userId = '';
   private userEmail = '';
   private tenantId = '';
   private companyName = '';

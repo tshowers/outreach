@@ -133,7 +133,11 @@
         </div>
     </section>
 
-        <div class="container-fluid catalyst-empty-state-shell" [class.d-none]="isLoading || isCatalystHandoffMode || (liteContacts && liteContacts.length > 0)">
+        <div class="alert alert-warning d-flex align-items-center gap-3" role="alert" *ngIf="contactsLoadFailed && !isLoading" data-cy="catalyst-contacts-failed">
+            <span>{{ contactsLoadFailed }}</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="retryContacts()">Try again</button>
+        </div>
+        <div class="container-fluid catalyst-empty-state-shell" [class.d-none]="isLoading || isCatalystHandoffMode || contactsLoadFailed || (liteContacts && liteContacts.length > 0)">
             <div class="catalyst-empty-state-card text-center">
                 <div class="catalyst-empty-state-icon mb-3">
                     <i class="fa-solid fa-bolt"></i>
