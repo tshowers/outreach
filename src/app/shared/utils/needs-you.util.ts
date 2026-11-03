@@ -7,7 +7,7 @@ import { cleanMessageText } from './message-kind.util';
  * (NeedsYouPresentation.swift).
  */
 export type NeedsYouKind = 'out_of_office' | 'automated' | 'interested' | 'question' | 'concern'
-  | 'not_interested' | 'unsubscribe' | 'wrong_person' | 'reply';
+  | 'not_interested' | 'unsubscribe' | 'wrong_person' | 'reply' | 'not_sent' | 'no_reply';
 
 export const NEEDS_YOU_KIND_LABELS: Record<NeedsYouKind, string> = {
   out_of_office: 'Out of office',
@@ -18,13 +18,15 @@ export const NEEDS_YOU_KIND_LABELS: Record<NeedsYouKind, string> = {
   not_interested: 'Not interested',
   unsubscribe: 'Asked to stop',
   wrong_person: 'Wrong person',
-  reply: 'Replied'
+  reply: 'Replied',
+  not_sent: 'Follow-up not sent',
+  no_reply: 'No reply'
 };
 
 /** Which tint each kind's pill uses. */
 export const NEEDS_YOU_KIND_TINTS: Record<NeedsYouKind, string> = {
   out_of_office: 'yellow', automated: 'neutral', interested: 'green', question: 'blue', concern: 'yellow',
-  not_interested: 'pink', unsubscribe: 'pink', wrong_person: 'violet', reply: 'green'
+  not_interested: 'pink', unsubscribe: 'pink', wrong_person: 'violet', reply: 'green', not_sent: 'yellow', no_reply: 'neutral'
 };
 
 const OUT_OF_OFFICE = [
@@ -75,15 +77,24 @@ export function hasMayaReply ( thread: MomentumThread ): boolean {
 }
 
 export function needsYouKind ( thread: MomentumThread ): NeedsYouKind {
+  // An automatic follow-up that didn't go out: nobody wrote back.
+  if ( thread.needsYouReason?.key === 'send_blocked' ) return 'not_sent';
   const text = `${ thread.latestReplyText || '' }\n${ thread.replySummary || '' }`;
   if ( OUT_OF_OFFICE.some( pattern => pattern.test( text ) ) ) return 'out_of_office';
   if ( AUTOMATED.some( pattern => pattern.test( text ) ) ) return 'automated';
-  return CLASSIFICATION_KINDS[String( thread.replyClassification || '' )] || 'reply';
+  const classified = CLASSIFICATION_KINDS[String( thread.replyClassification || '' )];
+  if ( classified ) return classified;
+  // Never "Replied" without a reply (Ty, 2026-11-03: 14 of 15 weren't).
+  return hasReplySignal( thread ) ? 'reply' : 'no_reply';
+}
+
+function hasReplySignal ( thread: MomentumThread ): boolean {
+  return thread.signalState === 'replied' || !!String( thread.latestReplyText || '' ).trim() || !!String( thread.replySummary || '' ).trim();
 }
 
 /** Nothing to answer - the natural next step is Done. */
 export function needsNoAnswer ( kind: NeedsYouKind ): boolean {
-  return kind === 'out_of_office' || kind === 'automated' || kind === 'unsubscribe';
+  return kind === 'out_of_office' || kind === 'automated' || kind === 'unsubscribe' || kind === 'not_sent' || kind === 'no_reply';
 }
 
 export function readableReply ( thread: MomentumThread ): string {
@@ -96,10 +107,15 @@ export function needsYouWhy ( thread: MomentumThread ): { title: string; detail:
   const kind = needsYouKind( thread );
   if ( kind === 'out_of_office' ) return { title: 'Out-of-office reply', detail: `${ name }'s inbox sent an automatic away message, so there's nothing to answer.`, suggestion: 'Mark it done to clear it.' };
   if ( kind === 'automated' ) return { title: 'Automated email', detail: `This came from a system, not from ${ name }, so there's nothing to answer.`, suggestion: 'Mark it done to clear it.' };
+  if ( kind === 'not_sent' ) return { title: 'Follow-up not sent', detail: String( thread.needsYouReason?.reason || "The Marketing Assistant couldn't send its follow-up, so it handed this conversation to you." ), suggestion: 'Open it in the Composer to send it yourself, or mark it done.' };
+  if ( kind === 'no_reply' ) {
+    const last = Date.parse( String( thread.lastSentAt || '' ) );
+    const when = Number.isFinite( last ) ? ` on ${ new Date( last ).toLocaleDateString( 'en-US', { month: 'short', day: 'numeric', year: 'numeric' } ) }` : '';
+    return { title: `${ name } hasn't replied`, detail: `The last email went out${ when }, and the Marketing Assistant stopped following up and handed this conversation to you.`, suggestion: 'Write to them yourself, or mark it done.' };
+  }
   if ( kind === 'unsubscribe' ) return { title: 'Asked to stop', detail: `${ name } asked not to be emailed again. The Marketing Assistant won't follow up.`, suggestion: "Mark it done once you've seen it." };
   switch ( thread.needsYouReason?.key ) {
     case 'error_blocker': return { title: 'The Marketing Assistant paused this conversation', detail: `Something stopped the Marketing Assistant from following up with ${ name }, so the next step is yours.`, suggestion: 'Read the conversation, then reply or mark it done.' };
-    case 'missing_sender': return { title: 'No address to send from', detail: "The Marketing Assistant can't reply because this conversation has no sending email set up.", suggestion: 'Connect your inbox, or reply yourself.' };
     case 'missing_draft_body': return { title: 'The draft is empty', detail: 'The Marketing Assistant started a reply, but it has no message yet.', suggestion: 'Write the reply yourself.' };
     case 'approval_required': return { title: 'Waiting for your OK', detail: "The Marketing Assistant has a message ready and won't send it without you.", suggestion: 'Review it, then send.' };
     case 'no_safe_draft': return { title: `${ name } replied`, detail: "The Marketing Assistant wasn't confident enough to answer this one for you.", suggestion: 'Read what they said and write a reply.' };
@@ -115,12 +131,11 @@ export function needsAnswer ( thread: MomentumThread ): boolean {
   return !needsNoAnswer( kind ) && kind !== 'not_interested';
 }
 
-export type NeedsYouAction = 'review_maya' | 'help_write' | 'mark_done' | 'connect_inbox';
+export type NeedsYouAction = 'review_maya' | 'help_write' | 'mark_done';
 
 /** The main button for this person (design 5e rules). */
 export function primaryAction ( thread: MomentumThread ): NeedsYouAction {
   if ( !needsAnswer( thread ) ) return 'mark_done';
-  if ( thread.needsYouReason?.key === 'missing_sender' ) return 'connect_inbox';
   return hasMayaReply( thread ) ? 'review_maya' : 'help_write';
 }
 
