@@ -93,7 +93,7 @@
                 Your design from Email Creator is loaded as the template. Each contact gets their own name and company; pick who gets it, preview a few, then start.
             </div>
             <div class="alert alert-warning small" role="alert" *ngIf="emailCreatorHandoffError">{{ emailCreatorHandoffError }}</div>
-            <app-emailer [initialTemplate]="resumedTemplate || emailCreatorTemplate" [contacts]="contactsToPass" [blockedDraftReason]="catalystBlockedDraftReason" [beforeQueueStart]="prepareCatalystQueueForStart" [runContext]="catalystRunContext" [requireCompany]="isStaleAudience || isCatalystHandoffMode" (assistantContextChange)="onAssistantContextChange($event)"></app-emailer>
+            <app-emailer [initialTemplate]="resumedTemplate || emailCreatorTemplate" [contacts]="contactsToPass" [blockedDraftReason]="catalystBlockedDraftReason" [beforeQueueStart]="prepareCatalystQueueForStart" [runContext]="catalystRunContext" [requireCompany]="isStaleAudience || isCatalystHandoffMode" (assistantContextChange)="onAssistantContextChange($event)" (queueFinished)="onCatalystQueueFinished()"></app-emailer>
         </div>
     </div>
 

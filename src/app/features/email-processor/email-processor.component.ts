@@ -702,22 +702,19 @@ export class EmailProcessorComponent extends TopDogComponent {
       return Array.isArray( this.contactsToPass ) ? [...this.contactsToPass] : [];
     }
 
-    if ( this.catalystQueueCountForLeadVault <= 0 ) {
-      this.soundService.playSound( "error" );
-      this.notificationService.show( 'Lead Vault unavailable', this.leadVaultStatusMessage, 'error' );
-      throw new Error( this.leadVaultStatusMessage );
+    if ( this.catalystQueueCountForLeadVault > 0 ) {
+      await this.refreshLeadVaultPreview();
     }
 
-    await this.refreshLeadVaultPreview();
-
-    if ( !this.leadVaultPreview?.allowed ) {
-      this.soundService.playSound( "error" );
-      this.notificationService.show( 'Lead Vault unavailable', this.leadVaultStatusMessage, 'error' );
-      throw new Error( this.leadVaultStatusMessage );
+    // Lead Vault can't be added (weekly limit, nothing new, no queue): say
+    // why and switch it off, so the next Start runs without it. Before, Start
+    // just stopped with nothing on screen.
+    if ( this.catalystQueueCountForLeadVault <= 0 || !this.leadVaultPreview?.allowed ) {
+      this.refuseLeadVault( this.leadVaultStatusMessage );
     }
 
     if ( !this.tenantId || !this.userId ) {
-      throw new Error( 'Tenant context required for Lead Vault activation.' );
+      this.refuseLeadVault( 'Your account was still loading.' );
     }
 
     try {
@@ -736,17 +733,32 @@ export class EmailProcessorComponent extends TopDogComponent {
       this.publishPageContext();
       return [...nextQueue];
     } catch ( error: any ) {
+      if ( error?.notified ) throw error;
       this.logger.error( 'Lead Vault activation failed', error );
       const message = String( error?.error?.message || error?.message || this.leadVaultStatusMessage || 'Lead Vault inclusion could not be activated.' ).trim();
       if ( error?.error?.data?.leadVaultAudiencePreview ) {
         this.leadVaultPreview = error.error.data.leadVaultAudiencePreview;
       }
-      this.soundService.playSound( "error" );
-      this.notificationService.show( 'Lead Vault activation blocked', message, 'error' );
-      this.publishPageContext();
-      throw error;
+      this.refuseLeadVault( message );
     }
   };
+
+  /** Turns Include Lead Vault off, says why, and stops this Start. */
+  private refuseLeadVault ( reason: string ): never {
+    this.includeLeadVaultContacts = false;
+    this.soundService.playSound( "error" );
+    this.notificationService.show( "Lead Vault wasn't added", `${ reason } Include Lead Vault is now off; press Start to send without it.`, 'error' );
+    this.publishPageContext();
+    const error: any = new Error( reason );
+    error.notified = true;
+    throw error;
+  }
+
+  /** A finished run: reload contacts so Up Next drops the people just emailed. */
+  async onCatalystQueueFinished (): Promise<void> {
+    if ( this.isCatalystHandoffMode ) return;
+    await this.loadData();
+  }
 
   toggleLeadVaultContacts (): void {
     const next = !this.includeLeadVaultContacts;

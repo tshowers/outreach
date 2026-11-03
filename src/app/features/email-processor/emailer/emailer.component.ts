@@ -91,6 +91,8 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
   @Input() initialTemplate: { subject: string; html: string } | null = null;
   @Output() emailSent = new EventEmitter<string>();
   @Output() assistantContextChange = new EventEmitter<CatalystAssistantContext>();
+  /** The queue ran to the end, so the page can reload who's up next. */
+  @Output() queueFinished = new EventEmitter<void>();
 
   userId!: any;
   tenantId!: any;
@@ -137,6 +139,8 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
   private initialQueueSnapshot: EmailerContactLite[] = [];
   /** Emails sent in this batch - the Send column's "N / total sent". */
   batchSentCount = 0;
+  /** Sent or scheduled in this run; Reload queue never sends to them again. */
+  private sentContactIds = new Set<string>();
   private currentCatalystRunId = '';
   private currentCatalystRunName = '';
   private currentCatalystRunFinalized = false;
@@ -454,8 +458,12 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
         if ( Array.isArray( preparedContacts ) ) {
           allContacts = [...preparedContacts];
         }
-      } catch ( error ) {
+      } catch ( error: any ) {
         this.logger.error( 'beforeQueueStart failed', error );
+        // Never a silent Start: say why, unless the page already did.
+        if ( !error?.notified ) {
+          this.notificationService.show( "Catalyst didn't start", String( error?.message || 'Something stopped the run before it began. Try Start again.' ), 'error' );
+        }
         this.isloading = false;
         this.bulkIsRunning = false;
         this.stopSending = true;
@@ -478,6 +486,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
     this.removedContacts = invalidContacts;
     this.initialQueueSnapshot = [...eligibleContacts];
     this.batchSentCount = 0;
+    this.sentContactIds.clear();
     this.bulkQueue = [...eligibleContacts];
     this.currentCatalystRunId = '';
     this.currentCatalystRunName = '';
@@ -727,6 +736,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
     this.queueComplete = true;
     void this.finalizeCurrentCatalystRun( 'completed' );
     this.emitAssistantContext();
+    this.queueFinished.emit();
   }
 
   private async createCurrentCatalystRun ( eligibleContacts: EmailerContactLite[], invalidContacts: EmailerContactLite[] ): Promise<void> {
@@ -825,7 +835,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
     this.stopSending = false;
     this.bulkIsRunning = true;
     this.bulkCurrentContact = null;
-    this.bulkQueue = [...this.initialQueueSnapshot];
+    this.bulkQueue = this.initialQueueSnapshot.filter( contact => !this.sentContactIds.has( String( contact?.id || '' ) ) );
     this.skippedContacts = [];
     this.queueComplete = false;
     this.isloading = true;
@@ -1262,6 +1272,7 @@ export class EmailerComponent implements OnInit, OnDestroy, AfterViewInit, OnCha
           "success"
         );
         this.batchSentCount += 1;
+        if ( sentContact?.id ) this.sentContactIds.add( String( sentContact.id ) );
         this.emailSent.emit( sentContact.id );
         this.updateContact( sentContact );
         void this.seedSignalEngineThread( sentContact, sentEmail );
