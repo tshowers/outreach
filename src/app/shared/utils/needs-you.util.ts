@@ -57,6 +57,7 @@ const CLASSIFICATION_KINDS: Record<string, NeedsYouKind> = {
 /** The same threads the server's Needs You returns. */
 export function isNeedsYou ( thread: MomentumThread ): boolean {
   if ( !thread || ( thread as any ).archived === true ) return false;
+  if ( isStalledNoReply( thread ) ) return false;
   if ( thread.userLane === 'plan' && thread.bucket === 'needs_you' ) return true;
   return thread.signalState === 'replied' && thread.mode === 'handoff' && hasMayaReply( thread );
 }
@@ -70,6 +71,26 @@ export function isDraftToApprove ( thread: MomentumThread ): boolean {
   if ( !thread || ( thread as any ).archived === true ) return false;
   return thread.approvalRequested === true && thread.userLane === 'drafts' && !thread.rewriteQueueState
     && !!String( thread.draftBody || '' ).trim();
+}
+
+/**
+ * Handed back with no reply: a reset, not something for you (Ty, 2026-11-03).
+ * Same rule as the server's isStalledNoReply (momentum.user-lane.js), which
+ * resets these daily. A draft waiting for your OK still counts as Needs you.
+ */
+export function isStalledNoReply ( thread: MomentumThread ): boolean {
+  const t = thread as any;
+  if ( !t || t.archived === true || String( t.mode || '' ).toLowerCase() !== 'handoff' ) return false;
+  if ( String( t.signalState || '' ).toLowerCase() === 'replied' ) return false;
+  if ( String( t.latestReplyText || '' ).trim() || Number( t.replyCount || 0 ) > 0 ) return false;
+  if ( [ 'queued', 'sending', 'drafting' ].includes( String( t.queueState || '' ).toLowerCase() ) ) return false;
+  const failedSend = !!String( t.sendBlocker || t.operatorTakeoverBlocker || '' ).trim()
+    || /could not safely send this follow-up/i.test( String( t.nextActionReason || '' ) );
+  if ( failedSend ) return true;
+  const draftWaiting = t.needsHumanEdit === true
+    || ( !!String( t.draftSubject || '' ).trim() && !!String( t.draftBody || '' ).trim() )
+    || ( !!String( t.replyDraftSubject || '' ).trim() && !!String( t.replyDraftBody || '' ).trim() );
+  return !draftWaiting;
 }
 
 export function hasMayaReply ( thread: MomentumThread ): boolean {
