@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, output } from '@angular/core';
 
 import { OwnerTokenComponent } from './owner-token.component';
 import { ColumnView, GLYPH, KIND_LABEL, Look, Person, StepView, Who, currentColumn, doneCount, nameOf, stripColumns } from './missions.model';
@@ -133,8 +133,9 @@ export function paint ( look: Look, who: Who ): { seg: string; lbg: string; lfg:
   styles: [`
     :host { display: block; min-width: 0; }
     button { font: inherit; color: inherit; text-align: left; border: 0; cursor: pointer; }
-    .full { display: grid; gap: 6px; align-items: stretch; }
-    .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 10px 10px 12px; border-radius: 16px; }
+    /* A long plan scrolls sideways instead of crushing its columns (Ty, 2026-11-03: 18 steps went to one letter a line). */
+    .full { display: grid; gap: 6px; align-items: stretch; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: thin; padding-bottom: 6px; }
+    .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 10px 10px 12px; border-radius: 16px; scroll-snap-align: start; }
     .tokens { height: 28px; display: flex; align-items: center; gap: 2px; }
     .seg { height: 8px; border-radius: 999px; display: block; }
     .seg.tall { height: 12px; }
@@ -183,9 +184,25 @@ export class PlanStripComponent {
   readonly stepClick = output<ColumnView>();
 
   readonly columns = computed( () => stripColumns( this.steps(), this.viewerId(), this.people() ) );
-  readonly gridColumns = computed( () => this.columns().map( ( c ) => ( c.paths.length ? 'minmax(0,1.7fr)' : 'minmax(0,1fr)' ) ).join( ' ' ) );
+  /** Each column keeps a readable width; past that the strip scrolls. */
+  readonly gridColumns = computed( () => this.columns().map( ( c ) => ( c.paths.length ? 'minmax(220px,1.7fr)' : 'minmax(132px,1fr)' ) ).join( ' ' ) );
   readonly current = computed( () => currentColumn( this.columns() ) );
   readonly done = computed( () => doneCount( this.columns() ) );
+
+  private readonly host = inject( ElementRef<HTMLElement> );
+
+  constructor () {
+    // Bring the step that's on now into view when the strip scrolls.
+    effect( () => {
+      const id = this.current()?.stepId;
+      if ( this.mode() !== 'full' || !id || typeof requestAnimationFrame === 'undefined' ) return;
+      requestAnimationFrame( () => {
+        const strip = this.host.nativeElement.querySelector( '.full' ) as HTMLElement | null;
+        const col = strip?.querySelector( `[data-cy="strip-col-${ id }"]` ) as HTMLElement | null;
+        if ( strip && col && strip.scrollWidth > strip.clientWidth ) strip.scrollLeft += col.getBoundingClientRect().left - strip.getBoundingClientRect().left - 12;
+      } );
+    } );
+  }
 
   readonly nowWho = computed<Who>( () => {
     const cur = this.current();
