@@ -4,6 +4,7 @@ import { MissionsApiService } from './missions-api.service';
 import { ColumnView, KIND_LABEL, MissionView, Person, StepActionType, StepView, labelOf, leftUntil, lookOf, nameOf, whoOf } from './missions.model';
 import { OwnerTokenComponent } from './owner-token.component';
 import { paint } from './plan-strip.component';
+import { ShortlistPicksStore } from './shortlist-picks.store';
 
 /**
  * The step drawer (design 3a-3d, 10e): what a step does, why it's yours,
@@ -102,13 +103,8 @@ import { paint } from './plan-strip.component';
         }
         @if (shortlist().length) {
           <section class="picks" data-cy="drawer-shortlist">
-            <h3>Keep the ones to contact</h3>
-            @for (item of shortlist(); track item.name) {
-              <label class="pick">
-                <input type="checkbox" [checked]="kept().has(item.name)" (change)="toggleKeep(item.name)" [attr.data-cy]="'drawer-keep-' + item.id">
-                <span><b>{{ item.name }}</b>@if (item.fit) { <span class="muted"> · {{ item.fit }} fit</span> }@if (item.why) { <span class="muted why">{{ item.why }}</span> }</span>
-              </label>
-            }
+            <p>Keep or drop each one in the list on the page; this uses what you chose there.</p>
+            @if (keptNames()) { <p class="muted" data-cy="drawer-kept-names">Kept: {{ keptNames() }}</p> } @else { <p class="muted">None kept yet.</p> }
           </section>
         }
         @for (r of recipients(); track r.stepId) {
@@ -156,7 +152,8 @@ import { paint } from './plan-strip.component';
             }
             @case ('decision') {
               @if (shortlist().length) {
-                <button type="button" class="btn primary" (click)="act('answer', keptNames())" [disabled]="busy() || !kept().size" data-cy="drawer-continue-kept">Continue with {{ kept().size }} kept</button>
+                <button type="button" class="btn" (click)="closed.emit()" data-cy="drawer-back-to-list">Back to the list</button>
+                <button type="button" class="btn primary" (click)="act('answer', keptNames())" [disabled]="busy() || !keptCount()" data-cy="drawer-continue-kept">Continue with {{ keptCount() }} kept</button>
               } @else if (choices().length) {
                 @for (o of choices(); track o) {
                   <button type="button" class="btn option" (click)="act('answer', o)" [disabled]="busy()" data-cy="drawer-option">{{ o }}</button>
@@ -219,9 +216,7 @@ import { paint } from './plan-strip.component';
     .note { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 700; }
     .attach { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .picks, .recipients { display: flex; flex-direction: column; gap: 6px; }
-    .pick { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 12px; background: var(--surface); font-size: 14px; cursor: pointer; }
-    .pick input { margin-top: 3px; }
-    .pick .why { display: block; font-size: 12px; }
+    .picks p { margin: 0; font-size: 14px; }
     .recipients ul { margin: 0; padding-left: 18px; font-size: 14px; max-height: 260px; overflow: auto; }
     label.btn { display: inline-flex; align-items: center; }
     textarea, select { font: inherit; font-weight: 400; font-size: 15px; color: var(--text); background: var(--bg); border-radius: 14px; border: 0; box-shadow: inset 0 0 0 2px var(--blue); padding: 10px 12px; }
@@ -241,6 +236,7 @@ import { paint } from './plan-strip.component';
 } )
 export class StepDrawerComponent {
   private readonly api = inject( MissionsApiService );
+  private readonly picks = inject( ShortlistPicksStore );
 
   readonly mission = input.required<MissionView>();
   readonly column = input.required<ColumnView>();
@@ -312,8 +308,13 @@ export class StepDrawerComponent {
     const source = this.uses().find( ( s ) => s.tool === 'todd.shortlist' && s.output && Array.isArray( s.output['items'] ) );
     return source ? ( source.output!['items'] as any[] ).filter( ( item ) => item && item.name ).map( ( item ) => ( { id: String( item.id || item.name ), name: String( item.name ), why: String( item.why || '' ), fit: String( item.fit || '' ) } ) ) : [];
   } );
-  readonly kept = signal<Set<string>>( new Set() );
-  readonly keptNames = computed( () => [ ...this.kept() ].join( ', ' ) );
+  /** What you kept in the list on the mission page: one place to choose (Ty, 2026-11-03). */
+  private readonly keptItems = computed( () => {
+    const picks = this.picks.picksFor( this.mission().id, this.step().id );
+    return this.shortlist().filter( ( item ) => picks[item.id] === 'keep' );
+  } );
+  readonly keptCount = computed( () => this.keptItems().length );
+  readonly keptNames = computed( () => this.keptItems().map( ( item ) => item.name ).join( ', ' ) );
   /** For an approval: who each send right after it goes to (the server's preview). */
   readonly recipients = computed<{ stepId: string; title: string; count: number; pending: boolean; people: { email: string; name: string; company: string }[] }[]>( () => ( this.step() as any ).recipients || [] );
   readonly needsNote = computed( () => ( this.mode() === 'decision' && !this.choices().length && !this.shortlist().length ) || this.mode() === 'task' );
@@ -372,13 +373,6 @@ export class StepDrawerComponent {
 
   outcome ( outcome: 'replied' | 'no_reply' | 'bounced' ): void {
     void this.send( 'complete', this.note(), { outcome, replyText: outcome === 'replied' ? this.note() : '', opens: 0, clicks: 0 } );
-  }
-
-  toggleKeep ( name: string ): void {
-    const next = new Set( this.kept() );
-    if ( next.has( name ) ) next.delete( name );
-    else next.add( name );
-    this.kept.set( next );
   }
 
   async attach ( event: Event ): Promise<void> {

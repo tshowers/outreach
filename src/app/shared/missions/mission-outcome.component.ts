@@ -2,8 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 
 import { MissionsApiService } from './missions-api.service';
 import { MissionView, Person, Proposal, ShortlistItem, StepView } from './missions.model';
-
-type Pick = 'keep' | 'later' | 'drop' | '';
+import { ShortlistPick as Pick, ShortlistPicksStore } from './shortlist-picks.store';
 
 /**
  * What an Insight or Shortlist Mission found (design 7a, 11a). Insight:
@@ -129,12 +128,12 @@ type Pick = 'keep' | 'later' | 'drop' | '';
 } )
 export class MissionOutcomeComponent {
   private readonly api = inject( MissionsApiService );
+  private readonly store = inject( ShortlistPicksStore );
 
   readonly mission = input.required<MissionView>();
   readonly viewerId = input( '' );
   readonly people = input<Record<string, Person>>( {} );
 
-  readonly picks = signal<Record<string, Pick>>( {} );
   readonly state = signal<Record<string, 'starting' | 'started'>>( {} );
   readonly busy = signal( false );
   readonly batchDone = signal( 0 );
@@ -165,6 +164,9 @@ export class MissionOutcomeComponent {
   readonly continues = computed( () => this.nextSteps().length > 0 );
   readonly nextTitles = computed( () => this.nextSteps().map( ( s ) => s.title.charAt( 0 ).toLowerCase() + s.title.slice( 1 ) ).join( ', then ' ) );
 
+  /** Shared with the step drawer, so you choose once, here. */
+  readonly picks = computed<Record<string, Pick>>( () => this.store.picksFor( this.mission().id, this.shortlistStep()?.id || '' ) );
+
   readonly items = computed<ShortlistItem[]>( () => ( this.shortlistSource()?.output?.['items'] as ShortlistItem[] ) || [] );
   readonly shortlistSummary = computed( () => String( this.shortlistSource()?.output?.['summary'] || '' ) );
 
@@ -177,7 +179,8 @@ export class MissionOutcomeComponent {
   }
 
   pick ( id: string, pick: Pick ): void {
-    this.picks.update( ( all ) => ( { ...all, [id]: all[id] === pick ? '' : pick } ) );
+    const decide = this.shortlistStep();
+    if ( decide ) this.store.pick( this.mission().id, decide.id, id, pick );
   }
 
   async startKept ( decide: StepView ): Promise<void> {
