@@ -24,9 +24,11 @@
     <div class="send__controls">
     <!-- When the run may start sending (a start date and time, or now). -->
     <div class="send__when" *ngIf="!isRunning && !showPreview; else whenLocked">
-      <div class="send__seg" role="radiogroup" aria-label="When it starts">
-        <button type="button" role="radio" [class.is-on]="startMode === 'now'" [attr.aria-checked]="startMode === 'now'" (click)="setStartMode('now')" data-cy="catalyst-start-now">Start now</button>
-        <button type="button" role="radio" [class.is-on]="startMode === 'later'" [attr.aria-checked]="startMode === 'later'" (click)="setStartMode('later')" data-cy="catalyst-start-later">Pick a start</button>
+      <!-- A choice, not an action: only the purple button below says Start (Ty, 2026-11-04). -->
+      <span class="send__when-label" id="catalyst-when">When to send</span>
+      <div class="send__seg" role="radiogroup" aria-labelledby="catalyst-when">
+        <button type="button" role="radio" [class.is-on]="startMode === 'now'" [attr.aria-checked]="startMode === 'now'" (click)="setStartMode('now')" data-cy="catalyst-start-now">Right away</button>
+        <button type="button" role="radio" [class.is-on]="startMode === 'later'" [attr.aria-checked]="startMode === 'later'" (click)="setStartMode('later')" data-cy="catalyst-start-later">At a set time</button>
       </div>
       <div class="send__dates" *ngIf="startMode === 'later'">
         <label><small>Date</small><input type="date" [min]="todayInputValue" [(ngModel)]="startDate" data-cy="catalyst-start-date"></label>

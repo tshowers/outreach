@@ -288,11 +288,17 @@
   font-size: 13px;
 }
 
-/* Start now / Pick a start, with a date and time. */
+/* When to send: right away, or a date and time. */
 .send__when {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.send__when-label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .send__seg {
