@@ -383,7 +383,9 @@ export class EmailEditorComponent
 
   isMayaDrafting: boolean = false;
 
-  readonly mayaAvatarSrc = 'assets/marketing/marketing-director-avatar.png';
+  // The Marketing Assistant's 16Ahead dial, light and dark (Ty, 2026-11-03).
+  readonly mayaAvatarSrc = 'assets/brand/products/svg/light/03-marketing-assistant.svg';
+  readonly mayaAvatarDarkSrc = 'assets/brand/products/svg/dark/03-marketing-assistant.svg';
 
   isCodeView: boolean = false;
   /** The less-used formatting tools, behind More (design 4m). */

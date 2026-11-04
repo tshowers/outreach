@@ -35,7 +35,7 @@
       <button type="button" class="tool" (click)="insertTwoColumnLayout()" title="Insert 2-column layout">2 columns</button>
       <button type="button" class="tool" data-demo="email-editor-spell-check" (click)="onCheckGrammar()" title="Check grammar">{{ isChecking ? 'Checking…' : 'Grammar' }}</button>
       <button type="button" class="tool maya-avatar-button" data-demo="email-editor-maya-rewrite" (click)="generateMayaEmailContent()" [disabled]="isMayaDrafting" title="Ask the Marketing Assistant to rewrite this draft or create one in its style" aria-label="Ask the Marketing Assistant to rewrite this draft or create one in its style">
-        <img *ngIf="!isMayaDrafting" [src]="mayaAvatarSrc" alt="" class="maya-avatar-button__image">
+        <ng-container *ngIf="!isMayaDrafting"><img [src]="mayaAvatarSrc" alt="" class="maya-avatar-button__image brand-mark--light"><img [src]="mayaAvatarDarkSrc" alt="" class="maya-avatar-button__image brand-mark--dark"></ng-container>
         {{ isMayaDrafting ? 'The Marketing Assistant is writing…' : 'Marketing Assistant' }}
       </button>
       <button type="button" class="tool" (click)="format('removeFormat')" title="Clear formatting">Clear</button>

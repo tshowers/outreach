@@ -4,8 +4,8 @@ import { Person, Who, initialsOf, nameOf } from './missions.model';
 
 /**
  * Who holds a step (design 0a, OwnerToken). Shape carries identity so it
- * reads in grayscale and for colorblind people: TODD is a rounded square,
- * Maya a photo, you a solid circle, teammates an outlined circle, someone
+ * reads in grayscale and for colorblind people: the assistants are their 16Ahead dials,
+ * you a solid circle, teammates an outlined circle, someone
  * who left a dashed one. Synced from taliferro-ui/missions.
  */
 @Component( {
@@ -15,8 +15,9 @@ import { Person, Who, initialsOf, nameOf } from './missions.model';
   template: `
     <span class="token" [class]="kind()" [style.width.px]="size()" [style.height.px]="size()" [attr.title]="name()" [attr.aria-label]="name()" role="img">
       @switch (kind()) {
-        @case ('todd') { <img src="/assets/missions/todd-token.png" alt=""> }
-        @case ('maya') { <img src="/assets/missions/maya-avatar.png" alt=""> }
+        <!-- The 16Ahead dials for the two assistants, light and dark (Ty, 2026-11-03: the old TODD and Maya pictures were wrong). -->
+        @case ('todd') { <img class="brand-mark--light" src="/assets/brand/products/svg/light/02-general-assistant.svg" alt=""><img class="brand-mark--dark" src="/assets/brand/products/svg/dark/02-general-assistant.svg" alt=""> }
+        @case ('maya') { <img class="brand-mark--light" src="/assets/brand/products/svg/light/03-marketing-assistant.svg" alt=""><img class="brand-mark--dark" src="/assets/brand/products/svg/dark/03-marketing-assistant.svg" alt=""> }
         @case ('you') { <span class="txt" [style.font-size.px]="size() * 0.34">You</span> }
         @case ('branch') { <span class="txt" [style.font-size.px]="size() * 0.38">if</span> }
         @default { <span class="txt" [style.font-size.px]="size() * 0.38">{{ initials() }}</span> }
@@ -28,10 +29,8 @@ import { Person, Who, initialsOf, nameOf } from './missions.model';
     :host { display: inline-flex; align-items: center; gap: 8px; flex: none; }
     .token { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; flex: none; overflow: hidden; border-radius: 50%; }
     .token img { width: 100%; height: 100%; display: block; }
-    .todd { border-radius: 28%; background: #fff; border: max(2px, calc(var(--sz) / 14)) solid var(--c-todd); }
-    .todd img { width: 74%; height: 74%; object-fit: contain; }
-    .maya { box-shadow: 0 0 0 2px var(--c-maya); }
-    .maya img { object-fit: cover; object-position: left center; }
+    .todd, .maya { background: transparent; }
+    .todd img, .maya img { object-fit: contain; }
     .you { background: var(--text); color: var(--bg); }
     .team { background: var(--bg); color: var(--text); border: 2px solid var(--c-team); }
     .left { background: var(--surface2); color: var(--muted); border: 2px dashed var(--muted); }
