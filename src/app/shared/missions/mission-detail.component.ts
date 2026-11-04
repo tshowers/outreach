@@ -47,6 +47,15 @@ const OUTCOME: Record<string, string> = { action: 'Action', insight: 'Insight', 
                   <button type="button" class="btn" (click)="confirmingCancel.set(true)" data-cy="cancel">Cancel</button>
                 }
               }
+              @if (canDelete()) {
+                @if (confirmingDelete()) {
+                  <span class="muted" data-cy="delete-confirm">Delete this Mission? You can't undo it. Emails it already sent stay in Outreach.</span>
+                  <button type="button" class="btn danger" (click)="remove()" [disabled]="busy()" data-cy="delete-yes">Yes, delete</button>
+                  <button type="button" class="btn" (click)="confirmingDelete.set(false)" [disabled]="busy()">Keep it</button>
+                } @else if (!confirmingCancel()) {
+                  <button type="button" class="btn" (click)="confirmingDelete.set(true)" data-cy="delete">Delete</button>
+                }
+              }
             </div>
           </header>
 
@@ -195,6 +204,7 @@ const OUTCOME: Record<string, string> = { action: 'Action', insight: 'Insight', 
     .head-actions .muted { align-self: center; font-size: 13px; color: var(--muted); }
     .btn { height: 44px; padding: 0 22px; border-radius: 999px; border: 0; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
     .btn.primary { background: var(--blue); color: #fff; }
+    .btn.danger { background: #e5484d; color: #fff; }
     .btn:disabled { opacity: .5; }
     .banner { display: flex; align-items: center; gap: 14px; border-radius: 22px; padding: 16px 18px; flex-wrap: wrap; }
     .banner-text { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 2px; }
@@ -243,6 +253,12 @@ export class MissionDetailComponent implements OnDestroy {
   readonly error = signal( '' );
   readonly busy = signal( false );
   readonly confirmingCancel = signal( false );
+  readonly confirmingDelete = signal( false );
+  /** Your own Missions, open or finished, but not mid-step (Ty, 2026-11-04). The Marketing Assistant clears hers. */
+  readonly canDelete = computed( () => {
+    const m = this.mission();
+    return !!m && !!m.canDelete && ![ 'queued', 'running' ].includes( m.status as string );
+  } );
   /** The owner can stop a Mission that hasn't finished (Ty, 2026-11-03: there was no way to). */
   readonly canCancel = computed( () => {
     const m = this.mission();
@@ -445,6 +461,19 @@ export class MissionDetailComponent implements OnDestroy {
     this.mission.set( mission );
     this.editing.set( false );
     this.refreshSoon();
+  }
+
+  async remove (): Promise<void> {
+    this.busy.set( true );
+    try {
+      await this.api.remove( this.missionId() );
+      void this.router?.navigate( [ '..' ], { relativeTo: this.route } );
+    } catch ( error: any ) {
+      this.error.set( ( error && error.error && error.error.message ) || 'It didn’t delete. Try again.' );
+      this.confirmingDelete.set( false );
+    } finally {
+      this.busy.set( false );
+    }
   }
 
   async cancel (): Promise<void> {

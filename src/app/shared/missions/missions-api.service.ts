@@ -52,6 +52,10 @@ export class MissionsApiService {
     return firstValueFrom( this.http.post<{ mission: MissionView }>( `${this.base}/${encodeURIComponent( id )}/answers`, { answers } ) ).then( ( res ) => res.mission );
   }
 
+  remove ( id: string ): Promise<void> {
+    return firstValueFrom( this.http.delete( `${this.base}/${encodeURIComponent( id )}` ) ).then( () => undefined );
+  }
+
   cancel ( id: string ): Promise<MissionView> {
     return firstValueFrom( this.http.post<{ mission: MissionView }>( `${this.base}/${encodeURIComponent( id )}/cancel`, {} ) ).then( ( res ) => res.mission );
   }

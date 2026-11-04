@@ -141,6 +141,8 @@ export interface MissionView {
   products: string[];
   split: { todd: number; maya: number; you: number; teammates: number };
   isOwner: boolean;
+  /** The owner can delete their own; the Marketing Assistant clears hers. */
+  canDelete?: boolean;
   assessment?: { signals?: string[]; reason?: string } | null;
   /** Moves the Mission handed to people, read live; open ones first. */
   followUps?: FollowUp[];
