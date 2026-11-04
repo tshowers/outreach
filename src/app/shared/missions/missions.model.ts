@@ -13,7 +13,7 @@ export type Owner = 'todd' | 'maya' | 'person';
 export type StepKind = 'tool' | 'task' | 'approval' | 'wait' | 'decision';
 export type StepStatus = 'pending' | 'active' | 'done' | 'skipped' | 'failed';
 export type OutcomeType = 'action' | 'insight' | 'shortlist' | 'program' | 'assetSet';
-export type MissionStatus = 'queued' | 'running' | 'proposed' | 'awaiting_user' | 'active' | 'done' | 'cancelled';
+export type MissionStatus = 'queued' | 'running' | 'proposed' | 'awaiting_user' | 'active' | 'done' | 'cancelled' | 'failed';
 export type Phase = 'planning' | 'proposed' | 'working' | 'waiting_on_people' | 'waiting_on_world' | 'done' | 'cancelled';
 
 export interface StepView {
@@ -104,7 +104,17 @@ export interface MissionReport {
   shortlist: ShortlistItem[];
   proposals: Proposal[];
   line: string;
+  // The Insights and Report panels (design_handoff_mission_insights_report, 2026-11-03).
+  insights?: { headline: string; summary: string; findings: InsightFinding[] } | null;
+  outcome?: string;
+  stats?: { value: number; label: string; tone?: 'accent' | 'muted' }[];
+  next?: string[];
+  kept?: string[];
+  dropped?: string[];
+  candidateCount?: number;
 }
+
+export interface InsightFinding { id: string; title: string; body: string; contacts: { name: string; firm: string; email: string }[]; nextAction: string; evidence: string }
 
 export interface MissionView {
   id: string;
@@ -132,7 +142,25 @@ export interface MissionView {
   split: { todd: number; maya: number; you: number; teammates: number };
   isOwner: boolean;
   assessment?: { signals?: string[]; reason?: string } | null;
+  /** Moves the Mission handed to people, read live; open ones first. */
+  followUps?: FollowUp[];
+  /** The Mission's emails: queued, how many have gone out (null if unknown), when the queue sends them. */
+  sends?: MissionSends;
 }
+
+export interface MissionSends { queued: number; sent: number | null; firstAt: string | null; lastAt: string | null }
+
+/** Emails queued but not out yet, while the queue still has them ahead (a past lastAt means they've gone). */
+export function emailsGoingOut ( sends: MissionSends | undefined, now = Date.now() ): number {
+  if ( !sends || sends.sent === null || !sends.lastAt || !( Date.parse( sends.lastAt ) > now ) ) return 0;
+  return Math.max( 0, sends.queued - sends.sent );
+}
+
+function shortDate ( iso: string ): string {
+  return new Date( iso ).toLocaleDateString( 'en-US', { month: 'short', day: 'numeric' } );
+}
+
+export interface FollowUp { id: string; title: string; assigneeId: string; dueDate: string; done: boolean }
 
 export interface DirectAnswer {
   mode: 'direct';
@@ -396,6 +424,46 @@ export function stripColumns ( steps: StepView[], viewerId: string, people: Reco
 }
 
 /** The column a person should look at: the first active one, else the first failed. */
+export type StateTone = 'you' | 'working' | 'waiting' | 'done' | 'stopped';
+/** teammate: it's a teammate's turn (the list's "Waiting on others"). */
+export interface MissionState { tone: StateTone; label: string; teammate?: boolean }
+
+function plural ( count: number, word: string ): string {
+  return `${count} ${word}${count === 1 ? '' : 's'}`;
+}
+
+/**
+ * What a Mission is doing, in a few words, as the person sees it (Ty,
+ * 2026-11-03): "Done" never hides work that's still theirs, and waiting says
+ * on whom or on what, until when.
+ */
+export function missionState ( m: MissionView, columns: ColumnView[], viewerId: string, people: Record<string, Person> = {} ): MissionState {
+  if ( m.status === 'failed' ) return { tone: 'stopped', label: 'Stopped' };
+  if ( m.status === 'cancelled' ) return { tone: 'stopped', label: 'Cancelled' };
+  if ( m.status === 'proposed' ) return { tone: 'you', label: m.isOwner ? 'Needs you · press Start' : 'Waiting to start' };
+  if ( m.status === 'done' ) {
+    const open = ( m.followUps || [] ).filter( ( f ) => !f.done );
+    const mine = open.filter( ( f ) => f.assigneeId === viewerId );
+    if ( mine.length ) return { tone: 'you', label: `Done · ${plural( mine.length, 'follow-up' )} for you` };
+    const going = emailsGoingOut( m.sends );
+    if ( going ) return { tone: 'waiting', label: `Done · ${plural( going, 'email' )} going out ${shortDate( m.sends!.lastAt! )}` };
+    if ( open.length ) return { tone: 'waiting', label: `Done · ${plural( open.length, 'follow-up' )} with your team` };
+    return { tone: 'done', label: 'Done' };
+  }
+  const column = currentColumn( columns );
+  if ( !column ) return { tone: 'working', label: m.steps.length ? 'Working' : 'Planning' };
+  if ( column.look === 'run' ) return { tone: 'working', label: 'Working' };
+  if ( column.look === 'wait' ) {
+    const step = m.steps.find( ( s ) => column.stepIds.includes( s.id ) && s.status === 'active' ) || column.step;
+    const what = step && step.tool === 'outreach.waitForEngagement' ? 'Waiting on replies' : 'Waiting';
+    const until = step && step.waitUntil ? shortDate( step.waitUntil ) : '';
+    return { tone: 'waiting', label: until ? `${what} · until ${until}` : what };
+  }
+  if ( column.who === 'you' ) return { tone: 'you', label: 'Needs you' };
+  if ( column.who === 'todd' || column.who === 'maya' ) return { tone: 'working', label: 'Working' };
+  return { tone: 'waiting', label: `Waiting on ${nameOf( column.who, people )}`, teammate: true };
+}
+
 export function currentColumn ( columns: ColumnView[] ): ColumnView | null {
   return columns.find( ( column ) => column.active ) || null;
 }

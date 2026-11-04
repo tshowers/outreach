@@ -91,7 +91,9 @@ export function paint ( look: Look, who: Who ): { seg: string; lbg: string; lfg:
           @for (c of columns(); track c.stepId; let last = $last) {
             <div class="row">
               <div class="rail">
-                @if (c.kind === 'branch') { <tm-owner-token who="branch" [size]="32" /> } @else { <tm-owner-token [who]="c.who" [size]="32" [people]="people()" /> }
+                <!-- While a step works, its owner's token turns into a spinner; done puts the token back (Ty, 2026-11-03). -->
+                @if (c.look === 'run') { <span class="spin" [style.--hue]="hueOf(c.who)" [attr.title]="whoName(c.who) + ' is working'" role="img" [attr.aria-label]="whoName(c.who) + ' is working'" data-cy="rail-spinner"></span> }
+                @else if (c.kind === 'branch') { <tm-owner-token who="branch" [size]="32" /> } @else { <tm-owner-token [who]="c.who" [size]="32" [people]="people()" /> }
                 @if (!last) { <span class="wire" [style.background]="c.look === 'done' || c.look === 'skip' ? 'var(--text)' : 'var(--surface2)'"></span> }
               </div>
               <button type="button" class="card" [style.background]="c.active ? paintOf(c).bg : 'transparent'" (click)="pick(c)" [attr.data-cy]="'step-' + c.stepId" [attr.data-look]="c.look">
@@ -116,7 +118,8 @@ export function paint ( look: Look, who: Who ): { seg: string; lbg: string; lfg:
                   <span class="paths rows">
                     @for (p of c.paths; track p.stepIds[0]) {
                       <span class="path-row" [style.background]="p.look === 'skip' || p.look === 'next' ? 'var(--surface)' : paintOf(p).bg">
-                        <tm-owner-token [who]="p.who" [size]="22" [people]="people()" />
+                        @if (p.look === 'run') { <span class="spin small" [style.--hue]="hueOf(p.who)" role="img" [attr.aria-label]="whoName(p.who) + ' is working'"></span> }
+                        @else { <tm-owner-token [who]="p.who" [size]="22" [people]="people()" /> }
                         <span class="path-text" [class.struck]="p.look === 'skip'"><b>{{ p.if }}</b> {{ p.title }}</span>
                         <span class="path-label" [style.color]="paintOf(p).lfg">{{ p.label }}</span>
                       </span>
@@ -157,6 +160,10 @@ export function paint ( look: Look, who: Who ): { seg: string; lbg: string; lfg:
     .list { display: flex; flex-direction: column; }
     .row { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; }
     .rail { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 10px; }
+    .spin { flex: none; box-sizing: border-box; width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--surface2); border-top-color: var(--hue); border-right-color: var(--hue); animation: tm-spin .9s linear infinite; }
+    .spin.small { width: 22px; height: 22px; border-width: 2.5px; }
+    @keyframes tm-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } }
     .wire { flex: 1; width: 3px; min-height: 10px; border-radius: 3px; }
     .card { display: flex; flex-direction: column; gap: 6px; padding: 10px 14px 14px; margin-bottom: 6px; border-radius: 18px; min-width: 0; }
     .head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -233,6 +240,10 @@ export class PlanStripComponent {
 
   paintOf ( c: { look: Look; who: Who } ) {
     return paint( c.look, c.who );
+  }
+
+  hueOf ( who: Who ): string {
+    return hue( who );
   }
 
   glyph ( look: Look ): string {

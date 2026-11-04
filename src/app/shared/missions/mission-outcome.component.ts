@@ -60,17 +60,11 @@ import { ShortlistPick as Pick, ShortlistPicksStore } from './shortlist-picks.st
     }
 
     @if (report(); as r) {
-      @if (r.findings.length || r.proposals.length) {
+      <!-- The findings live in the Insights panel now; proposals to act on stay here. -->
+      @if (r.proposals.length) {
         <section class="insight" data-cy="insight-result">
-          <span class="kicker">{{ kickerFor('insight') }}</span>
-          <p class="lead" data-cy="insight-headline">{{ r.headline }}</p>
-          @if (r.findings.length) {
-            <ol class="findings">
-              @for (f of r.findings; track f.title) { <li data-cy="finding"><b>{{ f.title }}</b><span>{{ f.detail }}</span>@if (f.evidence) { <span class="evidence">From {{ f.evidence }}</span> }</li> }
-            </ol>
-          }
           @if (r.proposals.length) {
-            <h3>Proposed next Missions</h3>
+            <h2>Proposed next Missions</h2>
             <div class="proposals">
               @for (p of r.proposals; track p.title) {
                 <article class="proposal" data-cy="proposal">

@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
 
 import { MissionsApiService } from './missions-api.service';
-import { MissionView, Person, currentColumn, stripColumns } from './missions.model';
+import { MissionView, Person, missionState, stripColumns } from './missions.model';
 import { PlanStripComponent } from './plan-strip.component';
 
 type Filter = 'all' | 'mine' | 'others';
+const KIND: Record<string, string> = { action: 'Action', insight: 'Insight', shortlist: 'Shortlist', program: 'Program', assetSet: 'Asset set' };
 
 /**
  * Missions as Moves rows (design 5a): each row carries a compact plan strip
@@ -32,10 +33,11 @@ type Filter = 'all' | 'mine' | 'others';
         <p class="muted" data-cy="missions-empty">{{ filter() === 'mine' ? 'Nothing is waiting on you.' : 'No Missions here yet. Ask the General Assistant for something to get one started.' }}</p>
       } @else {
         <ol>
-          @for (m of shown(); track m.id) {
+          @for (row of shown(); track row.m.id) {
+            @let m = row.m;
             <li>
-              <a class="row" [href]="detailBase() + m.id" data-cy="mission-row" [attr.data-phase]="m.phase">
-                <span class="meta">{{ meta(m) }}</span>
+              <a class="row" [href]="detailBase() + m.id" data-cy="mission-row" [attr.data-phase]="m.phase" [attr.data-tone]="row.tone">
+                <span class="meta"><span class="dot"></span>{{ row.meta }}</span>
                 <b>{{ m.title || m.request }}</b>
                 <span class="strip"><tm-plan-strip [steps]="m.steps" mode="compact" [viewerId]="viewerId()" [people]="people()" /></span>
               </a>
@@ -56,7 +58,13 @@ type Filter = 'all' | 'mine' | 'others';
     .seg span { opacity: .6; margin-left: 4px; }
     ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
     .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 1.4fr); grid-template-areas: "meta strip" "title strip"; gap: 4px 20px; align-items: center; background: var(--surface); border-radius: 20px; padding: 14px 18px; color: inherit; text-decoration: none; }
-    .meta { grid-area: meta; font-size: 13px; color: var(--muted); }
+    .meta { grid-area: meta; font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+    .meta .dot { width: 7px; height: 7px; border-radius: 50%; background: #86aeff; flex: none; }
+    .row[data-tone="you"] .meta { color: var(--text); font-weight: 600; }
+    .row[data-tone="you"] .dot { background: #f2b84b; }
+    .row[data-tone="waiting"] .dot { background: #8a91a0; }
+    .row[data-tone="done"] .dot { background: #3ccf8e; }
+    .row[data-tone="stopped"] .dot { background: #e5484d; }
     b { grid-area: title; font-size: 17px; font-weight: 700; }
     .strip { grid-area: strip; min-width: 0; }
     .muted { color: var(--muted); }
@@ -90,29 +98,29 @@ export class MissionsListComponent implements OnInit {
     }
   }
 
-  private holder ( m: MissionView ): 'mine' | 'others' | 'none' {
-    const column = currentColumn( stripColumns( m.steps, this.viewerId(), this.people() ) );
-    if ( !column || column.look === 'run' || column.look === 'wait' ) return 'none';
-    return column.who === 'you' ? 'mine' : column.who === 'todd' || column.who === 'maya' ? 'none' : 'others';
-  }
+  /**
+   * Each Mission with its state in words (missionState, as the detail page
+   * says it): "Needs you", "Waiting on replies · until Nov 10", "Done · 2
+   * follow-ups for you". A finished one that left you follow-ups is waiting on you.
+   */
+  readonly rows = computed( () => this.missions().map( ( m ) => {
+    const columns = stripColumns( m.steps, this.viewerId(), this.people() );
+    const state = missionState( m, columns, this.viewerId(), this.people() );
+    const holder: 'mine' | 'others' | 'none' = state.tone === 'you' && m.status !== 'proposed' ? 'mine' : state.teammate ? 'others' : 'none';
+    return { m, holder, tone: state.tone, meta: `${KIND[m.outcomeType] || 'Action'} · ${state.label}` };
+  } ) );
 
   readonly filters = computed( () => {
-    const all = this.missions();
+    const all = this.rows();
     return [
       { id: 'all' as Filter, label: 'All', count: all.length },
-      { id: 'mine' as Filter, label: 'Waiting on you', count: all.filter( ( m ) => this.holder( m ) === 'mine' ).length },
-      { id: 'others' as Filter, label: 'Waiting on others', count: all.filter( ( m ) => this.holder( m ) === 'others' ).length },
+      { id: 'mine' as Filter, label: 'Waiting on you', count: all.filter( ( r ) => r.holder === 'mine' ).length },
+      { id: 'others' as Filter, label: 'Waiting on others', count: all.filter( ( r ) => r.holder === 'others' ).length },
     ];
   } );
 
   readonly shown = computed( () => {
     const filter = this.filter();
-    return this.missions().filter( ( m ) => filter === 'all' || this.holder( m ) === filter );
+    return this.rows().filter( ( r ) => filter === 'all' || r.holder === filter );
   } );
-
-  meta ( m: MissionView ): string {
-    const kind = { action: 'Action', insight: 'Insight', shortlist: 'Shortlist', program: 'Program', assetSet: 'Asset set' }[m.outcomeType] || 'Action';
-    const when = m.status === 'done' ? 'Done' : m.status === 'proposed' ? 'Not started' : m.startedAt ? `Started ${new Date( m.startedAt ).toLocaleDateString( undefined, { month: 'short', day: 'numeric' } )}` : 'Planning';
-    return `${kind} · ${when}`;
-  }
 }

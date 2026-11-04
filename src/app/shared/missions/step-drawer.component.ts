@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 import { MissionsApiService } from './missions-api.service';
 import { ColumnView, KIND_LABEL, MissionView, Person, StepActionType, StepView, labelOf, leftUntil, lookOf, nameOf, whoOf } from './missions.model';
@@ -58,7 +59,39 @@ import { ShortlistPicksStore } from './shortlist-picks.store';
         <section>
           <h3>{{ p.kind === 'email' ? 'The email' : 'What you’re approving' }}</h3>
           @if (p.kind === 'email') {
-            <div class="email"><span class="band"></span><div><b>{{ p.title }}</b>@if (p.note) { <span class="muted">{{ p.note }}</span> }</div></div>
+            <!-- The email itself, so an approval is never blind (Ty, 2026-11-03). -->
+            <div class="email" data-cy="drawer-email">
+              <div class="email-head">
+                <span class="muted">Subject</span><b data-cy="drawer-email-subject">{{ emailCheck()?.subject || p.title }}</b>
+                @if (p.preheader) { <span class="muted">{{ p.preheader }}</span> }
+              </div>
+              @if (emailHtml(); as html) {
+                <iframe class="email-frame" sandbox="" [srcdoc]="html" title="The email" data-cy="drawer-email-body"></iframe>
+              } @else if (emailLoading()) {
+                <span class="muted pad">Loading the email…</span>
+              } @else {
+                <span class="band"></span>
+                @if (p.note) { <span class="muted pad">{{ p.note }}</span> }
+              }
+              @if (emailCheck(); as c) {
+                <!-- Checked before the yes: blanks nothing fills stop it (Ty, 2026-11-03). -->
+                <div class="check" [class.bad]="!c.ok" data-cy="drawer-email-check">
+                  @if (c.ok) {
+                    <b>Ready to send to {{ c.recipients }} {{ c.recipients === 1 ? 'person' : 'people' }}.</b>
+                  } @else {
+                    <b>Not ready to send yet.</b>
+                    @if (c.problem) { <span>{{ c.problem }}</span> }
+                    @if (c.blanks.length) { <span data-cy="drawer-email-blanks">Nothing fills these in: @for (b of c.blanks; track b.token) { <code>{{ '{{' + b.token + '}}' }}</code> } Fill them in or remove them.</span> }
+                    @if (c.broken) { <span>It has broken characters (a box where an apostrophe should be).</span> }
+                  }
+                  @for (s of c.skipped; track s.token) {
+                    <span class="muted" data-cy="drawer-email-skipped">{{ s.count }} of {{ c.recipients }} have no {{ s.label.toLowerCase() }}, so they’ll be skipped (like {{ s.examples.join(', ') }}).</span>
+                  }
+                  <!-- Always there, so you can tweak an email that's ready too (Ty, 2026-11-03). -->
+                  <a class="btn small" [href]="docsEditUrl(c.documentId)" target="_blank" rel="noopener" data-cy="drawer-open-docs">{{ c.ok ? 'Edit the email in Docs ↗' : 'Open the email in Docs ↗' }}</a><span class="muted">Save it there, then come back; this updates when you return.</span>
+                </div>
+              } @else if (p.fillIns.length) { <span class="muted pad" data-cy="drawer-email-fillins">Still needs: {{ p.fillIns.join(', ') }}</span> }
+            </div>
           } @else if (p.kind === 'image') {
             <img class="img" [src]="p.src" alt="">
           } @else {
@@ -148,7 +181,7 @@ import { ShortlistPicksStore } from './shortlist-picks.store';
               } @else {
                 <button type="button" class="btn" (click)="noteOpen.set(true)" data-cy="drawer-reject">Reject with a note</button>
               }
-              <button type="button" class="btn primary" (click)="act('approve')" [disabled]="busy()" data-cy="drawer-approve">Approve</button>
+              <button type="button" class="btn primary" (click)="act('approve')" [disabled]="busy() || emailNotReady()" data-cy="drawer-approve">Approve</button>
             }
             @case ('decision') {
               @if (shortlist().length) {
@@ -209,7 +242,14 @@ import { ShortlistPicksStore } from './shortlist-picks.store';
     .time { font-size: 12px; color: var(--muted); }
     .email { border-radius: 16px; background: var(--surface); overflow: hidden; display: flex; flex-direction: column; }
     .email .band { height: 56px; background: var(--t-violet); }
-    .email div { padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+    .email-head { padding: 10px 14px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+    .email-frame { display: block; width: 100%; height: 420px; border: 0; background: #fff; }
+    .email .pad { padding: 8px 14px 12px; font-size: 13px; }
+    .check { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; font-size: 13px; background: var(--surface2); }
+    .check.bad { background: var(--t-red); color: var(--t-red-fg); }
+    .check.bad .muted { color: inherit; opacity: .8; }
+    .check code { font-size: 12px; margin-right: 4px; }
+    .check .btn.small { align-self: flex-start; height: 34px; padding: 0 12px; font-size: 13px; display: inline-flex; align-items: center; text-decoration: none; }
     .img { width: 100%; max-height: 220px; border-radius: 14px; object-fit: cover; background: var(--t-violet); }
     .doc { align-self: flex-start; height: 32px; padding: 0 12px; border-radius: 999px; background: var(--surface); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
     .tag { height: 20px; padding: 0 7px; border-radius: 999px; background: var(--bg); font-size: 11px; display: flex; align-items: center; }
@@ -237,6 +277,7 @@ import { ShortlistPicksStore } from './shortlist-picks.store';
 export class StepDrawerComponent {
   private readonly api = inject( MissionsApiService );
   private readonly picks = inject( ShortlistPicksStore );
+  private readonly sanitizer = inject( DomSanitizer );
 
   readonly mission = input.required<MissionView>();
   readonly column = input.required<ColumnView>();
@@ -315,6 +356,14 @@ export class StepDrawerComponent {
   } );
   readonly keptCount = computed( () => this.keptItems().length );
   readonly keptNames = computed( () => this.keptItems().map( ( item ) => item.name ).join( ', ' ) );
+  /** For an approval that sends an email: the server's check of it (blanks, who'd be skipped). */
+  readonly emailCheck = computed<{ ok: boolean; documentId: string; subject?: string; recipients: number; problem?: string; broken: boolean; blanks: { token: string; label: string }[]; skipped: { token: string; label: string; count: number; examples: string[] }[] } | null>( () => ( this.step() as any ).emailCheck || null );
+  readonly emailNotReady = computed( () => Boolean( this.emailCheck() && !this.emailCheck()!.ok ) );
+
+  docsEditUrl ( documentId: string ): string {
+    return `https://docs.16ahead.com/docs/editor/${encodeURIComponent( documentId )}`;
+  }
+
   /** For an approval: who each send right after it goes to (the server's preview). */
   readonly recipients = computed<{ stepId: string; title: string; count: number; pending: boolean; people: { email: string; name: string; company: string }[] }[]>( () => ( this.step() as any ).recipients || [] );
   readonly needsNote = computed( () => ( this.mode() === 'decision' && !this.choices().length && !this.shortlist().length ) || this.mode() === 'task' );
@@ -339,18 +388,54 @@ export class StepDrawerComponent {
   readonly uses = computed( () => this.step().dependsOn.map( ( id ) => this.mission().steps.find( ( s ) => s.id === id ) ).filter( ( s ): s is StepView => Boolean( s ) ) );
   readonly then = computed( () => this.mission().steps.filter( ( s ) => s.dependsOn.includes( this.step().id ) && s.status !== 'skipped' ) );
 
-  /** What a person is approving or deciding on: the output of the step this one depends on. */
-  readonly preview = computed( () => {
+  /**
+   * What a person is approving or deciding on: the output of a step this one
+   * depends on. An approval shows the email it sends when there is one, not
+   * whichever input finished last (Ty, 2026-11-03: it showed the attached CSV
+   * and never the email); the recipient lists show below.
+   */
+  readonly preview = computed<{ kind: 'email' | 'image' | 'doc'; title: string; note: string; src: string; preheader: string; fillIns: string[]; documentId: string } | null>( () => {
     const step = this.step();
     if ( step.kind !== 'approval' && !( step.status === 'done' && step.output ) ) return null;
-    const source = step.kind === 'approval' ? this.uses().filter( ( s ) => s.status === 'done' ).pop() : step;
+    const done = this.uses().filter( ( s ) => s.status === 'done' && s.output );
+    const isEmail = ( s: StepView ) => s.tool === 'email.create' || Boolean( s.output && s.output['subject'] );
+    const source = step.kind === 'approval'
+      ? done.filter( isEmail ).pop() || done.filter( ( s ) => s.tool === 'image.obtain' && s.output!['src'] ).pop() || done.pop()
+      : step;
     const out = source && source.output;
     if ( !out ) return null;
-    if ( source!.tool === 'email.create' || out['subject'] ) return { kind: 'email', title: out['subject'] || source!.title, note: source!.resultSummary !== out['subject'] ? source!.resultSummary : '', src: '' };
-    if ( source!.tool === 'image.obtain' && out['src'] ) return { kind: 'image', title: source!.title, src: out['src'], note: '' };
-    if ( out['documentId'] ) return { kind: 'doc', title: out['title'] || source!.title, src: '', note: '' };
+    const base = { note: '', src: '', preheader: '', fillIns: [] as string[], documentId: String( out['documentId'] || '' ) };
+    if ( isEmail( source! ) ) {
+      return { ...base, kind: 'email', title: out['subject'] || source!.title, note: source!.resultSummary !== out['subject'] ? source!.resultSummary || '' : '', preheader: String( out['preheader'] || '' ), fillIns: Array.isArray( out['fillIns'] ) ? out['fillIns'].map( String ) : [] };
+    }
+    if ( source!.tool === 'image.obtain' && out['src'] ) return { ...base, kind: 'image', title: source!.title, src: out['src'] };
+    if ( out['documentId'] ) return { ...base, kind: 'doc', title: out['title'] || source!.title };
     return null;
   } );
+
+  /** The email's HTML from Docs, shown sandboxed (no scripts) in the drawer. */
+  readonly emailHtml = signal<SafeHtml | null>( null );
+  readonly emailLoading = signal( false );
+  private emailFor = '';
+
+  constructor () {
+    effect( () => {
+      const p = this.preview();
+      const id = p && p.kind === 'email' ? p.documentId : '';
+      if ( id === this.emailFor ) return;
+      this.emailFor = id;
+      this.emailHtml.set( null );
+      if ( !id ) return;
+      this.emailLoading.set( true );
+      this.api.doc( id )
+        .then( ( doc ) => {
+          const html = doc && ( doc['htmlContent'] || doc['html'] );
+          if ( this.emailFor === id && html ) this.emailHtml.set( this.sanitizer.bypassSecurityTrustHtml( String( html ) ) );
+        } )
+        .catch( () => null )
+        .finally( () => { if ( this.emailFor === id ) this.emailLoading.set( false ); } );
+    } );
+  }
 
   readonly history = computed( () => {
     const step = this.step();

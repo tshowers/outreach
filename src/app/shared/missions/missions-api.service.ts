@@ -56,6 +56,11 @@ export class MissionsApiService {
     return firstValueFrom( this.http.post<{ mission: MissionView }>( `${this.base}/${encodeURIComponent( id )}/cancel`, {} ) ).then( ( res ) => res.mission );
   }
 
+  /** A saved Docs document (GET /api/docs/:id), e.g. the email an approval sends. */
+  doc ( id: string ): Promise<Record<string, any>> {
+    return firstValueFrom( this.http.get<{ document: Record<string, any> }>( `${environment.backendURL}/docs/${encodeURIComponent( id )}` ) ).then( ( res ) => res.document );
+  }
+
   report ( id: string ): Promise<MissionReport> {
     return firstValueFrom( this.http.get<{ report: MissionReport }>( `${this.base}/${encodeURIComponent( id )}/report` ) ).then( ( res ) => res.report );
   }
