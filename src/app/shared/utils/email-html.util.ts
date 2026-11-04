@@ -75,3 +75,33 @@ function trimTrailingBlanks ( container: Element ): void {
 function hasReadableText ( el: Element ): boolean {
   return !!( el.textContent || '' ).replace( /[\s ]/g, '' );
 }
+
+const DROP = 'script, noscript, iframe, frame, frameset, object, embed, applet, form, base, meta, link:not([rel~="stylesheet"]), title';
+
+/** Nothing that runs, submits or navigates; inline styles stay. */
+export function scrubDocument ( doc: Document ): void {
+  doc.querySelectorAll( DROP ).forEach( node => node.remove() );
+  doc.querySelectorAll( '*' ).forEach( element => {
+    for ( const attr of Array.from( element.attributes ) ) {
+      const name = attr.name.toLowerCase();
+      const value = attr.value.trim().toLowerCase();
+      if ( name.startsWith( 'on' ) || ( ['href', 'src', 'action', 'formaction', 'xlink:href'].includes( name ) && /^(javascript|vbscript|data:text\/html)/.test( value ) ) ) {
+        element.removeAttribute( attr.name );
+      }
+    }
+  } );
+}
+
+/**
+ * A draft we wrote, shown as it will look when sent (Ty, 2026-11-04): Angular's
+ * [innerHTML] sanitizer drops inline styles, which left the signature plain.
+ * Scrubbed here instead, so the caller can trust what's left.
+ */
+export function scrubEmailHtml ( raw: string | null | undefined ): string {
+  const source = String( raw || '' );
+  if ( !source.trim() || typeof DOMParser === 'undefined' ) return '';
+  const doc = new DOMParser().parseFromString( source, 'text/html' );
+  scrubDocument( doc );
+  return doc.body ? doc.body.innerHTML : '';
+}
+

@@ -82,7 +82,7 @@
       <section class="draft__message" aria-label="The email">
         <span class="draft__label">Subject</span>
         <strong class="draft__subject">{{ card.subject }}</strong>
-        <div class="draft__body" [class.is-open]="expanded.has(card.id)" [innerHTML]="card.body || '<p>(no message yet)</p>'"></div>
+        <div class="draft__body" [class.is-open]="expanded.has(card.id)" [innerHTML]="card.bodyHtml"></div>
         <p class="muted draft__sig" *ngIf="expanded.has(card.id)">Your signature is added when it sends.</p>
         <button type="button" class="draft__more" (click)="toggleExpanded(card)" [attr.aria-expanded]="expanded.has(card.id)">
           {{ expanded.has(card.id) ? 'Show less' : 'Read full email' }}

@@ -10,6 +10,7 @@
  * earlier messages". A forward is never cut: the forwarded mail is the
  * message.
  */
+import { scrubDocument } from '../../shared/utils/email-html.util';
 
 export interface LetterTheme {
   text: string;
@@ -45,8 +46,6 @@ const QUOTE_SELECTORS = [
 const HEADER_BLOCK = /^from:\s.{1,300}?(sent|date):\s/i;
 const WROTE_LINE = /^on\s.{3,200}wrote:?$/i;
 const FORWARD_MARK = /begin forwarded message|-{2,}\s*forwarded message\s*-{2,}/i;
-const DROP = 'script, noscript, iframe, frame, frameset, object, embed, applet, form, base, meta, link:not([rel~="stylesheet"]), title';
-
 export function prepareLetterHtml ( html: string, theme: LetterTheme, opts: { forward?: boolean; } = {} ): LetterHtml | null {
   if ( !String( html || '' ).trim() || typeof DOMParser === 'undefined' ) return null;
   const doc = new DOMParser().parseFromString( html, 'text/html' );
@@ -70,18 +69,7 @@ export function prepareLetterHtml ( html: string, theme: LetterTheme, opts: { fo
 }
 
 /** Nothing that runs, submits or navigates; links open in a new tab (the frame's base). */
-function scrub ( doc: Document ): void {
-  doc.querySelectorAll( DROP ).forEach( node => node.remove() );
-  doc.querySelectorAll( '*' ).forEach( element => {
-    for ( const attr of Array.from( element.attributes ) ) {
-      const name = attr.name.toLowerCase();
-      const value = attr.value.trim().toLowerCase();
-      if ( name.startsWith( 'on' ) || ( ['href', 'src', 'action', 'formaction', 'xlink:href'].includes( name ) && /^(javascript|vbscript|data:text\/html)/.test( value ) ) ) {
-        element.removeAttribute( attr.name );
-      }
-    }
-  } );
-}
+const scrub = scrubDocument;
 
 /** Its own canvas: a colored background or a fixed-width layout table. */
 function isDesigned ( doc: Document ): boolean {

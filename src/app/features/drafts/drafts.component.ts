@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Observable, Subscription, catchError, combineLatest, firstValueFrom, from, map, mergeMap, of, take, toArray } from 'rxjs';
 
 import { OutreachAuthService } from '../../services/outreach-auth.service';
@@ -13,6 +14,7 @@ import { PreloaderComponent } from '../../shared/preloader/preloader.component';
 import { MailToast, MailToastComponent } from '../../shared/mail/mail-toast.component';
 import { firstName, sendTimeLabel, sinceLabel } from '../../shared/mail/mail-time.util';
 import { stripAiFooter } from '../../shared/mail/ai-footer.util';
+import { scrubEmailHtml } from '../../shared/utils/email-html.util';
 
 type DraftKind = 'outbound' | 'reply';
 
@@ -24,6 +26,8 @@ interface DraftCard {
   company: string;
   subject: string;
   body: string;
+  /** body, scrubbed and trusted, so its inline styles (the signature) show as sent. */
+  bodyHtml: SafeHtml;
   why: string;
   lastLine: string;
   kindPill: string;
@@ -63,6 +67,7 @@ export class DraftsComponent implements OnInit, OnDestroy {
   private readonly api = inject( OutreachApiService );
   private readonly counts = inject( NeedsYouCountService );
   private readonly router = inject( Router );
+  private readonly sanitizer = inject( DomSanitizer );
   private subscription?: Subscription;
   private pollTimer: ReturnType<typeof setTimeout> | undefined;
   private pendingDiscard: { card: DraftCard; timer: ReturnType<typeof setTimeout>; } | null = null;
@@ -196,6 +201,7 @@ export class DraftsComponent implements OnInit, OnDestroy {
     const sentThisWeek = recent?.count || 0;
     const heldUntil = this.heldUntil( thread, lastSentIso );
     const first = firstName( name );
+    const body = stripAiFooter( String( ( kind === 'reply' ? thread.replyDraftBody : thread.draftBody ) || '' ) );
     return {
       thread,
       id,
@@ -203,7 +209,8 @@ export class DraftsComponent implements OnInit, OnDestroy {
       name,
       company: String( thread.companyName || '' ),
       subject: String( ( kind === 'reply' ? thread.replyDraftSubject : thread.draftSubject ) || '' ).trim() || '(no subject)',
-      body: stripAiFooter( String( ( kind === 'reply' ? thread.replyDraftBody : thread.draftBody ) || '' ) ),
+      body,
+      bodyHtml: this.sanitizer.bypassSecurityTrustHtml( scrubEmailHtml( body ) || '<p>(no message yet)</p>' ),
       why: String( ( kind === 'reply' ? thread.replyDraftRationale : '' ) || thread.strategySummary || thread.stopReason?.detail || '' ).trim(),
       lastLine: this.rewritten.has( id ) ? 'Rewritten by the Marketing Assistant just now.'
         : sentThisWeek > 1 ? `You emailed ${ first } ${ sentThisWeek } times this week, last ${ lastSent }.`
