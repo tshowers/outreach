@@ -165,7 +165,7 @@
 /* Area tiles */
 .tiles {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -200,6 +200,8 @@
 .tile--blue { background: var(--t-blue); color: var(--t-blue-fg) !important; }
 .tile--cyan { background: var(--t-cyan); color: var(--t-cyan-fg) !important; }
 .tile--yellow { background: var(--t-yellow); color: var(--t-yellow-fg) !important; }
+.tile--green { background: var(--t-green); color: var(--t-green-fg) !important; }
+.tile--pink { background: var(--t-pink); color: var(--t-pink-fg) !important; }
 
 /* The web's health gauges, one figure each */
 .gauges {

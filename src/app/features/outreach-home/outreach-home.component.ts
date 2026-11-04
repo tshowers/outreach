@@ -23,6 +23,7 @@ import { NeedsYouCountService } from '../../services/needs-you-count.service';
 import { OutreachOnboardingService, OutreachStep } from '../../services/outreach-onboarding.service';
 import { WriteActionDirective } from '../../shared/write-access/write-action.directive';
 import { ActivityAction, activityAction } from '../../shared/utils/activity-action.util';
+import { DripsApiService } from '../../services/drips-api.service';
 
 type ActivityGroup = { title: string; rows: Array<{ title: string; body: string; count: number; tint: string; icon: string; action: ActivityAction | null; }>; };
 
@@ -71,6 +72,7 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
   ];
   readonly entitlements$ = inject( OutreachEntitlementService ).getEntitlements();
   private readonly needsYouCount = inject( NeedsYouCountService );
+  private readonly dripsApi = inject( DripsApiService );
   private readonly platformId = inject( PLATFORM_ID );
   tenantId: string | null = null;
   userId: string | null = null;
@@ -113,6 +115,10 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
   noMailbox = false;
   needsYouRows: Array<{ id: string; initials: string; name: string; reason: string; age: string; }> = [];
   draftsCount = 0;
+  /** Every tile carries its number (Ty, 2026-11-04). null until loaded. */
+  tileCounts: { inbox: number | null; catalyst: number | null; activity: number | null; drips: number | null; conversations: number | null; } =
+    { inbox: null, catalyst: null, activity: null, drips: null, conversations: null };
+  catalystLine = '';
   pipeline = { activeThreads: 0, draftReady: 0, upNext: 0, hotLeads: 0, warmLeads: 0, queued: 0, sending: 0 };
   brokenMailboxAddress = '';
   mayaDayLine = '';
@@ -685,10 +691,14 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
   /** Maya's day (the Activity feed) and the mailbox status, for Home. */
   private async loadHomeExtras ( tenantId: string ): Promise<void> {
     const opts = { tenantId, userId: this.userId || undefined, userEmail: this.userEmail || undefined };
-    const [mayaDay, mailboxes] = await Promise.all( [
+    const [mayaDay, mailboxes, runs, drips, conversations] = await Promise.all( [
       firstValueFrom( this.outreachApi.getMayaDay( opts ) ).catch( () => null ),
-      firstValueFrom( this.outreachApi.listMailboxes( opts ) ).catch( () => null )
+      firstValueFrom( this.outreachApi.listMailboxes( opts ) ).catch( () => null ),
+      firstValueFrom( this.outreachApi.listCatalystRuns( { limit: 1 }, opts ) ).catch( () => null ),
+      this.dripsApi.list().catch( () => null ),
+      firstValueFrom( this.outreachApi.listEmailConversations( opts ) ).catch( () => null )
     ] );
+    this.setTileCounts( mayaDay?.data || null, runs?.data?.[0] || null, drips?.drips || null, conversations?.data || null );
     const day = mayaDay?.data;
     if ( day ) {
       const parts = [
@@ -702,6 +712,24 @@ export class OutreachHomeComponent implements OnInit, OnDestroy {
     const broken = ( mailboxes?.data || [] ).find( box => box.lastSyncStatus === 'failed' && box.status !== 'disconnected' );
     this.brokenMailboxAddress = broken?.emailAddress || '';
     this.noMailbox = !!mailboxes && !( mailboxes.data || [] ).some( box => box.status !== 'disconnected' );
+  }
+
+  /**
+   * The tiles' numbers: replies today, the latest Catalyst run's sends, today's
+   * activity, drips sending, and conversations this week. A source that didn't
+   * load leaves its tile without a number rather than showing a wrong 0.
+   */
+  private setTileCounts ( day: any, run: any, drips: Array<{ status: string; }> | null, conversations: Array<{ isTest?: boolean; lastMessageAt?: string; }> | null ): void {
+    const weekAgo = Date.now() - 7 * 86400000;
+    const ranToday = !!run && new Date( run.startedAt || run.createdAt || 0 ).toDateString() === new Date().toDateString();
+    this.tileCounts = {
+      inbox: day ? Number( day.repliesReceived ) || 0 : null,
+      catalyst: run ? ( ranToday ? Number( run.sentCount ) || 0 : 0 ) : null,
+      activity: day ? ( Array.isArray( day.activity ) ? day.activity.length : 0 ) : null,
+      drips: drips ? drips.filter( ( drip ) => ['running', 'starting', 'scheduled'].includes( drip.status ) ).length : null,
+      conversations: conversations ? conversations.filter( ( item ) => !item.isTest && Date.parse( item.lastMessageAt || '' ) >= weekAgo ).length : null,
+    };
+    this.catalystLine = ranToday ? `sent of ${ Number( run.queuedCount || run.plannedCount ) || 0 } in today's run` : '';
   }
 
   /** Day groups, with the same event recorded twice merged into "×2". */
