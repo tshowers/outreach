@@ -71,6 +71,8 @@ export class DraftsComponent implements OnInit, OnDestroy {
   private subscription?: Subscription;
   private pollTimer: ReturnType<typeof setTimeout> | undefined;
   private pendingDiscard: { card: DraftCard; timer: ReturnType<typeof setTimeout>; } | null = null;
+  /** Drafts discarded on this visit: an older load can't bring them back (Ty, 2026-11-04). */
+  private readonly discarded = new Set<string>();
 
   private tenantId = '';
   private userId = '';
@@ -162,7 +164,7 @@ export class DraftsComponent implements OnInit, OnDestroy {
     const cards: DraftCard[] = [];
     for ( const thread of threads ) {
       const id = String( thread.contactId || thread.id );
-      if ( thread.userLane !== 'drafts' || id === pendingId ) continue;
+      if ( thread.userLane !== 'drafts' || id === pendingId || this.discarded.has( id ) ) continue;
       const rewriteAsked = this.rewriting.get( id );
       const stillRewriting = !!thread.rewriteQueueState || ( rewriteAsked !== undefined && !this.hasDraft( thread ) );
       if ( rewriteAsked !== undefined && !stillRewriting ) {
@@ -519,8 +521,12 @@ export class DraftsComponent implements OnInit, OnDestroy {
     if ( !pending ) return;
     clearTimeout( pending.timer );
     this.pendingDiscard = null;
-    firstValueFrom( this.api.discardMomentumDraft( pending.card.id, this.opts ) ).catch( () => {
+    this.discarded.add( pending.card.id );
+    firstValueFrom( this.api.discardMomentumDraft( pending.card.id, this.opts ) ).catch( ( error: any ) => {
+      // Already out of Drafts (discarded, sent, or stopped): that's done, not a failure.
+      if ( error?.error?.error === 'not_a_draft' ) return;
       // It didn't go through: put it back so nothing is silently lost.
+      this.discarded.delete( pending.card.id );
       this.build( [...this.cards.map( ( item ) => item.thread ), pending.card.thread] );
       this.toast = { text: `Couldn't discard the draft for ${ pending.card.name }.` };
     } );
@@ -530,6 +536,13 @@ export class DraftsComponent implements OnInit, OnDestroy {
     // Already approved or rewritten elsewhere: just refresh.
     if ( error?.error?.error === 'not_a_draft' ) {
       void this.load( true );
+      return;
+    }
+    // Stopped for silence: the server took the draft out of Drafts, so the card goes with the reason.
+    if ( error?.error?.error === 'no_engagement' ) {
+      this.discarded.add( card.id );
+      this.remove( card );
+      this.toast = { text: String( error.error.message || `Stopped emailing ${ card.name }.` ) };
       return;
     }
     this.cardError.set( card.id, String( error?.error?.message || error?.message || fallback ) );
