@@ -103,7 +103,7 @@
         <div class="draft__actions" *ngIf="!selecting">
           <button type="button" class="pill pill--primary" appWriteAction="approve this draft" [disabled]="working.has(card.id) || !!card.heldUntil" [title]="card.heldUntil ? 'Held until ' + card.heldUntil + ' so ' + card.name + ' doesn\'t get too many emails.' : ''" (click)="approve(card)" [attr.data-cy]="'draft-approve-' + card.id">
             <span class="spinner" *ngIf="working.get(card.id) === 'approve'" aria-hidden="true"></span>
-            {{ card.kind === 'reply' ? 'Approve & send' : 'Approve' }}
+            {{ card.replied ? 'Approve & send' : 'Approve' }}
           </button>
           <button type="button" class="pill" appWriteAction="edit this email" [disabled]="working.has(card.id)" (click)="edit(card)">Edit</button>
           <button type="button" class="pill" appWriteAction="have the Marketing Assistant rewrite this draft" [disabled]="working.has(card.id)" (click)="rewrite(card)" [attr.data-cy]="'draft-rewrite-' + card.id">Ask the Marketing Assistant to rewrite</button>
@@ -115,7 +115,7 @@
             <button type="button" class="pill pill--ghost pill--danger" appWriteAction="discard this draft" [disabled]="working.has(card.id)" (click)="discard(card)" [attr.data-cy]="'draft-discard-' + card.id">Discard</button>
           </ng-container>
         </div>
-        <p class="muted draft__send" *ngIf="!selecting">{{ sendLine(card) }}</p>
+        <p class="muted draft__send" *ngIf="!selecting">{{ card.sendLine }}</p>
       </ng-template>
     </article>
   </ng-template>

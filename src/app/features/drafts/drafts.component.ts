@@ -41,6 +41,10 @@ interface DraftCard {
   sentThisWeek: number;
   /** The contact cap holds it: emailed in the last few days, no reply since. "" when it can send. */
   heldUntil: string;
+  /** They really wrote back: only then is it labeled and sent as a Reply (Ty, 2026-11-04). */
+  replied: boolean;
+  /** What happens on Approve, precomputed for the template. */
+  sendLine: string;
 }
 
 const REWRITE_POLL_MS = 5000;
@@ -203,6 +207,8 @@ export class DraftsComponent implements OnInit, OnDestroy {
     const sentThisWeek = recent?.count || 0;
     const heldUntil = this.heldUntil( thread, lastSentIso );
     const first = firstName( name );
+    // An open or click can write a draft into the reply fields; it's only a Reply if they wrote back.
+    const replied = kind === 'reply' && !!( String( thread.latestReplyText || '' ).trim() || thread.latestReplyAt );
     const body = stripAiFooter( String( ( kind === 'reply' ? thread.replyDraftBody : thread.draftBody ) || '' ) );
     return {
       thread,
@@ -218,7 +224,7 @@ export class DraftsComponent implements OnInit, OnDestroy {
         : sentThisWeek > 1 ? `You emailed ${ first } ${ sentThisWeek } times this week, last ${ lastSent }.`
           : lastSent ? `Your last email went out ${ lastSent }.`
             : `Drafted ${ sinceLabel( thread.lastUpdated ) || 'recently' }. No emails yet.`,
-      kindPill: kind === 'reply' ? 'Reply' : touches ? `Follow-up · email ${ touches + 1 }` : 'First email',
+      kindPill: replied ? 'Reply' : touches ? `Follow-up · email ${ touches + 1 }` : kind === 'reply' ? 'Follow-up' : 'First email',
       signalPill: clicks ? { text: `Clicked ${ clicks }×`, tint: 'yellow' } : opens ? { text: `Opened ${ opens }×`, tint: 'green' } : null,
       warm: kind === 'reply' || clicks > 0 || opens > 0,
       rewriting,
@@ -228,6 +234,8 @@ export class DraftsComponent implements OnInit, OnDestroy {
       rewritten: this.rewritten.has( id ),
       sentThisWeek,
       heldUntil,
+      replied,
+      sendLine: sendLine( kind, replied, first, heldUntil ),
     };
   }
 
@@ -259,12 +267,6 @@ export class DraftsComponent implements OnInit, OnDestroy {
     this.confirmDiscardHeld = false;
     this.toast = { text: failed ? `Discarded ${ held.length - failed } drafts. ${ failed } couldn't be discarded.` : `Discarded ${ held.length } drafts to people you emailed recently.` };
     await this.load( true );
-  }
-
-  /** "If approved, sends …" - a reply goes at once; a new email waits for their business hours. */
-  sendLine ( card: DraftCard ): string {
-    if ( card.kind === 'reply' ) return 'If approved, this reply sends right away.';
-    return `If approved, sends on a weekday during ${ firstName( card.name ) }'s business hours.`;
   }
 
   trackById ( _index: number, card: DraftCard ): string {
@@ -548,3 +550,12 @@ export class DraftsComponent implements OnInit, OnDestroy {
     this.cardError.set( card.id, String( error?.error?.message || error?.message || fallback ) );
   }
 }
+
+/** "If approved, sends …": held until the cap ends; a real reply goes at once; anything else waits for their business hours. */
+function sendLine ( kind: DraftKind, replied: boolean, first: string, heldUntil: string ): string {
+  if ( heldUntil ) return `Held until ${ heldUntil } so ${ first } doesn't get too many emails. You can approve it then.`;
+  if ( replied ) return 'If approved, this reply sends right away.';
+  if ( kind === 'reply' ) return 'If approved, this sends right away.';
+  return `If approved, sends on a weekday during ${ first }'s business hours.`;
+}
+
