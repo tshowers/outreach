@@ -812,6 +812,12 @@ export class OutreachApiService {
     return this.http.post<MailboxReplyResponse>( `${this.baseUrl}/outreach/mailboxes/${encodeURIComponent( mailboxId )}/messages/${encodeURIComponent( messageId )}/reply`, payload, { headers } );
   }
 
+  /** A reply written from the email itself, for "Help me write it" when the sender isn't a contact. */
+  draftMailboxReply ( mailboxId: string, messageId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<{ success: boolean; message: string; data: { body: string; }; }> {
+    const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
+    return this.http.post<{ success: boolean; message: string; data: { body: string; }; }>( `${this.baseUrl}/outreach/mailboxes/${encodeURIComponent( mailboxId )}/messages/${encodeURIComponent( messageId )}/draft-reply`, {}, { headers } );
+  }
+
   deleteMailboxMessage ( mailboxId: string, messageId: string, opts: { tenantId?: string; userId?: string; userEmail?: string; } = {} ): Observable<MailboxDeleteMessageResponse> {
     const headers = this.buildHeaders( opts.tenantId, opts.userId, opts.userEmail );
     return this.http.delete<MailboxDeleteMessageResponse>( `${this.baseUrl}/outreach/mailboxes/${encodeURIComponent( mailboxId )}/messages/${encodeURIComponent( messageId )}`, { headers } );

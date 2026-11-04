@@ -464,6 +464,24 @@ export class MailboxAccessService {
     return text;
   }
 
+  /**
+   * A reply written from the email itself (any sender, contact or not).
+   * Plain text; throws when 16Ahead can't write one.
+   */
+  async draftReplyFromEmail(messageId: string): Promise<string> {
+    const mailboxId = this.connectedMailbox?.id;
+    if (!mailboxId || !messageId) throw new Error("16Ahead couldn't write this one. Try writing your own.");
+    let body = '';
+    try {
+      const response = await firstValueFrom(this.outreachApi.draftMailboxReply(mailboxId, messageId, this.getMailboxRequestOptions()));
+      body = String(response?.data?.body || '').trim();
+    } catch (error: any) {
+      throw new Error(error?.error?.message || "16Ahead couldn't write this one. Try writing your own.");
+    }
+    if (!body) throw new Error("16Ahead couldn't write this one. Try writing your own.");
+    return body;
+  }
+
   deleteSelectedMailboxMessage(): void {
     if (!this.connectedMailbox?.id || !this.selectedMailboxMessage?.id || this.isDeletingMailboxMessage) return;
     if (typeof window !== 'undefined' && !window.confirm('Delete this inbox message from the connected mailbox?')) return;

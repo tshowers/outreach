@@ -501,17 +501,16 @@ export class InboxComponent implements OnInit, OnDestroy {
   async rewrite (): Promise<void> {
     const letter = this.openLetter;
     if ( !letter || this.rewriting ) return;
-    if ( this.preview || !letter.contactId ) {
-      if ( letter.draft ) {
-        this.letterView?.setDraft( letter.draft );
-      } else {
-        this.flash( { text: '16Ahead needs this sender in your contacts to write a reply.' } );
-      }
+    if ( this.preview ) {
+      if ( letter.draft ) this.letterView?.setDraft( letter.draft );
       return;
     }
     this.rewriting = true;
     try {
-      const text = await this.mailbox.draftReplyWithTodd( letter.contactId );
+      // A contact's reply knows their history; anyone else's is written from the email itself (Ty, 2026-11-04).
+      const text = letter.contactId ?
+        await this.mailbox.draftReplyWithTodd( letter.contactId ) :
+        await this.mailbox.draftReplyFromEmail( letter.id );
       if ( this.openId === letter.id ) this.letterView?.setDraft( text );
     } catch ( error: any ) {
       this.flash( { text: String( error?.message || "16Ahead couldn't write this one." ) } );
