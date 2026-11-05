@@ -5,7 +5,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Observable, Subscription, catchError, combineLatest, firstValueFrom, from, map, mergeMap, of, take, toArray } from 'rxjs';
 
 import { OutreachAuthService } from '../../services/outreach-auth.service';
-import { OutreachApiService } from '../../services/outreach-api.service';
+import { MayaAutoSendMode, OutreachApiService } from '../../services/outreach-api.service';
 import { NeedsYouCountService } from '../../services/needs-you-count.service';
 import { MomentumThread } from '../../models/momentum-thread.model';
 import { BrowseNoticeComponent } from '../../shared/write-access/browse-notice.component';
@@ -45,6 +45,8 @@ interface DraftCard {
   replied: boolean;
   /** What happens on Approve, precomputed for the template. */
   sendLine: string;
+  /** The auto-send setting will send it without you. */
+  sendsByItself: boolean;
 }
 
 const REWRITE_POLL_MS = 5000;
@@ -93,6 +95,13 @@ export class DraftsComponent implements OnInit, OnDestroy {
   discardingHeld = false;
   private recentSends: Record<string, { count: number; lastSentAt: string; }> = {};
   private capDays = 3;
+  /** The Marketing Assistant's auto-send setting (Outreach > Settings); null until loaded. */
+  private autoSend: { mode: MayaAutoSendMode; since: string; } | null = null;
+  /** How many drafts its auto-send setting will send without you. */
+  autoSendCount = 0;
+  /** The header line, precomputed in build(). */
+  subtitle = '';
+  settingsLink = 'Let the Marketing Assistant send on its own';
   expanded = new Set<string>();
   moreOpen = new Set<string>();
   working = new Map<string, string>();
@@ -143,10 +152,12 @@ export class DraftsComponent implements OnInit, OnDestroy {
     if ( !this.tenantId ) return;
     if ( !quiet ) this.loading = true;
     try {
-      const [response, recent] = await Promise.all( [
+      const [response, recent, settings] = await Promise.all( [
         firstValueFrom( this.api.getSignalEngineBootstrap( this.opts ) ),
         firstValueFrom( this.api.getRecentSends( this.opts ) ).catch( () => null ),
+        firstValueFrom( this.api.getMayaSettings( this.opts ) ).catch( () => null ),
       ] );
+      if ( settings?.data ) this.autoSend = { mode: settings.data.autoSendMode, since: String( settings.data.autoSendSince || '' ) };
       if ( recent?.data ) {
         this.recentSends = recent.data.counts || {};
         this.capDays = Number( recent.data.capDays ) || 3;
@@ -186,6 +197,10 @@ export class DraftsComponent implements OnInit, OnDestroy {
     this.warm = cards.filter( ( card ) => card.warm && !card.heldUntil );
     this.first = cards.filter( ( card ) => !card.warm && !card.heldUntil );
     this.held = cards.filter( ( card ) => !!card.heldUntil );
+    this.autoSendCount = cards.filter( ( card ) => card.sendsByItself ).length;
+    const autoSendOn = !!this.autoSend && this.autoSend.mode !== 'off';
+    this.settingsLink = autoSendOn ? 'Automatic sending settings' : 'Let the Marketing Assistant send on its own';
+    this.subtitle = draftsSubtitle( cards.length, autoSendOn, this.autoSendCount );
     this.syncChecked();
     if ( this.rewriting.size ) this.schedulePoll();
     else if ( cards.some( ( card ) => !!card.thread.rewriteQueueState ) ) this.schedulePoll( REWRITE_QUEUE_POLL_MS );
@@ -207,6 +222,7 @@ export class DraftsComponent implements OnInit, OnDestroy {
     const sentThisWeek = recent?.count || 0;
     const heldUntil = this.heldUntil( thread, lastSentIso );
     const first = firstName( name );
+    const sendsByItself = this.sendsByItself( thread );
     // An open or click can write a draft into the reply fields; it's only a Reply if they wrote back.
     const replied = kind === 'reply' && !!( String( thread.latestReplyText || '' ).trim() || thread.latestReplyAt );
     const body = stripAiFooter( String( ( kind === 'reply' ? thread.replyDraftBody : thread.draftBody ) || '' ) );
@@ -235,8 +251,28 @@ export class DraftsComponent implements OnInit, OnDestroy {
       sentThisWeek,
       heldUntil,
       replied,
-      sendLine: sendLine( kind, replied, first, heldUntil ),
+      sendsByItself,
+      sendLine: this.autoSend && this.autoSend.mode !== 'off' && kind === 'outbound' && !replied ?
+        autoSendLine( sendsByItself, first, heldUntil, this.autoSend.mode, String( thread.mayaApprovalReleaseAt || '' ) ) :
+        sendLine( kind, replied, first, heldUntil ),
     };
+  }
+
+  /**
+   * The server's rule (momentum.processor.js isMayaNoonAutoReleaseEligible):
+   * the Marketing Assistant's own first-email drafts written after auto-send
+   * was turned on. Older drafts and drafts from elsewhere wait for you.
+   */
+  private sendsByItself ( thread: MomentumThread ): boolean {
+    if ( !this.autoSend || this.autoSend.mode === 'off' ) return false;
+    const fromAssistant = String( thread.origin || '' ).toLowerCase() === 'maya' || String( thread.senderName || '' ).toLowerCase() === 'maya';
+    if ( !fromAssistant ) return false;
+    if ( String( thread.mode || '' ).toLowerCase() !== 'draft_only' ) return false;
+    if ( String( thread.queueMode || '' ).toLowerCase() !== 'approval_first' ) return false;
+    const releaseAt = Date.parse( String( thread.mayaApprovalReleaseAt || '' ) );
+    if ( !releaseAt ) return false;
+    const since = Date.parse( this.autoSend.since );
+    return !since || releaseAt > since;
   }
 
   /** The server's contact cap, mirrored so the page can show it: emailed within capDays, no reply since. */
@@ -549,6 +585,29 @@ export class DraftsComponent implements OnInit, OnDestroy {
     }
     this.cardError.set( card.id, String( error?.error?.message || error?.message || fallback ) );
   }
+}
+
+/** The header: with auto-send on, how many go by themselves and why the rest wait. */
+export function draftsSubtitle ( total: number, autoSendOn: boolean, autoCount: number ): string {
+  const lead = `${ total } ${ total === 1 ? 'email' : 'emails' } Marketing Assistant wrote for you.`;
+  if ( !autoSendOn ) return `${ lead } Nothing sends until you approve it. Approved emails go to Outbox and send during the recipient's business hours.`;
+  if ( autoCount === total ) return `${ lead } Automatic sending is on, so ${ total === 1 ? 'it sends' : 'they all send' } by ${ total === 1 ? 'itself' : 'themselves' } unless you discard ${ total === 1 ? 'it' : 'them' }.`;
+  const waiting = total - autoCount;
+  return `${ lead } Automatic sending is on${ autoCount ? `: ${ autoCount } send by themselves` : ', but none of these send by themselves' }. ` +
+    `${ autoCount ? `The other ${ waiting } wait` : `${ waiting === 1 ? 'It waits' : 'They wait' }` } for you to approve, because automatic sending only covers first emails the Marketing Assistant writes after you turned it on.`;
+}
+
+/** With auto-send on: says whether this draft goes without you, and when. */
+export function autoSendLine ( sendsByItself: boolean, first: string, heldUntil: string, mode: MayaAutoSendMode, releaseAtIso: string ): string {
+  if ( !sendsByItself ) {
+    return heldUntil ?
+      `Written before automatic sending was turned on, so it waits for you. Held until ${ heldUntil } so ${ first } doesn't get too many emails.` :
+      `Written before automatic sending was turned on, so it waits for you. If approved, sends on a weekday during ${ first }'s business hours.`;
+  }
+  if ( heldUntil ) return `Sends by itself after ${ heldUntil }, when the 3-day wait for ${ first } ends, unless you discard it.`;
+  const releaseAt = new Date( releaseAtIso );
+  if ( mode === 'noon' && releaseAt.getTime() > Date.now() ) return `Sends by itself ${ sendTimeLabel( releaseAt ) } unless you approve, edit or discard it first.`;
+  return `Sends by itself during ${ first }'s business hours unless you discard it.`;
 }
 
 /** "If approved, sends …": held until the cap ends; a real reply goes at once; anything else waits for their business hours. */

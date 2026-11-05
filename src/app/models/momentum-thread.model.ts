@@ -239,6 +239,10 @@ export interface MomentumThread {
     lastStageAdvancedAt?: string;
     lastStageAdvanceReason?: string;
     autoSendBlocker?: string;
+    /** "approval_first" for the Marketing Assistant's drafts that wait for a person or its noon release. */
+    queueMode?: string;
+    /** When the Marketing Assistant's auto-send setting may release this draft (its local noon). */
+    mayaApprovalReleaseAt?: string | null;
 
     draftSubject?: string;
     draftBody?: string;

@@ -3,11 +3,9 @@
 
   <header>
     <h1>Drafts</h1>
-    <p class="subtitle" *ngIf="cards.length">
-      {{ cards.length }} {{ cards.length === 1 ? 'email' : 'emails' }} Marketing Assistant wrote for you. Nothing sends until you approve it. Approved emails go to Outbox and send during the recipient's business hours.
-    </p>
+    <p class="subtitle" *ngIf="cards.length" data-cy="drafts-subtitle">{{ subtitle }}</p>
     <div class="drafts__links">
-      <a class="drafts__settings" routerLink="/maya-settings" data-cy="drafts-maya-settings">Let the Marketing Assistant send on its own →</a>
+      <a class="drafts__settings" routerLink="/maya-settings" data-cy="drafts-maya-settings">{{ settingsLink }} →</a>
       <ng-container *ngIf="cards.length">
         <button type="button" class="pill pill--40" *ngIf="selecting; else selectButton" [disabled]="!!bulkWorking" (click)="stopSelecting()" data-cy="drafts-select-done">Done</button>
         <ng-template #selectButton>
